@@ -1,6 +1,10 @@
 import { Component } from 'react'
-import { View, Text, Button } from '@tarojs/components'
+import { View, Text } from '@tarojs/components'
 import { connect } from 'react-redux'
+import { Button, Card, WhiteSpace, WingBlank, Modal,
+  Toast,
+  Provider, } from '@ant-design/react-native';
+
 import './index.less'
 
 @connect(({ jihan }) => ({
@@ -13,6 +17,7 @@ class Index extends Component {
     super(props)
     this.state = {
       value: '9999',
+      visible: false,
     }
     this.yincang = this.yincang.bind(this)
   }
@@ -35,6 +40,12 @@ class Index extends Component {
     })
   }
 
+  onClose = () => {
+    this.setState({
+      visible: false,
+    });
+  };
+
   async UNSAFE_componentWillUnmount () { }
 
   componentDidShow () { }
@@ -43,29 +54,78 @@ class Index extends Component {
 
   render () {
     const isShow = this.props.jihanData.twoData ? '' : 'none'
+    const footerButtons = [
+      { text: 'Cancel', onPress: () => console.log('cancel') },
+      { text: 'Ok', onPress: () => console.log('ok') },
+    ];
     return (
       <View className='index'>
         <Text>{this.state.value}</Text>
         <Text>{JSON.stringify(this.props)}</Text>
         <Text>{this.props.jihanData.jihan}</Text>
+        <WingBlank size='lg'>
+          <Button onPress={() => this.setState({ visible: true })}>
+            showModal
+          </Button>
+        </WingBlank>
+       
+        <Provider>
+          <Modal
+            title='Title'
+            transparent
+            onClose={this.onClose}
+            maskClosable
+            visible={this.state.visible}
+            closable
+            footer={footerButtons}
+          >
+            <View style={{ paddingVertical: 20 }}>
+              <Text style={{ textAlign: 'center' }}>Content...</Text>
+              <Text style={{ textAlign: 'center' }}>Content...</Text>
+            </View>
+            <Button type='primary' onPress={this.onClose}>
+              close modal
+            </Button>
+          </Modal>
+
+        </Provider>
+       
         <Text style={{ display: isShow }}>隐藏/显示</Text>
-        <Button onClick={this.yincang}>隐藏/显示</Button>
-        {/* <Icon size='60' type='success' />
-        <View className='page-section'>
-          <Text>默认样式</Text>
-          <Checkbox value='选中'>选中</Checkbox>
-          <Checkbox style='margin-left: 20px' value='未选中'>未选中</Checkbox>
-        </View> */}
-        {/* <View className='page-section'>
-          <Text>推荐展示样式</Text>
-          {this.state.list.map((item, i) => {
-            return (
-              <Label className='checkbox-list__label' for={i} key={i}>
-                <Checkbox className='checkbox-list__checkbox' value={item.value} checked={item.checked} onChange={this.checkClick}>{item.text}</Checkbox>
-              </Label>
-            )
-          })}
-        </View> */}
+        <Button type='primary' onPress={this.yincang}>隐藏/显示</Button>
+        <WingBlank size='lg'>
+          <Card>
+            <Card.Header
+              title='This is title'
+              thumbStyle={{ width: 30, height: 30 }}
+              thumb='https://gw.alipayobjects.com/zos/rmsportal/MRhHctKOineMbKAZslML.jpg'
+              extra='this is extra'
+            />
+            <Card.Body>
+              <View style={{ height: 42 }}>
+                <Text style={{ marginLeft: 16 }}>Card Content</Text>
+              </View>
+            </Card.Body>
+            <Card.Footer
+              content='footer content'
+              extra='footer extra content'
+            />
+          </Card>
+        </WingBlank>
+        <WhiteSpace size='lg' />
+        <Card full>
+          <Card.Header
+            title='Full Column'
+            thumbStyle={{ width: 30, height: 30 }}
+            thumb='https://gw.alipayobjects.com/zos/rmsportal/MRhHctKOineMbKAZslML.jpg'
+            extra='this is extra'
+          />
+          <Card.Body>
+            <View style={{ height: 42 }}>
+              <Text style={{ marginLeft: 16 }}>Card Content</Text>
+            </View>
+          </Card.Body>
+          <Card.Footer content='footer content' extra='footer extra content' />
+        </Card>
       </View>
     )
   }
