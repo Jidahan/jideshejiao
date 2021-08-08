@@ -1,11 +1,12 @@
 export default {
   namespace: 'jihan',
   state: {
-    jihan: ['1', '2', '3']
+    jihan: ['1', '2', '3'],
+    twoData: true
   },
   effects: {
     *saveData({ payload }, { call, put }) {
-      const jihan = ['1', '2', '3', '4']
+      const jihan = ['1', '2', '3', '4', '5']
       yield put({
         type: 'save',
         payload: {
@@ -13,12 +14,12 @@ export default {
         }
       })
     },
-    *editData({ payload }, { call, put }) {
-      const jihan = payload
+    *yincang({ payload }, { call, put }) {
+      const twoData = payload
       yield put({
         type: 'save',
         payload: {
-          jihan
+          twoData
         }
       })
     },
