@@ -12,7 +12,7 @@ class Index extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      value: '9999'
+      value: '9999',
     }
     this.yincang = this.yincang.bind(this)
   }
@@ -50,6 +50,22 @@ class Index extends Component {
         <Text>{this.props.jihanData.jihan}</Text>
         <Text style={{ display: isShow }}>隐藏/显示</Text>
         <Button onClick={this.yincang}>隐藏/显示</Button>
+        {/* <Icon size='60' type='success' />
+        <View className='page-section'>
+          <Text>默认样式</Text>
+          <Checkbox value='选中'>选中</Checkbox>
+          <Checkbox style='margin-left: 20px' value='未选中'>未选中</Checkbox>
+        </View> */}
+        {/* <View className='page-section'>
+          <Text>推荐展示样式</Text>
+          {this.state.list.map((item, i) => {
+            return (
+              <Label className='checkbox-list__label' for={i} key={i}>
+                <Checkbox className='checkbox-list__checkbox' value={item.value} checked={item.checked} onChange={this.checkClick}>{item.text}</Checkbox>
+              </Label>
+            )
+          })}
+        </View> */}
       </View>
     )
   }
