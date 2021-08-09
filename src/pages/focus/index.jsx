@@ -2,7 +2,7 @@ import { Component } from 'react'
 import { View, Text } from '@tarojs/components'
 import './index.less'
 
-class Home extends Component {
+class Focus extends Component {
 
   UNSAFE_componentWillMount () { }
 
@@ -17,10 +17,10 @@ class Home extends Component {
   render () {
     return (
       <View className='index'>
-        <Text>Hello home!</Text>
+        <Text>Hello Focus!</Text>
       </View>
     )
   }
 }
 
-export default Home;
+export default Focus;

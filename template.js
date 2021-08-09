@@ -18,9 +18,6 @@ import { View } from '@tarojs/components';
 import { connect } from '@tarojs/redux';
 import './index.less';
 
-@connect(({${dirName}}) => ({
-  ...${dirName},
-}))
 class ${titleCase(dirName)} extends Component {
   config = {
     navigationBarTitleText: '${dirName}',
@@ -39,14 +36,19 @@ class ${titleCase(dirName)} extends Component {
   }
 }
 
-export default ${titleCase(dirName)}
+export default connect(
+  ({
+    ${dirName},
+  }) => ({
+    ${dirName},
+  }),
+)(${titleCase(dirName)});
 `;
 
 // less文件模版
-const lessTep = `@import "../../styles/mixin";
-
+const lessTep = `
 .${dirName}-page {
-  @include wh(100%, 100%);
+  
 }
 `;
 
@@ -60,7 +62,7 @@ export default {
   },
 
   effects: {
-    * effectsDemo(_, { call, put }) {
+    *effectsDemo(_, { call, put }) {
       const { status, data } = yield call(${dirName}Api.demo, {});
       if (status === 'ok') {
         yield put({ type: 'save',

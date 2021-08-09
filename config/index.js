@@ -59,6 +59,14 @@ const config = {
         }
       }
     }
+  },
+  rn: {
+    output: {
+      ios: '../taro-native-shell/ios/main.jsbundle',
+      iosAssetsDest: '../taro-native-shell/ios',
+      android: '../taro-native-shell/android/app/src/main/assets/index.android.bundle',
+      androidAssetsDest: '../taro-native-shell/android/app/src/main/res'
+    },
   }
 }
 
