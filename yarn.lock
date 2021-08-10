@@ -9,12 +9,7 @@
   dependencies:
     "@ctrl/tinycolor" "^3.4.0"
 
-"@ant-design/icons-react-native@^2.2.1":
-  version "2.3.1"
-  resolved "https://registry.nlark.com/@ant-design/icons-react-native/download/@ant-design/icons-react-native-2.3.1.tgz?cache=0&sync_timestamp=1623203051150&other_urls=https%3A%2F%2Fregistry.nlark.com%2F%40ant-design%2Ficons-react-native%2Fdownload%2F%40ant-design%2Ficons-react-native-2.3.1.tgz#62eb3a0c5371c35b069dd60b7c02901016ffd7eb"
-  integrity sha1-Yus6DFNxw1sGndYLfAKQEBb/1+s=
-
-"@ant-design/icons-react-native@^2.3.1":
+"@ant-design/icons-react-native@^2.2.1", "@ant-design/icons-react-native@^2.3.1":
   version "2.3.1"
   resolved "https://registry.nlark.com/@ant-design/icons-react-native/download/@ant-design/icons-react-native-2.3.1.tgz#62eb3a0c5371c35b069dd60b7c02901016ffd7eb"
   integrity sha1-Yus6DFNxw1sGndYLfAKQEBb/1+s=
@@ -1339,6 +1334,11 @@
   integrity sha1-DSIaXvHNemSUpC/KrUMTbWg3mvs=
   dependencies:
     deep-assign "^3.0.0"
+
+"@react-native-clipboard/clipboard@^1.8.4":
+  version "1.8.4"
+  resolved "https://registry.nlark.com/@react-native-clipboard/clipboard/download/@react-native-clipboard/clipboard-1.8.4.tgz#4bc1fb00643688e489d8220cd635844ab5c066f9"
+  integrity sha1-S8H7AGQ2iOSJ2CIM1jWESrXAZvk=
 
 "@react-native-community/bob@^0.16.2":
   version "0.16.2"
