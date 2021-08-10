@@ -9,9 +9,14 @@
   dependencies:
     "@ctrl/tinycolor" "^3.4.0"
 
-"@ant-design/icons-react-native@^2.2.1", "@ant-design/icons-react-native@^2.3.1":
+"@ant-design/icons-react-native@^2.2.1":
   version "2.3.1"
   resolved "https://registry.nlark.com/@ant-design/icons-react-native/download/@ant-design/icons-react-native-2.3.1.tgz?cache=0&sync_timestamp=1623203051150&other_urls=https%3A%2F%2Fregistry.nlark.com%2F%40ant-design%2Ficons-react-native%2Fdownload%2F%40ant-design%2Ficons-react-native-2.3.1.tgz#62eb3a0c5371c35b069dd60b7c02901016ffd7eb"
+  integrity sha1-Yus6DFNxw1sGndYLfAKQEBb/1+s=
+
+"@ant-design/icons-react-native@^2.3.1":
+  version "2.3.1"
+  resolved "https://registry.nlark.com/@ant-design/icons-react-native/download/@ant-design/icons-react-native-2.3.1.tgz#62eb3a0c5371c35b069dd60b7c02901016ffd7eb"
   integrity sha1-Yus6DFNxw1sGndYLfAKQEBb/1+s=
 
 "@ant-design/icons-svg@^4.0.0":
