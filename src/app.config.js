@@ -3,6 +3,9 @@ export default {
     'pages/index/index',
     'pages/focus/index',
     'pages/home/index',
+    'pages/home/components/advicePage/index',
+    'pages/home/components/personInfoPage/index',
+    'pages/userInfo/index',
   ],
   debug:true,
   tabBar:{
@@ -32,7 +35,7 @@ export default {
   window: {
     backgroundTextStyle: 'light',
     navigationBarBackgroundColor: '#fff',
-    navigationBarTitleText: 'WeChat',
+    navigationBarTitleText: '记得',
     navigationBarTextStyle: 'black'
-  }
+  },
 }

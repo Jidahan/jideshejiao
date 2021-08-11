@@ -13,19 +13,19 @@ if (!dirName) {
 }
 
 // 页面模版
-const indexTep = `import Taro, { Component } from '@tarojs/taro';
+const indexTep = `import { Component } from 'react';
 import { View } from '@tarojs/components';
-import { connect } from '@tarojs/redux';
+import { connect } from 'react-redux';
 import './index.less';
 
 class ${titleCase(dirName)} extends Component {
-  config = {
-    navigationBarTitleText: '${dirName}',
-  };
 
-  componentDidMount = () => {
+  constructor(props) {
+    super(props)
+    this.state = {}
+  }
 
-  };
+  componentDidMount() { }
 
   render() {
     return (
@@ -36,13 +36,15 @@ class ${titleCase(dirName)} extends Component {
   }
 }
 
-export default connect(
-  ({
-    ${dirName},
-  }) => ({
-    ${dirName},
-  }),
-)(${titleCase(dirName)});
+export default ${titleCase(dirName)}
+// 下面用来connect数据层
+// export default connect(
+//   ({
+//     ${dirName},
+//   }) => ({
+//     ${dirName},
+//   }),
+// )(${titleCase(dirName)});
 `;
 
 // less文件模版

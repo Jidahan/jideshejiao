@@ -1,4 +1,5 @@
 import { Component } from 'react'
+import Taro from '@tarojs/taro'
 import { View, ScrollView, Text, Image } from '@tarojs/components'
 import { Flex, WhiteSpace, WingBlank, Button, Card } from '@ant-design/react-native'
 import { TextInput } from 'react-native'
@@ -25,6 +26,8 @@ class Index extends Component {
       ]
     },
     this.adClick = this.adClick.bind(this)
+    this.cardGoUserInfo = this.cardGoUserInfo.bind(this)
+    this.likeUser = this.likeUser.bind(this)
   }
 
   UNSAFE_componentWillMount () { }
@@ -41,7 +44,17 @@ class Index extends Component {
 
   adClick() {
     console.log('点击ad广告');
+  }
 
+  cardGoUserInfo(info) {
+    Taro.navigateTo({
+      url: `/pages/userInfo/index?id=${info.id}`
+    })
+  }
+
+  likeUser(info, e) {
+    console.log(e);
+    console.log('8888');
   }
 
   render () {
@@ -90,7 +103,7 @@ class Index extends Component {
                   return (
                     <Card style={{ width: '100%', marginTop: 20 }} key={reward.id}>
                       <Card.Body style={{ padding: 10 }}>
-                        <View className='cardBody'>
+                        <View className='cardBody' onClick={() => this.cardGoUserInfo(reward)}>
                           <View className='cardBodyLeft'>
                             <Image
                               style={{width: 80, height: 80, borderRadius: 10}}
@@ -102,7 +115,7 @@ class Index extends Component {
                                 {reward.focus ? 
                                   <View className='row' style={{ marginLeft: 5 }}>
                                     <Image 
-                                      style='width: 18px;height: 18px'
+                                      style={{ width: 18, height: 18 }}
                                       src={womenImg}
                                     />
                                     <Text style={{ color: '#d4237a' }}>女神</Text>
@@ -130,7 +143,7 @@ class Index extends Component {
                                   />
                                   <Text>430m</Text>
                                 </View>
-                                <View className='row cardContentBottomCenter'>
+                                <View className='row cardContentBottomCenter' style={{ zIndex: 99 }}>
                                   <Image
                                     style='width: 25px;height: 25px'
                                     src={personImg}
@@ -150,9 +163,9 @@ class Index extends Component {
                           
                           <View>
                             {reward.focus ? 
-                              <Image src={selectHeatImg} style={{width: 25, height: 25, borderRadius: 10}} />
+                              <Image src={selectHeatImg} style={{width: 25, height: 25, borderRadius: 10}} onClick={(e) => this.likeUser(reward, e)} />
                             :
-                              <Image src={heartImg} style={{width: 25, height: 25, borderRadius: 10}} />
+                              <Image src={heartImg} style={{width: 25, height: 25, borderRadius: 10}} onClick={(e) => this.likeUser(reward, e)} />
                             }
                           </View>
                         </View>

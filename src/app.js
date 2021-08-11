@@ -1,17 +1,18 @@
 import { Component } from 'react'
 /* dva */
-import {Provider} from 'react-redux'
+import { Provider } from 'react-redux'
 import dva from './utils/dva'
 import models from './models/index'
+import AntRnProvider from './utils/antRnProvider'
 
 import './app.less'
 
 const dvaApp = dva.createApp( {
   initialState: {},
   models: models,
-} );  
-const store = dvaApp.getStore();
+});
 
+const store = dvaApp.getStore();
 class App extends Component {
 
   componentDidMount () {}
@@ -20,7 +21,9 @@ class App extends Component {
   render () {
     return (
       <Provider store={store}>
-        {this.props.children}
+        <AntRnProvider>
+          {this.props.children}
+        </AntRnProvider>
       </Provider>
     )
   }
