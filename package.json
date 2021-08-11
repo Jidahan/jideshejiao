@@ -40,6 +40,7 @@
     "@ant-design/react-native": "^4.2.0",
     "@babel/runtime": "^7.7.7",
     "@react-native-clipboard/clipboard": "^1.8.4",
+    "@react-native-community/blur": "^3.6.0",
     "@react-native-community/segmented-control": "^2.2.2",
     "@react-native-picker/picker": "^1.16.5",
     "@tarojs/components": "3.3.2",

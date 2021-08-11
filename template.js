@@ -1,5 +1,5 @@
  /**
- * pages模版快速生成脚本,执行命令 npm run tep `文件名`
+ * pages模版快速生成脚本,执行命令 npm run tep `文件名` // yarn tep `文件名`
  */
 
 const fs = require('fs');
@@ -113,7 +113,7 @@ fs.writeFileSync('model.js', modelTep);
 fs.writeFileSync('service.js', serviceTep);
 fs.writeFileSync('index.config.js', configTep);
 
-console.log(`模版${dirName}已创建,请手动增加models`);
+console.log(`模版${dirName}已创建,请手动增加models。记得在app.config.js中引入该文件进行路由注册～`);
 
 function titleCase(str) {
   const array = str.toLowerCase().split(' ');

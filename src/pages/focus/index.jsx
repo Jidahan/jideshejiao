@@ -1,4 +1,5 @@
 import { Component } from 'react'
+import Taro from '@tarojs/taro'
 import { View, ScrollView, Text, Image } from '@tarojs/components'
 import { Flex, WingBlank, Card } from '@ant-design/react-native'
 import './index.less'
@@ -20,11 +21,9 @@ class Focus extends Component {
         {id:1, focus: true}, 
         {id:2, focus: false}
       ]
-    }
+    },
+    this.cardGoUserInfo = this.cardGoUserInfo.bind(this)
   }
-
-
-  UNSAFE_componentWillMount () { }
 
   componentDidMount () { 
     let cardData = []
@@ -35,6 +34,12 @@ class Focus extends Component {
   }
 
   componentWillUnmount () { }
+
+  cardGoUserInfo(info) {
+    Taro.navigateTo({
+      url: `/pages/userInfo/index?id=${info.id}`
+    })
+  }
 
   render () {
     const { cardList } = this.state
@@ -53,7 +58,7 @@ class Focus extends Component {
                 return (
                   <Card style={{ width: '100%', marginTop: 20 }} key={reward.id}>
                     <Card.Body style={{ padding: 10 }}>
-                      <View className='cardBody'>
+                      <View className='cardBody' onClick={() => this.cardGoUserInfo(reward)}>
                         <View className='cardBodyLeft'>
                           <Image
                             style={{width: 80, height: 80, borderRadius: 10}}

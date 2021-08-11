@@ -38,6 +38,7 @@ class Home extends Component {
     this.logoutSubmit = this.logoutSubmit.bind(this)
     this.shareClick = this.shareClick.bind(this)
     this.personInfoClick = this.personInfoClick.bind(this)
+    this.historyVisiti = this.historyVisiti.bind(this)
   }
 
   componentDidMount () {
@@ -80,7 +81,17 @@ class Home extends Component {
   }
 
   logoutSubmit() {
-    console.log('确认退出');
+    const key = Toast.loading('退出登录...');
+    setTimeout(() => {
+      Toast.remove(key);
+      Toast.success({
+        content: '退出成功！',
+        duration: 0.2,
+      })
+      Taro.redirectTo({
+        url: '/pages/login/index'
+      })
+    }, 1);
   }
 
   shareClick() {
@@ -122,6 +133,12 @@ class Home extends Component {
         });
       }
     });
+  }
+
+  historyVisiti() {
+    Taro.navigateTo({
+      url: '/pages/home/components/historyVisit/index'
+    })
   }
 
   render () {
@@ -234,7 +251,7 @@ class Home extends Component {
               thumb={
                 <Image src={historyCallPersonImg} className='iconSizeStyle' />
               }
-              onPress={() => {}}
+              onPress={this.historyVisiti}
               extra='有100个人看过你'
             >
               历史访客
@@ -290,25 +307,23 @@ class Home extends Component {
             </Item>
           </List>
         </ScrollView>
-        {/* <Provider> */}
-          <Modal
-            title={null}
-            transparent
-            onClose={() => {
-              this.setState({ logoutVisible: false })
-            }}
-            maskClosable
-            visible={this.state.logoutVisible}
-            footer={[
-              { text: '取消', onPress: () => this.setState({ logoutVisible: false }) },
-              { text: '确认退出', onPress: this.logoutSubmit },
-            ]}
-          >
-            <View style={{ paddingVertical: 20 }}>
-              <Text style={{ textAlign: 'center' }}>确认退出登录吗？</Text>
-            </View>
-          </Modal>
-        {/* </Provider> */}
+        <Modal
+          title={null}
+          transparent
+          onClose={() => {
+            this.setState({ logoutVisible: false })
+          }}
+          maskClosable
+          visible={this.state.logoutVisible}
+          footer={[
+            { text: '取消', onPress: () => this.setState({ logoutVisible: false }) },
+            { text: '确认退出', onPress: this.logoutSubmit },
+          ]}
+        >
+          <View style={{ paddingVertical: 20 }}>
+            <Text style={{ textAlign: 'center' }}>确认退出登录吗？</Text>
+          </View>
+        </Modal>
       </View>
 
     )

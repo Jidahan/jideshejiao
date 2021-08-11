@@ -1,7 +1,8 @@
 import { Component } from 'react';
-import Taro from '@tarojs/taro'
-import { View, Text, CoverView, CoverImage, Image, ScrollView } from '@tarojs/components'
-import { Icon, List, Button, WingBlank, Card, Toast, Flex, Modal, WhiteSpace } from '@ant-design/react-native'
+import Taro from '@tarojs/taro';
+import { View, Text, CoverView, CoverImage, ScrollView, Image } from '@tarojs/components'
+import { Icon, List, Button, WingBlank, Card, Flex, Modal, Radio, Toast } from '@ant-design/react-native'
+import { BlurView } from "@react-native-community/blur";
 import adImg from '../../images/ad.png'
 import headImg from '../../images/1.png'
 import manImg from '../../images/man.png'
@@ -14,16 +15,25 @@ import zwImg from '../../images/zw.png'
 import './index.less';
 
 const Item = List.Item;
-
+const RadioItem = Radio.RadioItem;
 class Userinfo extends Component {
 
   constructor(props) {
     super(props)
     this.state = {
-      imgArray: []
+      imgArray: [],
+      evaluationModal: false,
+      evalValue: 1,
+      photoImgsModal: false,
     }
     this.goBack = this.goBack.bind(this)
     this.goMaPhoto = this.goMaPhoto.bind(this)
+    this.spenMoneyLook = this.spenMoneyLook.bind(this)
+    this.evaluation = this.evaluation.bind(this)
+    this.unlock = this.unlock.bind(this)
+    this.goLikeFunction = this.goLikeFunction.bind(this)
+    this.handOkEvalSubmit = this.handOkEvalSubmit.bind(this)
+    this.handOkPayPhotos = this.handOkPayPhotos.bind(this)
   }
 
   componentDidMount() {
@@ -36,21 +46,63 @@ class Userinfo extends Component {
 
   goBack() {
     Taro.navigateBack({
-      delta: 2
+      delta: 1
     })
   }
 
   goMaPhoto() {
-    console.log('123211312');
+    this.setState({ photoImgsModal: true })
+    // 跳转详情
+    // Taro.navigateTo({
+    //   url: '/pages/photoLists/index'
+    // })
+  }
+
+  handOkPayPhotos() {
+    Taro.navigateTo({
+      url: '/pages/pay/index'
+    })
+  }
+
+  spenMoneyLook() {
+    console.log('解锁查看');
+    Taro.navigateTo({
+      url: '/pages/pay/index'
+    })
+  }
+
+  evaluation() {
+    console.log('评价');
+    this.setState({ evaluationModal: true })
+  }
+
+  handOkEvalSubmit() {
+    console.log(this.state.evalValue);
+    const key = Toast.loading('加载中');
+    setTimeout(() => {
+      Toast.remove(key);
+      Toast.success('评价成功！')
+    }, 2000);
+  }
+
+  unlock() {
+    console.log('解锁');
+    Taro.navigateTo({
+      url: '/pages/pay/index'
+    })
+  }
+
+  goLikeFunction() {
+    console.log('关注/不关注');
   }
 
   render() {
-    const { imgArray } = this.state
+    const { imgArray, evaluationModal, photoImgsModal } = this.state
     const imgArrayHeight = imgArray.length <= 5 ? 80 : 140
     return (
-      <View>
+      <View style={{ position: 'relative' }}>
         <ScrollView
-          style={{ flex: 1, backgroundColor: '#f5f5f9', marginBottom: 100 }}
+          style={{ flex: 1, backgroundColor: '#f5f5f9', marginBottom: 20 }}
           automaticallyAdjustContentInsets={false}
           showsHorizontalScrollIndicator={false}
           showsVerticalScrollIndicator={false}
@@ -100,17 +152,18 @@ class Userinfo extends Component {
                   <Image 
                     src={selectHeartImg} 
                     style={{width: 30, height: 30, position: 'absolute', right: 60, top: -15}}
+                    onClick={this.goLikeFunction}
                   />
-                  <Text style={{position: 'absolute', bottom: -8, right: 10}}>已关注</Text>
+                  <Text style={{position: 'absolute', bottom: -8, right: 10, fontSize: 16}} onClick={this.goLikeFunction}>已关注</Text>
                 </View>
               }
             >
               <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start' }}>
-                <Text>柳岩</Text>
+                <Text style={{ fontSize: 16 }}>柳岩</Text>
                 <View style={{ marginLeft: 10 }}>
                   <Icon name='environment' size='md' style={{ color: '#d4237a' }} />
                 </View>
-                <Text style={{ color: '#8a8a8a' }}>110m 离线</Text>
+                <Text style={{ color: '#8a8a8a', fontSize: 16 }}>110m 离线</Text>
               </View>
             </Item>
 
@@ -120,9 +173,9 @@ class Userinfo extends Component {
               extra={null}
             >
               <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start' }}>
-                <Text>广州市</Text>
-                <Text style={{ marginLeft: 10 }}>18岁</Text>
-                <Text style={{ marginLeft: 10 }}>金牛座</Text>
+                <Text style={{ fontSize: 16 }}>广州市</Text>
+                <Text style={{ marginLeft: 10, fontSize: 16 }}>18岁</Text>
+                <Text style={{ marginLeft: 10, fontSize: 16 }}>金牛座</Text>
               </View>
             </Item>
 
@@ -136,12 +189,12 @@ class Userinfo extends Component {
                   src={goodActionImg} 
                   style={{width: 28, height: 28}}
                 />
-                <Text style={{ marginLeft: 10 }}>好评 1</Text>
+                <Text style={{ marginLeft: 10, fontSize: 16 }}>好评 1</Text>
                 <Image
                   src={startImg}
                   style={{width: 28, height: 28, marginLeft: 15}}
                 />
-                <Text style={{ marginLeft: 10 }}>爱豆 199</Text>
+                <Text style={{ marginLeft: 10, fontSize: 16 }}>爱豆 199</Text>
               </View>
             </Item>
             <WingBlank size='lg'>
@@ -166,21 +219,140 @@ class Userinfo extends Component {
                     <Flex wrap='wrap'>
                       {imgArray
                         .map((reward) => {
-                          return <Image
-                            style={{width: 60, height: 60, marginLeft: 5, borderRadius: 5, marginBottom: 10 }}
-                            src={headImg}
-                            key={reward.id}
-                            className='filterImg'
-                          />
+                          return (
+                            <View>
+                              <Image
+                                style={{width: 60, height: 60, marginLeft: 5, borderRadius: 5, marginBottom: 10 }}
+                                src={headImg}
+                                key={reward.id}
+                                className='filterImg'
+                              />
+                              <BlurView
+                                className='absoluteBlurView'
+                                blurType='light'
+                                blurAmount={8}
+                                reducedTransparencyFallbackColor='white'
+                              />
+                            </View>
+                          )
                       })}
                     </Flex>
                   </WingBlank>
                   </View>
                 </Card.Body>
               </Card>
+              <Item
+                thumb={null}
+                disabled
+                extra='160cm'
+                arrow='empty'
+              >
+              身高
+              </Item>
+              <Item
+                thumb={null}
+                disabled
+                extra='56kg'
+                arrow='empty'
+              >
+              体重
+              </Item>
+              <Item
+                thumb={null}
+                extra='广州市'
+                arrow='empty'
+                disabled
+              >
+              常驻城市
+              </Item>
+              <Item
+                thumb={null}
+                // onPress={() => {}}
+                extra={
+                  <Text style={{ color: '#3b99fc' }} onClick={this.spenMoneyLook}>
+                    解锁查看
+                  </Text>
+                }
+                arrow='empty'
+              >
+              微信
+              </Item>
             </WingBlank>
           </List>
         </ScrollView>
+        <View className='bottomButton'>
+          <Button type='primary' style={{ width: 150, backgroundColor: '#9409a8', borderColor: '#9409a8' }} onPress={this.evaluation}>评价</Button>
+          <Button type='primary' style={{ width: 150, backgroundColor: '#2aa515', borderColor: '#2aa515' }} onPress={this.unlock}>解锁</Button>
+        </View>
+
+        <Modal
+          title='评价'
+          transparent
+          onClose={() => {
+            this.setState({ evaluationModal: false })
+          }}
+          maskClosable
+          visible={evaluationModal}
+          closable
+          footer={[
+            { text: '取消', onPress: () => console.log('cancel') },
+            { text: '确定', onPress: this.handOkEvalSubmit },
+          ]}
+        >
+          <View style={{ paddingVertical: 20 }}>
+            <RadioItem
+              checked={this.state.evalValue === 1}
+              onChange={event => {
+                if (event.target.checked) {
+                  this.setState({ evalValue: 1 });
+                }
+              }}
+            >
+            好评
+          </RadioItem>
+          <RadioItem
+            checked={this.state.evalValue === 2}
+            onChange={event => {
+              if (event.target.checked) {
+                this.setState({ evalValue: 2 });
+              }
+            }}
+          >
+            一般
+          </RadioItem>
+          <RadioItem
+            checked={this.state.evalValue === 3}
+            onChange={event => {
+              if (event.target.checked) {
+                this.setState({ evalValue: 3 });
+              }
+            }}
+          >
+            差评
+          </RadioItem>
+          </View>
+        </Modal>
+
+        <Modal
+          title=''
+          transparent
+          onClose={() => {
+            this.setState({ photoImgsModal: false })
+          }}
+          maskClosable
+          visible={photoImgsModal}
+          closable
+          footer={[
+            { text: '取消', onPress: () => console.log('cancel') },
+            { text: '解锁相册', onPress: this.handOkPayPhotos },
+          ]}
+        >
+          <View style={{ paddingVertical: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Icon name='layout' color='#3b99fc' style={{ fontSize: 40 }} />
+            <Text style={{ fontSize: 20, marginTop: 20 }}>付费相册</Text>
+            <Text style={{ marginTop: 20, marginBottom: 0 }}>有3张照片</Text>
+          </View>
+        </Modal>
       </View>
     )
   }

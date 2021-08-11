@@ -5,7 +5,12 @@ export default {
     'pages/home/index',
     'pages/home/components/advicePage/index',
     'pages/home/components/personInfoPage/index',
+    'pages/home/components/historyVisit/index',
     'pages/userInfo/index',
+    'pages/photoLists/index',
+    'pages/pay/index',
+    'pages/login/index',
+    'pages/login/components/genderPage/index',
   ],
   debug:true,
   tabBar:{
