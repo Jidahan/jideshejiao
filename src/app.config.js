@@ -11,6 +11,7 @@ export default {
     'pages/pay/index',
     'pages/login/index',
     'pages/login/components/genderPage/index',
+    'pages/citySelect/index'
   ],
   debug:true,
   tabBar:{

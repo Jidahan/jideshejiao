@@ -32,6 +32,7 @@ class Index extends Component {
     this.likeUser = this.likeUser.bind(this)
     this.searchOnChange = this.searchOnChange.bind(this)
     this.searchOnCancelChange = this.searchOnCancelChange.bind(this)
+    this.goCitySelect = this.goCitySelect.bind(this)
   }
 
   UNSAFE_componentWillMount () { }
@@ -51,6 +52,13 @@ class Index extends Component {
     // Taro.navigateTo({
     //   url: 'https://www.baidu.com'
     // })
+  }
+
+  goCitySelect() {
+    console.log('12323');
+    Taro.navigateTo({
+      url: `/pages/citySelect/index`
+    })
   }
 
   cardGoUserInfo(info) {
@@ -92,7 +100,7 @@ class Index extends Component {
             />
           </View> */}
           <View>
-            <Button size='small' className='searchRightButton'>
+            <Button size='small' className='searchRightButton' onPress={this.goCitySelect}>
               <View>
                 <Text className='searchRightButtonText'>附近</Text>
               </View>
