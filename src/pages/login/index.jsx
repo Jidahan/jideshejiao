@@ -3,6 +3,11 @@ import Taro from '@tarojs/taro';
 import { View, Text } from '@tarojs/components';
 import { Icon, List, Button, WingBlank, InputItem, Toast, Checkbox, Modal, WhiteSpace } from '@ant-design/react-native'
 import { connect } from 'react-redux';
+import { 
+  getPhoneSendCode,
+  appLogin,
+} from './service';
+
 import './index.less';
 
 
@@ -53,16 +58,48 @@ class Login extends Component {
         this.setState({ yqmError: true })
         return
       } 
-      console.log('游客登录数据', phoneValue, codeValue, yqmValue);
+      const key = Toast.loading('登录中...');
+      appLogin({tel: this.state.phoneValue, code: this.state.codeValue, invitationCode: this.state.yqmValue}).then(res => {
+        if(res.data.status === 200){
+          Toast.remove(key);
+          Taro.navigateTo({
+            url: '/pages/login/components/genderPage/index'
+          })
+        }else{
+          Toast.remove(key);
+          Toast.fail(`${res.data.msg}`)
+        }
+      }).catch(error => {
+        Toast.fail(`遇到了错误${error}`)
+      })
     }else{
       const key = Toast.loading('登录中...');
-      setTimeout(() => {
-        Toast.remove(key);
-        Taro.navigateTo({
-          url: '/pages/login/components/genderPage/index'
-        })
-      }, 2000);
-      console.log('注册用户登录数据', phoneValue, codeValue, yqmValue);
+      appLogin({tel: this.state.phoneValue, code: this.state.codeValue, invitationCode: this.state.yqmValue}).then(res => {
+        console.log(res);
+        if(res.data.status === 200){
+          Toast.remove(key);
+          Taro.setStorage({
+            key: "token",
+            data: res.data.data.accessToken
+          })
+          Taro.setStorage({
+            key: "userId",
+            data: res.data.data.userId
+          })
+          Taro.setStorage({
+            key: "newUser",
+            data: res.data.data.newUser
+          })
+          Taro.navigateTo({
+            url: '/pages/login/components/genderPage/index'
+          })
+        }else{
+          Toast.remove(key);
+          Toast.fail(`${res.data.msg}`)
+        }
+      }).catch(error => {
+        Toast.fail(`遇到了错误${error}`)
+      })
     }
    
   }
@@ -90,12 +127,30 @@ class Login extends Component {
       }
     };
     const sendCode = () =>{
-      this.setState({
-        btnDisable: true,
-        btnContent: "重新获取(60s)",
-      });
-      //每隔一秒执行一次clock方法
-      timeChange = setInterval(clock,1000);
+      if(!this.state.phoneValue) {
+        this.setState({ phoneError: true })
+        Toast.fail('请输入手机号！')
+        return
+      }
+      const key = Toast.loading('发送中...');
+      getPhoneSendCode(this.state.phoneValue).then(res => {
+        if(res.data.status === 200){
+          Toast.remove(key);
+          Toast.success('发送成功！')
+          this.setState({
+            btnDisable: true,
+            btnContent: "重新获取(60s)",
+          });
+          //每隔一秒执行一次clock方法
+          timeChange = setInterval(clock,1000);
+        }else{
+          Toast.remove(key);
+          Toast.fail(`遇到了错误${res.data.msg}`)
+        }
+      }).catch(error => {
+        Toast.fail(`遇到了错误${error}`)
+      })
+      
     };
 
     return (

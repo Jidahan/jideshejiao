@@ -1,9 +1,17 @@
 import Request from '../../utils/request';
 
-export const demo = (data) => {
+export const getPhoneSendCode = (data) => {
   return Request({
-    url: '路径',
-    method: 'POST',
-    data,
+    url: `/social/app/sendCode?tel=${data}`,
+    method: 'GET',
   });
 };
+
+export const appLogin = (data) => {
+  return Request({
+    url: `/social/app/login`,
+    method: 'POST',
+    data
+  });
+};
+

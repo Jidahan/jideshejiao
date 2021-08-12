@@ -1,8 +1,11 @@
 import { Component } from 'react'
 import Taro from '@tarojs/taro'
 import { View, ScrollView, Text, Image } from '@tarojs/components'
-import { Flex, WhiteSpace, WingBlank, Button, Card, SearchBar } from '@ant-design/react-native'
+import { Flex, WhiteSpace, WingBlank, Button, Card, SearchBar, Toast } from '@ant-design/react-native'
 import { TextInput } from 'react-native'
+import { 
+  appUserList,
+} from './service'
 
 import PositionImg from '../../images/position.png'
 import adImg from '../../images/ad.png'
@@ -21,10 +24,7 @@ class Index extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      cardList: [
-        {id:1, focus: true}, 
-        {id:2, focus: false}
-      ],
+      cardList: [],
       searchValue: ''
     },
     this.adClick = this.adClick.bind(this)
@@ -34,15 +34,21 @@ class Index extends Component {
     this.searchOnCancelChange = this.searchOnCancelChange.bind(this)
     this.goCitySelect = this.goCitySelect.bind(this)
   }
-
-  UNSAFE_componentWillMount () { }
   
   componentDidMount () {
-    let cardData = []
-    for(let i = 0; i <= 20; i++){
-      cardData.push({id: i, focus: Math.random() >= 0.5}, )
-    }
-    this.setState({ cardList: cardData })
+    this.getUserLists()
+  }
+
+  getUserLists() {
+    const key = Toast.loading('加载中...');
+    appUserList({city: '西安', pageNumber: 1, pageSize: 10}).then(data => {
+      if(data.statusCode === 200){
+        this.setState({ cardList: data.data.data.records })
+        Toast.remove(key);
+      }else{
+        Toast.fail(data.data.msg)
+      }
+    })
   }
 
   componentWillUnmount () { }
@@ -134,12 +140,12 @@ class Index extends Component {
                           <View className='cardBodyLeft'>
                             <Image
                               style={{width: 80, height: 80, borderRadius: 10}}
-                              src={headImg}
+                              src={reward.photo}
                             />
                             <View className='cardCenterContent'>
                               <View className='row'>
-                                <Text>北极星小姐姐</Text>
-                                {reward.focus ? 
+                                <Text>{reward.nickName}</Text>
+                                {reward.gender === 2 ? 
                                   <View className='row' style={{ marginLeft: 5 }}>
                                     <Image 
                                       style={{ width: 18, height: 18 }}
@@ -157,42 +163,42 @@ class Index extends Component {
                                   </View>
                                 }
                               </View>
-                              <View className='row' style={{ justifyContent: 'space-between' }}>
-                                <Text>大连市</Text>
-                                <Text>15岁金牛座</Text>
-                                <Text style={{ color: '#d4237a' }}>热度 8888</Text>
+                              <View className='row' style={{ justifyContent: 'space-between', width: '50%' }}>
+                                <Text>{reward.city}</Text>
+                                <Text style={{ marginLeft: 5 }}>{reward.age}岁金牛座</Text>
+                                <Text style={{ color: '#d4237a', marginLeft: 5 }}>热度 8888</Text>
                               </View>
-                              <View className='row' style={{ justifyContent: 'space-between' }}>
+                              <View className='row' style={{ justifyContent: 'space-between', width: '50%' }}>
                                 <View className='row cardContentBottomLeft'>
                                   <Image
-                                    style='width: 18px;height: 18px'
+                                    style={{ width: 13, height: 13 }}
                                     src={PositionImg}
                                   />
                                   <Text>430m</Text>
                                 </View>
                                 <View className='row cardContentBottomCenter' style={{ zIndex: 99 }}>
                                   <Image
-                                    style='width: 25px;height: 25px'
+                                    style={{ width: 13, height: 13 }}
                                     src={personImg}
                                   />
                                   <Text style={{ color: '#ccc' }}>离线</Text>
                                 </View>
                                 <View className='row cardContentBottomCenter'>
                                   <Image
-                                    style='width: 18px;height: 18px'
+                                    style={{ width: 13, height: 13 }}
                                     src={startImg}
                                   />
-                                  <Text>爱豆 888</Text>
+                                  <Text>爱豆 {reward.individualValues}</Text>
                                 </View>
                               </View>
                             </View>
                           </View>
                           
-                          <View>
+                          <View className='cardRightHeat'>
                             {reward.focus ? 
-                              <Image src={selectHeatImg} style={{width: 25, height: 25, borderRadius: 10}} onClick={(e) => this.likeUser(reward, e)} />
+                              <Image src={selectHeatImg} style={{width: 25, height: 25}} onClick={(e) => this.likeUser(reward, e)} />
                             :
-                              <Image src={heartImg} style={{width: 25, height: 25, borderRadius: 10}} onClick={(e) => this.likeUser(reward, e)} />
+                              <Image src={heartImg} style={{width: 25, height: 25}} onClick={(e) => this.likeUser(reward, e)} />
                             }
                           </View>
                         </View>

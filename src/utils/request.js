@@ -1,33 +1,42 @@
 import Taro from '@tarojs/taro';
-import { baseUrl, noConsole } from '../config/dev';
+
+const baseUrl = 'http://remember.dlztc.com'
 
 export default (options = { method: 'GET', data: {} }) => {
-  if (!noConsole) {
-    console.log(`${new Date().toLocaleString()}【 M=${options.url} 】P=${JSON.stringify(options.data)}`);
-  }
+  console.log(`${new Date().toLocaleString()}【 URL=${baseUrl + options.url} 】DATA=${JSON.stringify(options.data)}`);
   return Taro.request({
     url: baseUrl + options.url,
-    data: options.data,
-    headers: {
+    data: {
+      ...options.data
+    },
+    header: {
       'Content-Type': 'application/json',
     },
     method: options.method.toUpperCase(),
-  }).then((res) => {
-    const { statusCode, data } = res;
-    if (statusCode >= 200 && statusCode < 300) {
-      if (!noConsole) {
-        console.log(`${new Date().toLocaleString()}【 M=${options.url} 】【接口响应：】`,res.data);
-      }
-      if (data.status !== 'ok') {
-        Taro.showToast({
-          title: `${res.data.error.message}~` || res.data.error.code,
-          icon: 'none',
-          mask: true,
-        });
-      }
+    success: (result) => {
+      const { data } = result
       return data;
-    } else {
-      throw new Error(`网络请求错误，状态码${statusCode}`);
-    }
+    },
+    fail: (res => {
+      // console.log('fail', res);
+      const { statusCode, data } = res;
+      if (statusCode >= 200 && statusCode < 300) {
+        console.log(`${new Date().toLocaleString()}【 URL=${options.url} 】【接口响应：】`,res.data);
+        if (data.msg !== 'OK') {
+          Taro.showToast({
+            title: `${res.data.msg}~` || res.data.code,
+            icon: 'none',
+            mask: true,
+          });
+        }
+        return data;
+      } else {
+        throw new Error(`网络请求错误，状态码${statusCode}`);
+      }
+    }),
+    complete: (res) => {
+      // console.log('complete', res);
+      return res.data
+    },
   })
 }

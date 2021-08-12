@@ -23,7 +23,41 @@ class Genderpage extends Component {
     this.okSubmit = this.okSubmit.bind(this)
   }
 
-  componentDidMount() { }
+  componentDidMount() {
+    Taro.getStorage({
+      key: 'token',
+      complete: (res) => {
+        if (res.errMsg === "getStorage:ok") {
+          console.log('token', res);
+        } else {
+          console.log('获取存储数据失败');
+        }
+      }
+    }).then(() => {
+      Taro.getStorage({
+        key: 'userId',
+        complete: (res) => {
+          if (res.errMsg === "getStorage:ok") {
+            console.log('userId', res);
+          } else {
+            console.log('获取存储数据失败');
+          }
+        }
+      })
+    }).then(() => {
+      Taro.getStorage({
+        key: 'newUser',
+        complete: (res) => {
+          if (res.errMsg === "getStorage:ok") {
+            console.log('newUser', res);
+          } else {
+            console.log('获取存储数据失败');
+          }
+        }
+      })
+    })
+    
+  }
 
   genderSubmit() {
     this.setState({ deterModal: true })
