@@ -44,13 +44,21 @@ class Index extends PureComponent {
 
   getUserLists() {
     const { city, pageNumber, pageSize, latitude, longitude, range } = this.state
-    appUserList({city, pageNumber, pageSize, latitude, longitude, range, userId: 90}).then(data => {
-      if(data.statusCode === 200){
-        this.setState({ dataArray: data.data.data })
-      }else{
-        Toast.fail(data.data.msg)
+    Taro.getStorage({
+      key: 'userId',
+      complete: (res) => {
+        if (res.errMsg === "getStorage:ok") {
+          appUserList({city, pageNumber, pageSize, latitude, longitude, range, userId: res.data}).then(data => {
+            if(data.statusCode === 200){
+              this.setState({ dataArray: data.data.data })
+            }else{
+              Toast.fail(data.data.msg)
+            }
+          })
+        }
       }
     })
+    
   }
 
   adClick() {
