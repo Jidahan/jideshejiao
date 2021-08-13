@@ -321,7 +321,7 @@ class Userinfo extends Component {
                     {userInfo?.photos?.map(reward => {
                       if(reward.type === 1){
                         return (
-                          <View>
+                          <View key={reward.id}>
                             <Image
                               style={{width: 60, height: 60, marginLeft: 5, borderRadius: 5, marginBottom: 10 }}
                               src={reward.url}
@@ -342,7 +342,7 @@ class Userinfo extends Component {
                         )
                       }else{
                         return (
-                          <View>
+                          <View key={reward.id}>
                             <Video
                               style={{width: 60, height: 60, marginLeft: 5, borderRadius: 5, marginBottom: 10 }}
                               src={reward.url}

@@ -37,6 +37,7 @@ class Index extends PureComponent {
     this.getUserLists()
     // Taro.eventCenter.on('goLikeUserIsRefresh',(arg)=>{
     //   if(arg){
+    //     this.setState({ pageNumber: 1 })
     //     this.getUserLists()
     //   }
     // })
@@ -58,7 +59,6 @@ class Index extends PureComponent {
         }
       }
     })
-    
   }
 
   adClick() {

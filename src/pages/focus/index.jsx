@@ -2,7 +2,7 @@ import { PureComponent } from 'react'
 import Taro from '@tarojs/taro'
 import { View, ScrollView, Text, Image } from '@tarojs/components'
 import { Toast, Icon, Card } from '@ant-design/react-native'
-import { FlatList, ActivityIndicator } from 'react-native'
+import { FlatList, ActivityIndicator, RefreshControl } from 'react-native'
 import IndexLists from './components/IndexLists'
 
 import './index.less'
@@ -20,7 +20,8 @@ class Focus extends PureComponent {
       pageSize: 10,
       dataArray: [],
       allDataHaveStopLoading: false,
-      userId: ''
+      userId: '',
+      isLoading: false,
     },
     this.cardGoUserInfo = this.cardGoUserInfo.bind(this)
   }
@@ -56,9 +57,6 @@ class Focus extends PureComponent {
 
   loadData(refresh) {
     if (refresh) {
-      // this.setState({
-      //   isLoading: true
-      // });
       const { pageNumber, pageSize, userId } = this.state
       let page = pageNumber + 1
       let dataArray = [];
@@ -73,8 +71,30 @@ class Focus extends PureComponent {
           dataArray = this.state.dataArray.concat(data.data.data);
           this.setState({
             dataArray: dataArray,
-            // isLoading: false,
             pageNumber: page
+          });
+        }else{
+          Toast.fail(data.data.msg)
+        }
+      })
+    }else{
+      this.setState({
+        isLoading: true
+      });
+      const { pageSize, userId } = this.state
+      let dataArray = [];
+      myFollowList({ pageNumber: 1, pageSize, userId }).then(data => {
+        if(data.statusCode === 200){
+          if(data.data.data.length === 0){
+            this.setState({
+              allDataHaveStopLoading: true,
+            });
+            return
+          }
+          dataArray = this.state.dataArray.concat(data.data.data);
+          this.setState({
+            dataArray: dataArray,
+            isLoading: false,
           });
         }else{
           Toast.fail(data.data.msg)
@@ -118,15 +138,15 @@ class Focus extends PureComponent {
           data={this.state.dataArray}
           renderItem={(data => this._renderItem(data))}
           // 下拉刷新
-          // refreshControl={
-          //   <RefreshControl
-          //     title='Loading...'
-          //     colors={['red']}
-          //     refreshing={this.state.isLoading}
-          //     onRefresh={() => this.loadData()}
-          //     tintColor='orange'
-          //   />
-          // }
+          refreshControl={
+            <RefreshControl
+              title='Loading...'
+              colors={['red']}
+              refreshing={this.state.isLoading}
+              onRefresh={() => this.loadData()}
+              tintColor='orange'
+            />
+          }
           ListFooterComponent={() => this.genIndicator()}
           onEndReached={() => {
             this.loadData(true)
