@@ -35,7 +35,7 @@ export default (options = { method: 'GET', data: {} }) => {
       }
     }),
     complete: (res) => {
-      // console.log('complete', res);
+      console.log('complete', res);
       return res.data
     },
   })

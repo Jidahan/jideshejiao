@@ -5,6 +5,10 @@ import { WhiteSpace, Button, WingBlank, Card, Flex, Modal, Radio, Toast } from '
 import wxImg from '../../images/wx.png';
 import zfbImg from '../../images/zfb.png';
 import './index.less';
+import {
+  payCallBack,
+
+} from './service'
 
 const RadioItem = Radio.RadioItem;
 class Pay extends Component {
@@ -12,26 +16,64 @@ class Pay extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      payStatus: 1
+      payStatus: 2
     }
     this.goPay = this.goPay.bind(this)
   }
 
-  componentDidMount() { }
+  componentDidMount() {
+    console.log(this.props);
+  }
 
   goPay() {
-    Toast.info(`支付方式为${this.state.payStatus === 1 ? '微信支付' : '支付宝'}`)
     const key = Toast.loading('支付中...');
-    setTimeout(() => {
-      Toast.remove(key);
-      Toast.success({
-        content: '支付成功！',
-        duration: 1.5,
-      })
-      Taro.navigateBack({
-        delta: 1
-      })
-    }, 2000);
+    Taro.getStorage({
+      key: 'userId',
+      complete: (res) => {
+        if (res.errMsg === "getStorage:ok") {
+          payCallBack({
+            goodsType: this.props.route.params.goodsType,
+            payType: this.state.payStatus,
+            unlockUserId: this.props.route.params.userId,
+            userId: res.data,
+            tradeType: this.state.payStatus === 1 ? 'ali-SWEEPPAY' : 'wx-NATIVE'
+          }).then(data => {
+            if(data.data.status === 200) {
+              Toast.remove(key);
+              Toast.success({
+                content: '支付成功！',
+                duration: 1.5,
+              })
+              Taro.navigateBack({
+                delta: 1,
+              })
+              if(this.props.route.params.goodsType === '2'){
+                Taro.eventCenter.trigger('payWXStatus', true)
+                setTimeout(() => {
+                  Taro.eventCenter.trigger('payWXStatus', false)
+                }, 10);
+              }else if(this.props.route.params.goodsType === '1'){
+                Taro.eventCenter.trigger('payPhotoStatus', true)
+                setTimeout(() => {
+                  Taro.eventCenter.trigger('payPhotoStatus', false)
+                }, 10);
+              }else{
+                Taro.eventCenter.trigger('payStatus', true)
+                setTimeout(() => {
+                  Taro.eventCenter.trigger('payStatus', false)
+                }, 10);
+              }
+            }else{
+              Toast.remove(key);
+              Toast.fail({
+                content: '支付失败！',
+                duration: 1.5,
+              })
+            }
+          })
+        }
+      }
+    })
   }
 
   render() {
@@ -58,10 +100,10 @@ class Pay extends Component {
             />
             <Card.Body>
               <RadioItem
-                checked={this.state.payStatus === 1}
+                checked={this.state.payStatus === 2}
                 onChange={event => {
                   if (event.target.checked) {
-                    this.setState({ payStatus: 1 });
+                    this.setState({ payStatus: 2 });
                   }
                 }}
               >
@@ -74,10 +116,10 @@ class Pay extends Component {
                 </View>
               </RadioItem>
               <RadioItem
-                checked={this.state.payStatus === 2}
+                checked={this.state.payStatus === 1}
                 onChange={event => {
                   if (event.target.checked) {
-                    this.setState({ payStatus: 2 });
+                    this.setState({ payStatus: 1 });
                   }
                 }}
               >

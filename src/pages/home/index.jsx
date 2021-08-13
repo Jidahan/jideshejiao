@@ -19,7 +19,9 @@ import shareImg from '../../images/share.png'
 import adviceImg from '../../images/advice.png'
 import versonImg from '../../images/verson.png'
 import logoutImg from '../../images/logout.png'
-
+import {
+  personalCenter,
+} from './service';
 import './index.less'
 
 const Item = List.Item;
@@ -30,7 +32,8 @@ class Home extends Component {
     this.state = {
       imgArray: [],
       avatarSource: '',
-      logoutVisible: false
+      logoutVisible: false,
+      userInfo: ''
     },
     this.copyYqm = this.copyYqm.bind(this)
     this.adviceClick = this.adviceClick.bind(this)
@@ -47,12 +50,31 @@ class Home extends Component {
       imgArray.push({ id: i })
     }
     this.setState({ imgArray })
-    this.props.dispatch({ 
-      type: 'home/saveData',
-    })
-   }
+    // this.props.dispatch({ 
+    //   type: 'home/saveData',
+    // })
+    this.getUserMessage()
+  }
 
-  componentWillUnmount () { }
+  getUserMessage() {
+    Taro.getStorage({
+      key: 'userId',
+      complete: (res) => {
+        if (res.errMsg === "getStorage:ok") {
+          personalCenter(res.data).then(data => {
+            if(data.data.status === 200){
+              console.log(data);
+              this.setState({ userInfo: data.data.data  })
+            }else{
+              Toast.fail(data.data.data)
+            }
+          })
+        }
+      }
+    })
+   
+  }
+  
 
   personInfoClick() {
     Taro.navigateTo({
@@ -61,7 +83,7 @@ class Home extends Component {
   }
 
   copyYqm() {
-    Clipboard.setString('hhhhhhhh')
+    Clipboard.setString(this.state.userInfo.invitationCode)
     Toast.success({
       content: '复制成功',
       duration: 0.5,
@@ -142,7 +164,7 @@ class Home extends Component {
   }
 
   render () {
-    const {imgArray, avatarSource} = this.state
+    const {imgArray, userInfo, avatarSource} = this.state
     const imgArrayHeight = imgArray.length <= 5 ? 60 : imgArray.length < 11 && imgArray.length >= 6 ? 120 : 180 
     return (
       <View>
@@ -263,7 +285,7 @@ class Home extends Component {
               disabled
               extra={
                 <View className='copyExtra' style={{ position: 'relative' }}>
-                  <Text style={{position: 'absolute', bottom: -8, left: 30}}>aygl</Text>
+                  <Text style={{position: 'absolute', bottom: -8, left: 30}}>{userInfo.invitationCode}</Text>
                   <Button style={{position: 'absolute', right: 15, bottom: -16}} type='primary' className='copyButton' onPress={this.copyYqm}>复制</Button>
                 </View>
               }

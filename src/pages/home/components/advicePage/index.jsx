@@ -1,6 +1,8 @@
+import Taro from '@tarojs/taro'
 import { Component } from 'react';
-import { View, ScrollView } from '@tarojs/components';
-import { Button, WingBlank, WhiteSpace, TextareaItem, Toast } from '@ant-design/react-native'
+import { View } from '@tarojs/components';
+import { Button, WingBlank, WhiteSpace, TextareaItem, Toast } from '@ant-design/react-native';
+import { feedback } from './service';
 import './index.less';
 
 class Advicepage extends Component {
@@ -30,9 +32,28 @@ class Advicepage extends Component {
       Toast.fail('输入有误！');
       return
     }
-    Toast.success(`输入的内容为${this.state.inputValue}`);
-    this.setState({ inputValue: '' });
-    this.refs.textareaItem.setState({inputCount: 0});
+    Taro.getStorage({
+      key: 'userId',
+      complete: (res) => {
+        if (res.errMsg === "getStorage:ok") {
+          const key = Toast.loading('提交中...');
+          feedback({content: this.state.inputValue+'', userId: res.data}).then(data => {
+            if(data.data.status === 200){
+              Toast.remove(key)
+              Toast.success(`提交成功`)
+              this.setState({ inputValue: '' })
+              this.refs.textareaItem.setState({inputCount: 0})
+            }else{
+              Toast.remove(key)
+              Toast.fail(data.data.msg)
+            }
+          })
+        } else {
+          console.log('获取存储数据失败');
+        }
+      }
+    })
+    
   }
 
   render() {

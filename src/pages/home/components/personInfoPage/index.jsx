@@ -1,9 +1,13 @@
 import { Component } from 'react'
+import Taro from '@tarojs/taro'
 import { View, Text, CoverView, CoverImage, Image, ScrollView } from '@tarojs/components'
 import { Card, WhiteSpace, WingBlank, Button, List, InputItem, DatePicker, NoticeBar, Toast } from '@ant-design/react-native'
 import adImg from '../../images/ad.png'
 import headImg from '../../images/1.png'
 import './index.less';
+import {
+  userSetting, 
+} from './service';
 
 class Personinfopage extends Component {
 
@@ -32,12 +36,12 @@ class Personinfopage extends Component {
 
   formSubmit(e) {
     const { nickName, cityName, wxName, height, weight, aidou, birthdayName } = this.state
-    if(!nickName) this.setState({ nickNameError: true })
-    if(!cityName) this.setState({ cityNameError: true })
-    if(!wxName) this.setState({ wxNameError: true })
-    if(!height) this.setState({ heightError: true })
-    if(!weight) this.setState({ weightError: true })
-    if(!aidou) this.setState({ aidouError: true })
+    if(!nickName) { this.setState({ nickNameError: true }); return }
+    if(!cityName) { this.setState({ cityNameError: true }); return }
+    if(!wxName) { this.setState({ wxNameError: true }); return }
+    if(!height) { this.setState({ heightError: true }); return }
+    if(!weight) { this.setState({ weightError: true }); return }
+    if(!aidou) { this.setState({ aidouError: true }); return }
     if(!birthdayName) {
       Toast.fail({
         content: '请填写生日',
@@ -45,7 +49,42 @@ class Personinfopage extends Component {
         mask: true,
         stackable: false,
       });
+      return
     }
+    const key = Toast.loading('保存中...');
+    Taro.getStorage({
+      key: 'userId',
+      complete: (res) => {
+        if (res.errMsg === "getStorage:ok") {
+          userSetting({
+            birthday: birthdayName,
+            city: cityName,
+            height,
+            weight,
+            individualValues: aidou,
+            nickName,
+            wxAccount: wxName,
+            id: res.data
+          }).then(data => {
+            console.log(data.data.status);
+            if(data.data.status === 200){
+              Toast.remove(key);
+              Toast.success({
+                content: '保存成功！',
+                duration: 1,
+              })
+              Taro.navigateBack({
+                delta: 1
+              })
+            }else{
+              Toast.remove(key);
+              Toast.fail(data.data.msg)
+            }
+          })
+        }
+      }
+    })
+    
     console.log(nickName, cityName, wxName, height, weight, aidou, birthdayName);
   }
 

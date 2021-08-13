@@ -1,9 +1,20 @@
 import Request from '../../utils/request';
 
-export const demo = (data) => {
+export const appUserDetail = (data) => {
   return Request({
-    url: '路径',
+    url: `/social/app/userDetails`,
     method: 'POST',
-    data,
+    data
   });
 };
+
+export const evaluateUsers = (data) => {
+  return Request({
+    url: `/social/app/evaluateUsers`,
+    method: 'POST',
+    data
+  });
+};
+
+
+

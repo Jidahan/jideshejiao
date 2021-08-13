@@ -33,3 +33,17 @@ cd ios
 pod install 
 yarn ios
 iOS 模拟器会自行启动，并访问 8081 端口获取 js bundle
+
+
+
+
+
+          {/* <View>
+            <TextInput 
+              type='text' 
+              placeholder='输入昵称搜索' 
+              focus 
+              className='searchInput'
+              keyboardType='web-search'
+            />
+          </View> */}
