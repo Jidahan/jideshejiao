@@ -35,6 +35,11 @@ class Index extends PureComponent {
   
   componentDidMount () {
     this.getUserLists()
+    // Taro.eventCenter.on('goLikeUserIsRefresh',(arg)=>{
+    //   if(arg){
+    //     this.getUserLists()
+    //   }
+    // })
   }
 
   getUserLists() {
@@ -85,7 +90,7 @@ class Index extends PureComponent {
       const { city, pageNumber, pageSize, latitude, longitude, range } = this.state
       let page = pageNumber + 1
       let dataArray = [];
-      appUserList({city, pageNumber, pageSize, latitude, longitude, range, userId: 90}).then(data => {
+      appUserList({city, pageNumber: page, pageSize, latitude, longitude, range, userId: 90}).then(data => {
         if(data.statusCode === 200){
           if(data.data.data.length === 0){
             this.setState({
@@ -126,7 +131,6 @@ class Index extends PureComponent {
         </View>
       )
     }
-    
   }
 
 

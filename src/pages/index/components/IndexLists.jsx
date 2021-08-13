@@ -29,10 +29,14 @@ const IndexLists = (props) => {
       complete: (res) => {
         if (res.errMsg === "getStorage:ok") {
           const key = Toast.loading('')
-          collectionUser({otherUserId: info.id, userId: Number(res.data)}).then(data => {
+          collectionUser({otherUserId: info.userId, userId: Number(res.data)}).then(data => {
             if(data.data.status === 200){
               Toast.remove(key)
               Toast.success(data.data.data)
+              // Taro.eventCenter.trigger('goLikeUserIsRefresh', true)
+              // setTimeout(() => {
+              //   Taro.eventCenter.trigger('goLikeUserIsRefresh', false)
+              // }, 10);
             }else{
               Toast.remove(key)
               Toast.fail(data.data.data)
@@ -109,7 +113,7 @@ const IndexLists = (props) => {
               </View>
               
               <View className='cardRightHeat'>
-                {item.focus ? 
+                {item.collectionIs === 1 ? 
                   <Image src={selectHeatImg} style={{width: 25, height: 25}} onClick={(e) => likeUser(item, e)} />
                 :
                   <Image src={heartImg} style={{width: 25, height: 25}} onClick={(e) => likeUser(item, e)} />

@@ -72,7 +72,6 @@ class Home extends Component {
         }
       }
     })
-   
   }
   
 
@@ -176,20 +175,20 @@ class Home extends Component {
         >
           <View className='container'>
             <CoverView className='controls'>
-              <CoverImage className='img' src={adImg} />
+              <CoverImage className='img' src={userInfo.photo} />
               <Icon name='plus' size='md' className='rightTopImgAdd' />
-              <Text className='imgOnText'>去去去去去去去</Text>
-              <Text className='imgOnTwoText'>西安市 0岁</Text>
+              <Text className='imgOnText'>{userInfo.nickName}</Text>
+              <Text className='imgOnTwoText'>{userInfo.city} {userInfo.age}岁</Text>
               <View className='imgArray'>
                 <ScrollView
                   scrollX
                 >
-                  {imgArray.map(reward => {
+                  {userInfo?.photos?.map(reward => {
                     return (
                       <View style={{width: 50, height: 50, marginLeft: 10}} className={reward.id === 0 ? 'selectImgArrayOneImg' : ''} key={reward.id}>
                         <Image
                           style={{width: '100%', height: '100%', borderRadius: 10}}
-                          src={headImg}
+                          src={reward.url}
                         />
                       </View>
                     )
@@ -274,7 +273,7 @@ class Home extends Component {
                 <Image src={historyCallPersonImg} className='iconSizeStyle' />
               }
               onPress={this.historyVisiti}
-              extra='有100个人看过你'
+              extra={`有${userInfo.historicalVisitorsNums}个人看过你`}
             >
               历史访客
             </Item>
