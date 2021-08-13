@@ -13,6 +13,8 @@ import {
 
 class Focus extends PureComponent {
 
+  _keyxtractor = (item, index) => item.id
+
   constructor(props) {
     super(props)
     this.state = {
@@ -135,12 +137,13 @@ class Focus extends PureComponent {
     return (
       <View>
         <FlatList
+          keyxtractor={this._keyxtractor}
           data={this.state.dataArray}
           renderItem={(data => this._renderItem(data))}
           // 下拉刷新
           refreshControl={
             <RefreshControl
-              title='Loading...'
+              title='加载中...'
               colors={['red']}
               refreshing={this.state.isLoading}
               onRefresh={() => this.loadData()}

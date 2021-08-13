@@ -2,7 +2,7 @@ import { PureComponent } from 'react'
 import Taro from '@tarojs/taro'
 import { View, Text, Image } from '@tarojs/components'
 import { Icon, WhiteSpace, Button, SearchBar, Toast } from '@ant-design/react-native'
-import { FlatList, ActivityIndicator } from 'react-native';
+import { FlatList, ActivityIndicator, RefreshControl } from 'react-native';
 import IndexLists from './components/IndexLists'
 import { 
   appUserList,
@@ -13,6 +13,8 @@ import './index.less'
 
 class Index extends PureComponent {
 
+  _keyxtractor = (item, index) => item.id
+
   constructor(props) {
     super(props)
     this.state = {
@@ -21,7 +23,7 @@ class Index extends PureComponent {
       pageSize: 10,
       city: '西安',
       dataArray: [],
-      // isLoading: false,
+      isLoading: false,
       latitude: '34.343147',
       longitude: '108.939621',
       range: 10,
@@ -92,9 +94,6 @@ class Index extends PureComponent {
 
   loadData(refresh) {
     if (refresh) {
-      // this.setState({
-      //   isLoading: true
-      // });
       const { city, pageNumber, pageSize, latitude, longitude, range } = this.state
       let page = pageNumber + 1
       let dataArray = [];
@@ -109,8 +108,30 @@ class Index extends PureComponent {
           dataArray = this.state.dataArray.concat(data.data.data);
           this.setState({
             dataArray: dataArray,
-            // isLoading: false,
             pageNumber: page
+          });
+        }else{
+          Toast.fail(data.data.msg)
+        }
+      })
+    }else{
+      this.setState({
+        isLoading: true
+      });
+      const { city, pageSize, latitude, longitude, range } = this.state
+      let dataArray = [];
+      appUserList({city, pageNumber: 1, pageSize, latitude, longitude, range, userId: 90}).then(data => {
+        if(data.statusCode === 200){
+          if(data.data.data.length === 0){
+            this.setState({
+              allDataHaveStopLoading: true,
+            });
+            return
+          }
+          dataArray = this.state.dataArray.concat(data.data.data);
+          this.setState({
+            dataArray: dataArray,
+            isLoading: false,
           });
         }else{
           Toast.fail(data.data.msg)
@@ -171,18 +192,19 @@ class Index extends PureComponent {
         </View>
         <View>
           <FlatList
+            keyxtractor={this._keyxtractor}
             data={this.state.dataArray}
             renderItem={(data => this._renderItem(data))}
             // 下拉刷新
-            // refreshControl={
-            //   <RefreshControl
-            //     title='Loading...'
-            //     colors={['red']}
-            //     refreshing={this.state.isLoading}
-            //     onRefresh={() => this.loadData()}
-            //     tintColor='orange'
-            //   />
-            // }
+            refreshControl={
+              <RefreshControl
+                title='加载中...'
+                colors={['red']}
+                refreshing={this.state.isLoading}
+                onRefresh={() => this.loadData()}
+                tintColor='orange'
+              />
+            }
             ListFooterComponent={() => this.genIndicator()}
             onEndReached={() => {
               this.loadData(true)
