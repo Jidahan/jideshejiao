@@ -15,7 +15,9 @@ import './index.less';
 import {
   appUserDetail,
   evaluateUsers,
+  collectionUser,
 } from './service';
+
 
 const Item = List.Item;
 const RadioItem = Radio.RadioItem;
@@ -158,6 +160,26 @@ class Userinfo extends Component {
 
   goLikeFunction() {
     console.log('关注/不关注');
+    Taro.getStorage({
+      key: 'userId',
+      complete: (res) => {
+        if (res.errMsg === "getStorage:ok") {
+          const key = Toast.loading('')
+          collectionUser({otherUserId: this.state.userId, userId: Number(res.data)}).then(data => {
+            if(data.data.status === 200){
+              Toast.remove(key)
+              Toast.success(data.data.data)
+              this.getUserInfo()
+            }else{
+              Toast.remove(key)
+              Toast.fail(data.data.msg)
+            }
+          })
+        } else {
+          console.log('获取存储数据失败');
+        }
+      }
+    })
   }
 
   copyWx() {
@@ -173,8 +195,8 @@ class Userinfo extends Component {
 
   render() {
     const { evaluationModal, photoImgsModal, userInfo, selectSmallImg } = this.state
-    console.log('userInfo', userInfo);
     const imgArrayHeight = userInfo?.photos?.length <= 5 ? 80 : 140
+    // const threePhoto = 
     return (
       <View style={{ position: 'relative' }}>
         <ScrollView
@@ -196,10 +218,10 @@ class Userinfo extends Component {
                   {userInfo?.photos?.map(reward => {
                     if(reward.url.indexOf('mp4') === -1){
                       return (
-                        <View style={{width: 50, height: 50, marginLeft: 10}} className={reward === this.state.selectSmallImg ? 'selectImgArrayOneImg' : ''} key={reward.id} onClick={() => this.selectSmallImg(reward)}>
+                        <View style={{width: 60, height: 60, marginLeft: 10}} className={reward === this.state.selectSmallImg ? 'selectImgArrayOneImg' : ''} key={reward.id} onClick={() => this.selectSmallImg(reward)}>
                           <Image
                             style={{width: '100%', height: '100%', borderRadius: 10}}
-                            src={reward}
+                            src={reward?reward:null}
                           />
                         </View>
                       )
@@ -210,27 +232,40 @@ class Userinfo extends Component {
               {
                 userInfo.gender === 2 ?
                 <View className='bottomTwoText'>
-                  <Image src={womenImg} className='iconSizeStyle' style={{ width: 20, height: 20 }} />
+                  <Image src={womenImg || null} className='iconSizeStyle' style={{ width: 20, height: 20 }} />
                   <Text style={{ color: 'white', fontWeight: 'bold', marginLeft: 2 }}>她已通过女神认证</Text>
                 </View>
                 :
                 <View className='bottomTwoText'>
-                  <Image src={manImg} className='iconSizeStyle' style={{ width: 20, height: 20 }} />
+                  <Image src={manImg || null} className='iconSizeStyle' style={{ width: 20, height: 20 }} />
                   <Text style={{ color: 'white', fontWeight: 'bold', marginLeft: 2 }}>他已通过男神认证</Text>
                 </View>
               }
               {
+                userInfo.gender === 2 ?
+                  userInfo.personAuthentication === 1 ?
+                  <View className='bottomText'>
+                    <Icon name='alert' size='md' color='#efb336' />
+                    <Text style={{ color: 'white', fontWeight: 'bold', marginLeft: 5 }}>她已通过真人面容认证</Text>
+                  </View>
+                  :
+                  <View className='bottomText'>
+                    <Icon name='alert' size='md' color='#efb336' />
+                    <Text style={{ color: 'white', fontWeight: 'bold', marginLeft: 5 }}>她暂时还未通过真人面容认证</Text>
+                  </View>
+                :
                 userInfo.personAuthentication === 1 ?
                 <View className='bottomText'>
                   <Icon name='alert' size='md' color='#efb336' />
-                  <Text style={{ color: 'white', fontWeight: 'bold', marginLeft: 5 }}>她已通过真人面容认证</Text>
+                  <Text style={{ color: 'white', fontWeight: 'bold', marginLeft: 5 }}>他已通过真人面容认证</Text>
                 </View>
                 :
                 <View className='bottomText'>
                   <Icon name='alert' size='md' color='#efb336' />
-                  <Text style={{ color: 'white', fontWeight: 'bold', marginLeft: 5 }}>她暂时还未通过真人面容认证</Text>
+                  <Text style={{ color: 'white', fontWeight: 'bold', marginLeft: 5 }}>他暂时还未通过真人面容认证</Text>
                 </View>
               }
+              
             
             </CoverView>
           </View>
@@ -239,7 +274,7 @@ class Userinfo extends Component {
               arrow='' 
               thumb={null}
               extra={
-                userInfo.collectionIs === 2 ? 
+                userInfo.collectionIs === 1 ? 
                   <View className='copyExtra' style={{ position: 'relative' }}>
                     <Image 
                       src={selectHeartImg} 
@@ -252,7 +287,7 @@ class Userinfo extends Component {
                 <View className='copyExtra' style={{ position: 'relative' }}>
                   <Image 
                     src={heartImg} 
-                    style={{width: 30, height: 30, position: 'absolute', right: 60, top: -15}}
+                    style={{width: 30, height: 30, position: 'absolute', right: 45, top: -15}}
                     onClick={this.goLikeFunction}
                   />
                   <Text style={{position: 'absolute', bottom: -8, right: 10, fontSize: 16}} onClick={this.goLikeFunction}>关注</Text>

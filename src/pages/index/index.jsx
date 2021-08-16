@@ -37,12 +37,22 @@ class Index extends PureComponent {
   
   componentDidMount () {
     this.getUserLists()
-    // Taro.eventCenter.on('goLikeUserIsRefresh',(arg)=>{
-    //   if(arg){
-    //     this.setState({ pageNumber: 1 })
-    //     this.getUserLists()
-    //   }
-    // })
+    this.refreshData()
+  }
+
+  refreshData() {
+    Taro.eventCenter.on('goLikeUserIsRefresh',(arg)=>{
+      if(arg?.status){
+        const likenowData = this.state.dataArray.map(reward => {
+          if(reward.userId === arg?.id){
+            reward.collectionIs = reward.collectionIs === 1 ? 2 : 1
+          }
+          return reward
+        })
+        this.setState({ dataArray: likenowData })
+        Taro.eventCenter.trigger('goLikeUserIsRefresh', {status: false, id: ''})
+      }
+    })
   }
 
   getUserLists() {
@@ -97,46 +107,52 @@ class Index extends PureComponent {
       const { city, pageNumber, pageSize, latitude, longitude, range } = this.state
       let page = pageNumber + 1
       let dataArray = [];
-      appUserList({city, pageNumber: page, pageSize, latitude, longitude, range, userId: 90}).then(data => {
-        if(data.statusCode === 200){
-          if(data.data.data.length === 0){
-            this.setState({
-              allDataHaveStopLoading: true,
-            });
-            return
+      Taro.getStorage({
+        key: 'userId',
+        complete: (res) => {
+          if (res.errMsg === "getStorage:ok") {
+            appUserList({city, pageNumber: page, pageSize, latitude, longitude, range, userId: res.data}).then(data => {
+              if(data.statusCode === 200){
+                if(data.data.data.length < pageSize){
+                  this.setState({
+                    allDataHaveStopLoading: true,
+                  });
+                  return
+                }
+                dataArray = this.state.dataArray.concat(data.data.data);
+                this.setState({
+                  dataArray: dataArray,
+                  pageNumber: page
+                });
+              }else{
+                Toast.fail(data.data.msg)
+              }
+            })
           }
-          dataArray = this.state.dataArray.concat(data.data.data);
-          this.setState({
-            dataArray: dataArray,
-            pageNumber: page
-          });
-        }else{
-          Toast.fail(data.data.msg)
         }
       })
     }else{
       this.setState({
-        isLoading: true
-      });
-      const { city, pageSize, latitude, longitude, range } = this.state
-      let dataArray = [];
-      appUserList({city, pageNumber: 1, pageSize, latitude, longitude, range, userId: 90}).then(data => {
-        if(data.statusCode === 200){
-          if(data.data.data.length === 0){
-            this.setState({
-              allDataHaveStopLoading: true,
-            });
-            return
+        isLoading: true,
+        pageNumber: 1
+      }, () => {
+        const { city, pageNumber, pageSize, latitude, longitude, range } = this.state
+        Taro.getStorage({
+          key: 'userId',
+          complete: (res) => {
+            if (res.errMsg === "getStorage:ok") {
+              appUserList({city, pageNumber, pageSize, latitude, longitude, range, userId: res.data}).then(data => {
+                if(data.statusCode === 200){
+                  this.setState({ dataArray: data.data.data, isLoading: false })
+                }else{
+                  this.setState({ isLoading: false })
+                  Toast.fail(data.data.msg)
+                }
+              })
+            }
           }
-          dataArray = this.state.dataArray.concat(data.data.data);
-          this.setState({
-            dataArray: dataArray,
-            isLoading: false,
-          });
-        }else{
-          Toast.fail(data.data.msg)
-        }
-      })
+        })
+      });
     }
   }
 
@@ -164,6 +180,8 @@ class Index extends PureComponent {
 
 
   render () {
+    // const FlatListHeight = this.state.dataArray.length > 0 && this.state.dataArray.length * 110 || 800
+    // console.log(this.state.dataArray.length, FlatListHeight);
     return (
       <View className='bodyOut'>
         <View className='topSearch'>
@@ -209,7 +227,7 @@ class Index extends PureComponent {
             onEndReached={() => {
               this.loadData(true)
             }}
-            style={{ marginBottom: 200, height: 500 }}
+            style={{ height: 580 }}
           />
 
         </View>

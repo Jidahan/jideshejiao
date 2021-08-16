@@ -30,6 +30,18 @@ class Focus extends PureComponent {
 
   componentDidMount () { 
     this.getlikeUserLists()
+    this.refreshData()
+  }
+
+  refreshData() {
+    Taro.eventCenter.on('deleteLikeUser',(arg)=>{
+      if(arg?.status){
+        const likenowData = this.state.dataArray.filter(reward => {
+          return reward.userId !== arg.id
+        })
+        this.setState({ dataArray: likenowData })
+      }
+    })
   }
 
   getlikeUserLists() {
@@ -62,9 +74,9 @@ class Focus extends PureComponent {
       const { pageNumber, pageSize, userId } = this.state
       let page = pageNumber + 1
       let dataArray = [];
-      myFollowList({ pageNumber, pageSize, userId }).then(data => {
+      myFollowList({ pageNumber: page, pageSize, userId }).then(data => {
         if(data.statusCode === 200){
-          if(data.data.data.length === 0){
+          if(data.data.data.length < pageSize){
             this.setState({
               allDataHaveStopLoading: true,
             });
@@ -81,27 +93,21 @@ class Focus extends PureComponent {
       })
     }else{
       this.setState({
-        isLoading: true
-      });
-      const { pageSize, userId } = this.state
-      let dataArray = [];
-      myFollowList({ pageNumber: 1, pageSize, userId }).then(data => {
-        if(data.statusCode === 200){
-          if(data.data.data.length === 0){
-            this.setState({
-              allDataHaveStopLoading: true,
-            });
-            return
+        isLoading: true,
+        pageNumber: 1
+      }, () => {
+        const { pageNumber, pageSize, userId } = this.state
+        myFollowList({pageNumber, pageSize, userId}).then(data => {
+          if(data.statusCode === 200){
+            this.setState({ dataArray: data.data.data, isLoading: false }, () => {
+              this.loadData(true)
+            })
+          }else{
+            this.setState({ isLoading: false })
+            Toast.fail(data.data.msg)
           }
-          dataArray = this.state.dataArray.concat(data.data.data);
-          this.setState({
-            dataArray: dataArray,
-            isLoading: false,
-          });
-        }else{
-          Toast.fail(data.data.msg)
-        }
-      })
+        })
+      });
     }
   }
 

@@ -16,5 +16,11 @@ export const evaluateUsers = (data) => {
   });
 };
 
-
+export const collectionUser = (data) => {
+  return Request({
+    url: `/social/app/collectionUser`,
+    method: 'POST',
+    data
+  });
+};
 

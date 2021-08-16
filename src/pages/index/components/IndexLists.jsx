@@ -1,6 +1,6 @@
 import Taro from '@tarojs/taro'
 import { View, Text, Image } from '@tarojs/components'
-import { Flex, WhiteSpace, WingBlank, Button, Card, SearchBar, Toast } from '@ant-design/react-native'
+import { Flex, WingBlank, Card, Toast } from '@ant-design/react-native'
 
 import PositionImg from '../../../images/position.png'
 import heartImg from '../../../images/heart.png'
@@ -33,13 +33,10 @@ const IndexLists = (props) => {
             if(data.data.status === 200){
               Toast.remove(key)
               Toast.success(data.data.data)
-              // Taro.eventCenter.trigger('goLikeUserIsRefresh', true)
-              // setTimeout(() => {
-              //   Taro.eventCenter.trigger('goLikeUserIsRefresh', false)
-              // }, 10);
+              Taro.eventCenter.trigger('goLikeUserIsRefresh', {status: true, id: info.userId})
             }else{
               Toast.remove(key)
-              Toast.fail(data.data.data)
+              Toast.fail(data.data.msg)
             }
           })
         } else {

@@ -27,19 +27,20 @@ const IndexLists = (props) => {
     Taro.getStorage({
       key: 'userId',
       complete: (res) => {
+        console.log(res);
         if (res.errMsg === "getStorage:ok") {
           const key = Toast.loading('')
           collectionUser({otherUserId: info.userId, userId: Number(res.data)}).then(data => {
             if(data.data.status === 200){
               Toast.remove(key)
               Toast.success(data.data.data)
-              // Taro.eventCenter.trigger('goLikeUserIsRefresh', true)
-              // setTimeout(() => {
-              //   Taro.eventCenter.trigger('goLikeUserIsRefresh', false)
-              // }, 10);
+              Taro.eventCenter.trigger('deleteLikeUser', {status: true, id: info.userId})
+              setTimeout(() => {
+                Taro.eventCenter.trigger('deleteLikeUser', {status: false, id: info.userId})
+              }, 10);
             }else{
               Toast.remove(key)
-              Toast.fail(data.data.data)
+              Toast.fail(data.data.msg)
             }
           })
         } else {
