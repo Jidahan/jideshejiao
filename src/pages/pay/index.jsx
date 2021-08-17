@@ -36,7 +36,8 @@ class Pay extends Component {
             payType: this.state.payStatus,
             unlockUserId: this.props.route.params.userId,
             userId: res.data,
-            tradeType: this.state.payStatus === 1 ? 'ali-SWEEPPAY' : 'wx-NATIVE'
+            tradeType: this.state.payStatus === 1 ? 'ali-SWEEPPAY' : 'wx-NATIVE',
+            orderStatus: 2
           }).then(data => {
             if(data.data.status === 200) {
               Toast.remove(key);

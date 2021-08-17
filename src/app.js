@@ -1,6 +1,7 @@
 import { Component } from 'react'
 /* dva */
 import { Provider } from 'react-redux'
+import { Toast } from '@ant-design/react-native'
 import dva from './utils/dva'
 import models from './models/index'
 import AntRnProvider from './utils/antRnProvider'
@@ -11,6 +12,10 @@ const dvaApp = dva.createApp( {
   initialState: {},
   models: models,
 });
+
+Toast.config({
+  duration: 2
+})
 
 const store = dvaApp.getStore();
 class App extends Component {

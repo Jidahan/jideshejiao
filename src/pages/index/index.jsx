@@ -38,6 +38,18 @@ class Index extends PureComponent {
   componentDidMount () {
     this.getUserLists()
     this.refreshData()
+    this.updateCity()
+  }
+
+  updateCity() {
+    Taro.eventCenter.on('updateCity',(arg)=>{
+      if(arg?.status){
+        this.setState({ city: arg?.city, pageNumber: 1 }, () => {
+          this.getUserLists()
+          this.refreshData()
+        })
+      }
+    })
   }
 
   refreshData() {
@@ -69,6 +81,11 @@ class Index extends PureComponent {
             }
           })
         }
+      },
+      error: () => {
+        Taro.navigateTo({
+          url: `'pages/login/index',`,
+        })
       }
     })
   }
@@ -81,9 +98,8 @@ class Index extends PureComponent {
   }
 
   goCitySelect() {
-    console.log('12323');
     Taro.navigateTo({
-      url: `/pages/citySelect/index`
+      url: `/pages/citySelect/index`,
     })
   }
 

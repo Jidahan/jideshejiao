@@ -1,4 +1,5 @@
 import Request from '../../utils/request';
+import baseUrl from '../../utils/baseUrl';
 
 export const personalCenter = (id) => {
   return Request({
@@ -6,3 +7,14 @@ export const personalCenter = (id) => {
     method: 'GET',
   });
 };
+
+export const uploadUrl = `${baseUrl}/file/file/upload`
+
+export const fileUpload = (data) => {
+  return Request({
+    url: `/social/app/fileUpload`,
+    method: 'POST',
+    data
+  });
+};
+

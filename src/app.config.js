@@ -9,9 +9,9 @@ export default {
     'pages/userInfo/index',
     'pages/photoLists/index',
     'pages/pay/index',
-    'pages/login/index',
     'pages/login/components/genderPage/index',
-    'pages/citySelect/index'
+    'pages/citySelect/index',
+    'pages/login/index',
   ],
   debug:true,
   tabBar:{

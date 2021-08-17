@@ -1,120 +1,380 @@
-import { Component } from 'react'
-import { View } from '@tarojs/components'
-// import { province } from 'antd-mobile-demo-data';
-import { StickyContainer, Sticky } from 'react-sticky';
-import { ListView, List, SearchBar } from '@ant-design/react-native'
-
-const { Item } = List;
-
-function genData(ds, provinceData) {
-  const dataBlob = {};
-  const sectionIDs = [];
-  const rowIDs = [];
-  Object.keys(provinceData).forEach((item, index) => {
-    sectionIDs.push(item);
-    dataBlob[item] = item;
-    rowIDs[index] = [];
-
-    provinceData[item].forEach((jj) => {
-      rowIDs[index].push(jj.value);
-      dataBlob[jj.value] = jj.label;
-    });
-  });
-  return ds.cloneWithRowsAndSections(dataBlob, sectionIDs, rowIDs);
-}
-const getSectionData = (dataBlob, sectionID) => dataBlob[sectionID];
-const getRowData = (dataBlob, sectionID, rowID) => dataBlob[rowID];
+import React, {Component} from 'react';
+import Taro from '@tarojs/taro';
+import { Modal, Toast } from '@ant-design/react-native';
+import {
+    View,
+    Text,
+    StyleSheet,
+    TouchableOpacity,
+    SectionList,
+    Dimensions,
+    FlatList,
+    StatusBar,
+    ScrollView,
+} from "react-native"
+import cityData from '../../utils/city-data.json';
 
 
-class citySelect extends Component {
 
-  constructor(props) {
-    super(props);
-    
+const {width, height} = Dimensions.get('window');
+const touchDownBGColor = '#999999';
+const touchUpBGColor = 'transparent';
+const statusHeight = StatusBar.currentHeight;
+const headerHeight = 40;//标题栏高度
+const sectionWidth = 24;//右边导航栏宽度
+const sectionTopBottomHeight = 50;//上下边距
+const selectWidth = 80;//中间的字母的背景宽高
+//每个索引的高度
+const sectionItemHeight = (height - statusHeight - sectionTopBottomHeight * 2 - headerHeight) / 25;
 
-    this.state = {
-      inputValue: '',
-      dataSource: [],
-      isLoading: true,
-    };
-  }
+class CitySelect extends Component {
 
-  componentDidMount() {
-    // simulate initial Ajax
-    setTimeout(() => {
-      this.setState({
-        dataSource: genData(this.state.dataSource),
-        isLoading: false,
-      });
-    }, 600);
-  }
+    constructor(props) {
+      super(props);
+      this.state = {
+        sections: [],
+        isTouchDown: false,//触摸事件开始,类型android的onTouchDown
+        canTouch: false,//等待界面渲染完,不然会报错
+        selectText: '',//当前选择的字母,
+        nowPositionCity: '未知', // 当前定位城市
+        postitionVisible: false
+      };
+      this.responderGrant = this.responderGrant.bind(this);
+      this.responderMove = this.responderMove.bind(this);
+      this.responderRelease = this.responderRelease.bind(this);
+      this.scrollSectionList = this.scrollSectionList.bind(this);
+      this.handOkPositionModal = this.handOkPositionModal.bind(this)
+    }
 
-  onSearch = (val) => {
-    const pd = { };
-    Object.keys(pd).forEach((item) => {
-      const arr = pd[item].filter(jj => jj.spell.toLocaleLowerCase().indexOf(val) > -1);
-      if (!arr.length) {
-        delete pd[item];
-      } else {
-        pd[item] = arr;
-      }
-    });
-    this.setState({
-      inputValue: val,
-      dataSource: genData(this.state.dataSource, pd),
-    });
-  }
+    componentDidMount() {
+      this.setCurrentLocation(this.state.nowPositionCity);
+      setTimeout(() => {
+          this.setState({
+            sections: cityData,
+          });
+      }, 100);
+      setTimeout(() => {
+          this.setState({
+            canTouch: true
+          })
+      }, 1600)
 
-  render() {
-    return (<View style={{ paddingTop: '44px', position: 'relative' }}>
-      <View style={{ position: 'absolute', top: 0, left: 0, right: 0 }}>
-        <SearchBar
-          value={this.state.inputValue}
-          placeholder='Search'
-          onChange={this.onSearch}
-          onClear={() => { console.log('onClear'); }}
-          onCancel={() => { console.log('onCancel'); }}
-        />
-      </View>
-      <ListView.IndexedList
-        dataSource={this.state.dataSource}
-        className='am-list sticky-list'
-        useBodyScroll
-        renderSectionWrapper={sectionID => (
-          <StickyContainer
-            key={`s_${sectionID}_c`}
-            className='sticky-container'
-            style={{ zIndex: 4 }}
-          />
-        )}
-        renderSectionHeader={sectionData => (
-          <Sticky>
-            {({
-              style,
-            }) => (
-              <View
-                className='sticky'
-                style={{
-                  ...style,
-                  zIndex: 3,
-                  backgroundColor: sectionData.charCodeAt(0) % 2 ? '#5890ff' : '#F8591A',
-                  color: 'white',
+      const that = this
+      Taro.getLocation({
+        type: 'wgs84',
+        success: function (res) {
+          const latitude = res.latitude
+          const longitude = res.longitude
+          Taro.request({
+            url: `https://apis.map.qq.com/ws/geocoder/v1/?location=${latitude},${longitude}&key=XKYBZ-36R6D-DP74D-PFWPH-PICQ5-RHFJS`,
+            header: {
+              'Content-Type': 'application/json',
+            },
+            method: 'GET',
+            complete: (res) => {
+              console.log(res);
+              if (res.statusCode === 200) {
+                const city = res.data.result.address_component.city.split('市')[0]
+                that.setState({ 
+                  postitionVisible: true,
+                  nowPositionCity: city
+                })
+
+              }else{
+                Toast.fail('定位失败')
+              }
+            },
+          })
+        }
+      })
+    }
+
+    handOkPositionModal() {
+      cityData[0].data[0].citys[0].city = this.state.nowPositionCity;
+    }
+
+    acceptDataFromOpenedPage(value) {
+      console.log(value);
+    }
+
+    /**
+     * 设置当前位置
+     */
+    setCurrentLocation(city) {
+      cityData[0].data[0].citys[0].city = city;
+    }
+
+    render() {
+        let sectionView = null
+        if (this.state.canTouch) {
+            sectionView = this.sectionItemView()
+        }
+        let sectionTextView = null
+        if (this.state.isTouchDown) {
+            sectionTextView =
+                <View style={cityStyle.selectView}>
+                    <Text style={cityStyle.selectTv}>{this.state.selectText}</Text>
+                </View>
+        }
+        return (
+            <View>
+               {/* <View style={cityStyle.title}>
+                <Text style={cityStyle.title_text}>搜索</Text>
+              </View> */}
+              <View>
+                <SectionList
+                  ref='sectionList'
+                  renderSectionHeader={this.renderSectionHeader}
+                  renderItem={this.renderItem}
+                  stickySectionHeadersEnabled
+                  showsHorizontalScrollIndicator={false}
+                  sections={this.state.sections}
+                  keyExtractor={this._extraUniqueKey}
+                />
+                {/* {sectionView}
+                {sectionTextView} */}
+              </View>
+              <Modal
+                title={null}
+                transparent
+                onClose={() => {
+                  this.setState({ postitionVisible: false })
                 }}
-              >{sectionData}</View>
-            )}
-          </Sticky>
-        )}
-        renderHeader={() => <span>custom header</span>}
-        renderFooter={() => <span>custom footer</span>}
-        renderRow={rowData => (<Item>{rowData}</Item>)}
-        quickSearchBarStyle={{
-          top: 85,
-        }}
-        delayTime={10}
-        delayActivityIndicator={<View style={{ padding: 25, textAlign: 'center' }}>rendering...</View>}
-      />
-    </View>);
-  }
+                maskClosable
+                visible={this.state.postitionVisible}
+                footer={[
+                  { text: '取消', onPress: () => this.setState({ postitionVisible: false }) },
+                  { text: '设为当前城市', onPress: this.handOkPositionModal },
+                ]}
+              >
+              <View style={{ paddingVertical: 20 }}>
+                <Text style={{ textAlign: 'center' }}>当前定位城市为{this.state.nowPositionCity}，确认设为当前城市吗？</Text>
+              </View>
+            </Modal>
+            </View>
+        );
+    }
+
+    /*用户手指开始触摸*/
+    responderGrant(event) {
+      this.scrollSectionList(event);
+      this.setState({
+        isTouchDown: true,
+      })
+    }
+
+    /*用户手指在屏幕上移动手指，没有停下也没有离开*/
+    responderMove(event) {
+      console.log("responderMove")
+      this.scrollSectionList(event);
+      this.setState({
+        isTouchDown: true,
+      })
+    }
+
+    /*用户手指离开屏幕*/
+    responderRelease(event) {
+        console.log("onTouchUp")
+        this.setState({
+          isTouchDown: false,
+        })
+    }
+
+    /*手指滑动，触发事件*/
+    scrollSectionList(event) {
+        const touch = event.nativeEvent.touches[0];
+        // 手指滑动范围 从 A-Q  范围从50 到 50 + sectionItemHeight * cities.length
+        if (touch.pageY  >= sectionTopBottomHeight+headerHeight+statusHeight
+            && touch.pageY <= statusHeight +headerHeight+sectionTopBottomHeight + sectionItemHeight * 25
+            && touch.pageX >= width - sectionWidth
+            && touch.pageX <= width
+        ) {
+            console.log("touchx" + touch.pageX + '.=======touchY' + touch.pageY)
+            const index = (touch.pageY - sectionTopBottomHeight - headerHeight) / sectionItemHeight;
+            console.log("index" + index);
+            console.log('headerHeight', headerHeight);
+            if (Math.round(index)>=0&&Math.round(index)<=25){
+                this.setState({
+                    selectText: this.state.sections[Math.round(index)].key
+                })
+                //默认跳转到 第 index 个section  的第 1 个 item
+                this.refs.sectionList.scrollToLocation({
+                    animated: true,
+                    sectionIndex: Math.round(index),
+                    itemIndex: 0,
+                    viewOffset: headerHeight
+                });
+            }
+
+        }
+    }
+
+    /*右侧索引*/
+    sectionItemView() {
+        const sectionItem = this.state.sections.map((item, index) => {
+            if (index === 0) {
+              return null
+            }
+            return <Text key={index}
+              style={
+              [cityStyle.sectionItemStyle,
+              {backgroundColor: this.state.isTouchDown ? touchDownBGColor : touchUpBGColor}]
+              }
+            >
+              {item.key}
+            </Text>
+        });
+
+        return (
+          <ScrollView style={cityStyle.sectionItemViewStyle}
+            ref='sectionItemView'
+            onStartShouldSetResponder={() => true} // 在用户开始触摸的时候（手指刚刚接触屏幕的瞬间），是否愿意成为响应者？
+            onMoveShouldSetResponder={() => true} // :如果View不是响应者，那么在每一个触摸点开始移动（没有停下也没有离开屏幕）时再询问一次：是否愿意响应触摸交互呢？
+            onResponderTerminationRequest={() => true}
+            onResponderGrant={this.responderGrant} // View现在要开始响应触摸事件了。这也是需要做高亮的时候，使用户知道他到底点到了哪里
+            onResponderMove={this.responderMove} // 用户正在屏幕上移动手指时（没有停下也没有离开屏幕）
+            onResponderRelease={this.responderRelease} // 触摸操作结束时触发，比如"touchUp"（手指抬起离开屏幕）
+          >
+            {sectionItem}
+          </ScrollView>
+        );
+    }
+
+    _extraUniqueKey(item, index) {
+      return "index" + index + item;
+    }
+
+    _extraUniqueKey2(item, index) {
+      return "index2" + index + item;
+    }
+
+    renderSectionHeader = (info) => {
+      let section = info.section.key;
+      if (section === '热') {
+        section = "热门城市"
+      }
+      return (<Text
+        style={cityStyle.sectionStyle}
+      >{section}</Text>
+      )
+    };
+
+    renderItem = (info) => {
+      return (
+        <View>
+          <FlatList
+            data={info.section.data[0].citys}
+            horizontal={false}
+            numColumns={4}
+            showsHorizontalScrollIndicator={false}
+            renderItem={({item}) => this._createItem(item)}
+            keyExtractor={this._extraUniqueKey2}
+          />
+        </View>
+      )
+    };
+
+    /**
+     * 创建布局
+     */
+    _createItem(item) {
+      return (
+        <TouchableOpacity onPress={this._itemClick.bind(this, item)}>
+          <Text style={cityStyle.cityItemTv}>{item.city}</Text>
+        </TouchableOpacity>
+      );
+    }
+
+    /**
+     * 每个城市的点击
+     * @param item
+     */
+    _itemClick(item) {
+      if(item.city === '未知'){
+        return
+      }
+      Taro.navigateBack({
+        delta: 1,
+        success: function () {
+          Taro.eventCenter.trigger('updateCity', {status: true, city: item.city})
+        }
+      })
+    }
 }
 
-export default citySelect
+export default CitySelect
+
+export const cityStyle = StyleSheet.create({
+        backIcon: {
+            width: 25,
+            height: 25,
+            padding: 5,
+            marginLeft: 10
+        },
+        title: {
+            padding: 5,
+            flexDirection: 'row',
+            height: headerHeight
+        },
+        title_text: {
+            flex: 1,
+            textAlign: 'center',
+            color: 'black',
+            fontSize: 20,
+            fontWeight: 'bold'
+        },
+        itemStyle: {
+          height: 60,
+          textAlignVertical: 'center',
+          backgroundColor: "#ffffff",
+          color: '#5C5C5C',
+          fontSize: 15
+        },
+        sectionStyle: {
+          backgroundColor: '#ffffff',
+          paddingLeft: 20,
+          paddingTop: 10,
+          paddingBottom: 10,
+          color: '#5C5C5C',
+          fontSize: 16,
+        },
+        sectionItemViewStyle: {
+          position: 'absolute',
+          width: sectionWidth,
+          height: height - statusHeight,
+          right: 0,
+          top: 0,
+          paddingTop: sectionTopBottomHeight,
+          paddingBottom: sectionTopBottomHeight,
+        },
+        selectView: {
+          position: 'absolute',
+          width: selectWidth,
+          height: selectWidth,
+          right: width / 2 - selectWidth / 2,
+          top: (height - headerHeight - statusHeight) / 2 - selectWidth / 2,
+          backgroundColor: 'rgba(0,0,0,0.2)',
+          alignItems: "center",
+          justifyContent: 'center',
+          borderRadius: 5
+        },
+        selectTv: {
+          fontSize: 32,
+          color: '#FFFFFF'
+        },
+        sectionItemStyle: {
+          textAlign: 'center',
+          alignItems: 'center',
+          height: sectionItemHeight,
+          lineHeight: sectionItemHeight
+        },
+        cityItemTv: {
+          color: 'black',
+          fontSize: 14,
+          width: width / 4,
+          textAlign: 'center',
+          padding: 10
+        }
+    }
+);
+

@@ -5,8 +5,6 @@ import { Icon, List, Button, WingBlank, Card, Toast, Flex, Modal } from '@ant-de
 import Clipboard from '@react-native-clipboard/clipboard'
 import ImagePicker from 'react-native-image-picker'
 import { connect } from 'react-redux'
-import adImg from '../../images/ad.png'
-import headImg from '../../images/1.png'
 import zwImg from '../../images/zw.png'
 import personInfoImg from '../../images/personInfo.png'
 import manImg from '../../images/man.png'
@@ -21,6 +19,8 @@ import versonImg from '../../images/verson.png'
 import logoutImg from '../../images/logout.png'
 import {
   personalCenter,
+  uploadUrl,
+  fileUpload,
 } from './service';
 import './index.less'
 
@@ -31,9 +31,10 @@ class Home extends Component {
     super(props)
     this.state = {
       imgArray: [],
-      avatarSource: '',
       logoutVisible: false,
-      userInfo: ''
+      userInfo: '',
+      selectSmallImg: '',
+      pushAll: false,
     },
     this.copyYqm = this.copyYqm.bind(this)
     this.adviceClick = this.adviceClick.bind(this)
@@ -42,6 +43,9 @@ class Home extends Component {
     this.shareClick = this.shareClick.bind(this)
     this.personInfoClick = this.personInfoClick.bind(this)
     this.historyVisiti = this.historyVisiti.bind(this)
+    this.addPhoto = this.addPhoto.bind(this)
+    this.selectSmallImg = this.selectSmallImg.bind(this)
+    this.addVideo = this.addVideo.bind(this)
   }
 
   componentDidMount () {
@@ -50,9 +54,6 @@ class Home extends Component {
       imgArray.push({ id: i })
     }
     this.setState({ imgArray })
-    // this.props.dispatch({ 
-    //   type: 'home/saveData',
-    // })
     this.getUserMessage()
   }
 
@@ -109,6 +110,8 @@ class Home extends Component {
         content: '退出成功！',
         duration: 0.2,
       })
+      Taro.clearStorage()
+      Taro.eventCenter.off();
       Taro.redirectTo({
         url: '/pages/login/index'
       })
@@ -119,41 +122,150 @@ class Home extends Component {
     console.log('点击了分享');
   }
 
-  photo() {
-    const options = {
-      title: '拍照选择器',
-      customButtons: [{ name: 'fb', title: '自定义按钮标题' }],
-      storageOptions: {
-        skipBackup: true,
-        path: 'images',
+  addPhoto() {
+    // const that = this
+    Taro.chooseImage({
+      count: 1,
+      sizeType: ['original', 'compressed'], // 可以指定是原图还是压缩图，默认二者都有
+      sourceType: ['album', 'camera','user','environment'], // 可以指定来源是相册还是相机，默认二者都有，在H5浏览器端支持使用 `user` 和 `environment`分别指定为前后摄像头
+      success: (res) => {
+        this.uploadImage(res.tempFilePaths)
       },
-      cancelButtonTitle:'取消',
-      takePhotoButtonTitle:'点击拍照',
-      chooseFromLibraryButtonTitle:'从本地库相册导入',
-      chooseWhichLibraryTitle:'从其他库打开',
-      tintColor:'#CB0000' 
-    };
-
-    ImagePicker.showImagePicker(options, (response) => {
-      console.log('Response = ', response);
-    
-      if (response.didCancel) {
-        console.log('User cancelled image picker');
-      } else if (response.error) {
-        console.log('ImagePicker Error: ', response.error);
-      } else if (response.customButton) {
-        console.log('User tapped custom button: ', response.customButton);
-      } else {
-        const source = { uri: response.uri };
-    
-        // You can also display the image using data:
-        // const source = { uri: 'data:image/jpeg;base64,' + response.data };
-    
-        this.setState({
-          avatarSource: source,
-        });
+      complete: function (res) {
+        // 返回选定照片的本地文件路径列表，tempFilePath可以作为img标签的src属性显示图片
       }
-    });
+    })
+  }
+
+  // getVideoBase64(url) {
+  //   return new Promise(function (resolve, reject) {
+  //     let dataURL = '';
+  //     let video = document.createElement("video");
+  //     video.setAttribute('crossOrigin', 'anonymous');//处理跨域
+  //     video.setAttribute('src', url);
+  //     video.setAttribute('width', 400);
+  //     video.setAttribute('height', 240);
+  //     video.setAttribute('preload', 'auto');
+  //     video.addEventListener('loadeddata', function () {
+  //       let canvas = document.createElement("canvas"),
+  //           width = video.width, //canvas的尺寸和图片一样
+  //           height = video.height;
+  //       canvas.width = width;
+  //       canvas.height = height;
+  //       canvas.getContext("2d").drawImage(video, 0, 0, width, height); //绘制canvas
+  //       dataURL = canvas.toDataURL('image/jpeg'); //转换为base64
+  //       resolve(dataURL);
+  //     });
+  //   })
+  // }
+
+  addVideo() {
+    const that = this
+    Taro.chooseVideo({
+      sourceType: ['album','camera'],
+      maxDuration: 60,
+      camera: 'back',
+      success: function (res) {
+        const key = Toast.loading('上传中...');
+        Taro.getStorage({
+          key: 'userId',
+          complete: (storage) => {
+            if (storage.errMsg === "getStorage:ok") {
+              const formData = new FormData()
+              let file = {uri: res.tempFilePath, type: 'multipart/form-data', name: 'file.mp4'};   //这里的key(uri和type和name)不能改变,
+              formData.append('file', file)
+              formData.append('tenantId', storage.data)
+              fetch(uploadUrl,{
+                method:'POST',
+                headers:{
+                  'Content-Type':'multipart/form-data',
+                },
+                body:formData,
+              })
+                .then((response) => {
+                  return response.json();
+                })
+                .then((responseData)=>{
+                  console.log('responseData',responseData);
+                  if(responseData.status === 200){
+                    fileUpload({
+                      type: 2,
+                      url: [`${responseData.data.domain + responseData.data.path}`],
+                      userId: storage.data
+                    }).then(data => {
+                      if(data.data.status === 200){
+                        Toast.remove(key)
+                        Toast.success('上传成功')
+                        this.getUserMessage()
+                      }else{
+                        Toast.remove(key)
+                        Toast.fail(data.data.msg)
+                      }
+                    })
+                    // that.getVideoBase64(`${responseData.data.domain + responseData.data.path}`).then(headImg => {
+                    //   console.log(headImg);
+                     
+                    // })
+                  }
+                })
+                .catch((error)=>{console.error('error',error)});
+            }
+          }
+        })
+      }
+    })
+  }
+
+  // 上传图片
+  // 这里涉及到多图一起上传的处理
+  uploadImage (tempFilePaths) {
+    const key = Toast.loading('上传中...');
+    Taro.getStorage({
+      key: 'userId',
+      complete: (storage) => {
+        if (storage.errMsg === "getStorage:ok") {
+          const formData = new FormData()
+          let file = {uri: tempFilePaths[0], type: 'multipart/form-data', name: 'image.png'};   //这里的key(uri和type和name)不能改变,
+          formData.append('file', file)
+          formData.append('tenantId', storage.data)
+          fetch(uploadUrl,{
+            method:'POST',
+            headers:{
+              'Content-Type':'multipart/form-data',
+            },
+            body:formData,
+          })
+            .then((response) => {
+              return response.json();
+            })
+            .then((responseData)=>{
+              console.log('responseData',responseData);
+              if(responseData.status === 200){
+                fileUpload({
+                  type: 1,
+                  url: [`${responseData.data.domain + responseData.data.path}`],
+                  userId: storage.data
+                }).then(data => {
+                  if(data.data.status === 200){
+                    Toast.remove(key)
+                    Toast.success('上传成功')
+                    this.getUserMessage()
+                  }else{
+                    Toast.remove(key)
+                    Toast.fail(data.data.msg)
+                  }
+                })
+              }
+            })
+            .catch((error)=>{console.error('error',error)});
+        }
+      }
+    })
+    
+  }
+
+  photo() {
+    this.setState({ pushAll: true })
   }
 
   historyVisiti() {
@@ -162,8 +274,12 @@ class Home extends Component {
     })
   }
 
+  selectSmallImg(reward) {
+    this.setState({ selectSmallImg: reward })
+  }
+
   render () {
-    const {imgArray, userInfo, avatarSource} = this.state
+    const {imgArray, userInfo, selectSmallImg} = this.state
     const imgArrayHeight = imgArray.length <= 5 ? 60 : imgArray.length < 11 && imgArray.length >= 6 ? 120 : 180 
     return (
       <View>
@@ -175,8 +291,10 @@ class Home extends Component {
         >
           <View className='container'>
             <CoverView className='controls'>
-              <CoverImage className='img' src={userInfo.photo} />
-              <Icon name='plus' size='md' className='rightTopImgAdd' />
+              <CoverImage className='img' src={selectSmallImg || userInfo&&userInfo.photos[0]?.url} />
+              <View className='rightTopImgAdd' onClick={this.addPhoto}>
+                <Icon name='plus' size='md' />
+              </View>
               <Text className='imgOnText'>{userInfo.nickName}</Text>
               <Text className='imgOnTwoText'>{userInfo.city} {userInfo.age}岁</Text>
               <View className='imgArray'>
@@ -184,14 +302,16 @@ class Home extends Component {
                   scrollX
                 >
                   {userInfo?.photos?.map(reward => {
-                    return (
-                      <View style={{width: 50, height: 50, marginLeft: 10}} className={reward.id === 0 ? 'selectImgArrayOneImg' : ''} key={reward.id}>
-                        <Image
-                          style={{width: '100%', height: '100%', borderRadius: 10}}
-                          src={reward.url}
-                        />
-                      </View>
-                    )
+                    if(reward.url.indexOf('mp4') === -1){
+                      return (
+                        <View style={{width: 50, height: 50, marginLeft: 10}} className={reward === this.state.selectSmallImg ? 'selectImgArrayOneImg' : ''} key={reward.id} onClick={() => this.selectSmallImg(reward)}>
+                          <Image
+                            style={{width: '100%', height: '100%', borderRadius: 10}}
+                            src={reward?reward.url:null}
+                          />
+                        </View>
+                      )
+                    }
                   })}
                 </ScrollView>
               </View>
@@ -343,6 +463,19 @@ class Home extends Component {
         >
           <View style={{ paddingVertical: 20 }}>
             <Text style={{ textAlign: 'center' }}>确认退出登录吗？</Text>
+          </View>
+        </Modal>
+        <Modal
+          popup
+          closable
+          maskClosable
+          visible={this.state.pushAll}
+          animationType='slide-up'
+          onClose={() => this.setState({ pushAll: false })}
+        >
+          <View className='popupView'>
+            <Text style={{ padding: 36, textAlign: 'center' }} className='popupModal' onClick={this.addPhoto}>上传照片</Text>
+            <Text style={{ padding: 36 }} onClick={this.addVideo}>上传视频</Text>
           </View>
         </Modal>
       </View>

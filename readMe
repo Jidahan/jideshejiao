@@ -8,12 +8,11 @@ export default connect(
 )(Index);
 
 # 项目打包成rn npm script
-$ npm run dev:rn
+$ yarn dev:rn // npm run dev:rn
 
 这时，在浏览器输入 http://127.0.0.1:8081/index.bundle?platform=ios&dev=true 会触发对应终端平台的 js bundle 构建。
 
 # 把应用放到空壳项目 (相关文章：https://github.com/NervJS/taro-native-shell/tree/0.63.2#readme)
-
 git clone https://github.com/NervJS/taro-native-shell.git
 cd taro-native-shell
 yarn || npm install
