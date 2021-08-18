@@ -59,32 +59,44 @@ class CitySelect extends Component {
           })
       }, 1600)
 
-      const that = this
-      Taro.getLocation({
-        type: 'wgs84',
-        success: function (res) {
-          const latitude = res.latitude
-          const longitude = res.longitude
-          Taro.request({
-            url: `https://apis.map.qq.com/ws/geocoder/v1/?location=${latitude},${longitude}&key=XKYBZ-36R6D-DP74D-PFWPH-PICQ5-RHFJS`,
-            header: {
-              'Content-Type': 'application/json',
-            },
-            method: 'GET',
-            complete: (res) => {
-              console.log(res);
-              if (res.statusCode === 200) {
-                const city = res.data.result.address_component.city.split('市')[0]
-                that.setState({ 
-                  postitionVisible: true,
-                  nowPositionCity: city
-                })
+      Taro.getStorage({
+        key: 'positionCity',
+        complete: (res) => {
+          if (res.errMsg !== "getStorage:ok") {
+            const that = this
+            Taro.getLocation({
+              type: 'wgs84',
+              success: function (res) {
+                const latitude = res.latitude
+                const longitude = res.longitude
+                Taro.request({
+                  url: `https://apis.map.qq.com/ws/geocoder/v1/?location=${latitude},${longitude}&key=XKYBZ-36R6D-DP74D-PFWPH-PICQ5-RHFJS`,
+                  header: {
+                    'Content-Type': 'application/json',
+                  },
+                  method: 'GET',
+                  complete: (res) => {
+                    if (res.statusCode === 200) {
+                      const city = res.data.result.address_component.city.split('市')[0]
+                      Taro.setStorage({
+                        key: "positionCity",
+                        data: city
+                      })
+                      that.setState({ 
+                        postitionVisible: true,
+                        nowPositionCity: city
+                      })
 
-              }else{
-                Toast.fail('定位失败')
+                    }else{
+                      Toast.fail('定位失败')
+                    }
+                  },
+                })
               }
-            },
-          })
+            })
+          }else{
+            this.setCurrentLocation(res.data)
+          }
         }
       })
     }
@@ -291,12 +303,41 @@ class CitySelect extends Component {
      */
     _itemClick(item) {
       if(item.city === '未知'){
+        const that = this
+        Taro.getLocation({
+          type: 'wgs84',
+          success: function (res) {
+            const latitude = res.latitude
+            const longitude = res.longitude
+            Taro.request({
+              url: `https://apis.map.qq.com/ws/geocoder/v1/?location=${latitude},${longitude}&key=XKYBZ-36R6D-DP74D-PFWPH-PICQ5-RHFJS`,
+              header: {
+                'Content-Type': 'application/json',
+              },
+              method: 'GET',
+              complete: (res) => {
+                console.log(res);
+                if (res.statusCode === 200) {
+                  const city = res.data.result.address_component.city.split('市')[0]
+                  that.setState({ 
+                    postitionVisible: true,
+                    nowPositionCity: city
+                  })
+
+                }else{
+                  Toast.fail('定位失败')
+                }
+              },
+            })
+          }
+        })
         return
       }
       Taro.navigateBack({
         delta: 1,
         success: function () {
           Taro.eventCenter.trigger('updateCity', {status: true, city: item.city})
+          Taro.eventCenter.trigger('updatePersonInfoPageCity', {status: true, city: item.city})
         }
       })
     }

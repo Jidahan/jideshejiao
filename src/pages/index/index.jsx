@@ -91,10 +91,9 @@ class Index extends PureComponent {
   }
 
   adClick() {
-    console.log('点击ad广告');
-    // Taro.navigateTo({
-    //   url: 'https://www.baidu.com'
-    // })
+    Taro.navigateTo({
+      url: '/pages/adPage/index?url=www.baidu.com'
+    })
   }
 
   goCitySelect() {

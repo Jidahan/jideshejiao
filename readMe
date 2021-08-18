@@ -70,3 +70,7 @@ solution: start==============
 release 模式下，.jsbundle 文件也有，依然提示上面错误，此时你需要检查一下 Build Phases ->Coph Bundle Resources 种是否有包含.jsbundle
 (png: https://upload-images.jianshu.io/upload_images/2115111-7dbe30d871a04c40.png)
 solution: end==============
+
+
+真机构建
+taro build --type rn --platform ios  打包代码/编译代码

@@ -11153,6 +11153,11 @@ react-native-collapsible@^1.5.2, react-native-collapsible@^1.6.0:
   resolved "https://registry.nlark.com/react-native-collapsible/download/react-native-collapsible-1.6.0.tgz#ca261ffff16914f872059bb0972e3a78c4b37f9c"
   integrity sha1-yiYf//FpFPhyBZuwly46eMSzf5w=
 
+react-native-create-thumbnail@^1.4.1:
+  version "1.4.1"
+  resolved "https://registry.nlark.com/react-native-create-thumbnail/download/react-native-create-thumbnail-1.4.1.tgz#bd5d6c23a73373602b6795901ac3f78ea4ad8a53"
+  integrity sha1-vV1sI6czc2ArZ5WQGsP3jqStilM=
+
 react-native-gesture-handler@^1.8.0:
   version "1.10.3"
   resolved "https://registry.nlark.com/react-native-gesture-handler/download/react-native-gesture-handler-1.10.3.tgz#942bbf2963bbf49fa79593600ee9d7b5dab3cfc0"

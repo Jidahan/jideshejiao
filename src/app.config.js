@@ -12,6 +12,7 @@ export default {
     'pages/login/components/genderPage/index',
     'pages/citySelect/index',
     'pages/login/index',
+    'pages/adPage/index',
   ],
   debug:true,
   tabBar:{

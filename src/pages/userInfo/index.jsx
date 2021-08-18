@@ -384,6 +384,7 @@ class Userinfo extends Component {
                               key={reward.id}
                               autoplay={false}
                               loop={false}
+                              poster={reward.videoUrl}
                             />
                             {userInfo.unlockPhotos === 2?
                               <BlurView

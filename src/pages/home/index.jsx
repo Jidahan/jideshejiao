@@ -1,6 +1,7 @@
 import { Component } from 'react'
 import Taro from '@tarojs/taro'
-import { View, Text, CoverView, CoverImage, Image, ScrollView } from '@tarojs/components'
+import { createThumbnail } from "react-native-create-thumbnail";
+import { View, Text, CoverView, CoverImage, Image, ScrollView, Video } from '@tarojs/components'
 import { Icon, List, Button, WingBlank, Card, Toast, Flex, Modal } from '@ant-design/react-native'
 import Clipboard from '@react-native-clipboard/clipboard'
 import ImagePicker from 'react-native-image-picker'
@@ -55,6 +56,12 @@ class Home extends Component {
     }
     this.setState({ imgArray })
     this.getUserMessage()
+    Taro.eventCenter.on('refershHome',(arg)=>{
+      if(arg?.status){
+        this.getUserMessage()
+        Taro.eventCenter.trigger('refershHome', {status: false})
+      }
+    })
   }
 
   getUserMessage() {
@@ -78,7 +85,7 @@ class Home extends Component {
 
   personInfoClick() {
     Taro.navigateTo({
-      url: '/pages/home/components/personInfoPage/index'
+      url: `/pages/home/components/personInfoPage/index?data=${JSON.stringify(this.state.userInfo)}`
     })
   }
 
@@ -137,28 +144,6 @@ class Home extends Component {
     })
   }
 
-  // getVideoBase64(url) {
-  //   return new Promise(function (resolve, reject) {
-  //     let dataURL = '';
-  //     let video = document.createElement("video");
-  //     video.setAttribute('crossOrigin', 'anonymous');//处理跨域
-  //     video.setAttribute('src', url);
-  //     video.setAttribute('width', 400);
-  //     video.setAttribute('height', 240);
-  //     video.setAttribute('preload', 'auto');
-  //     video.addEventListener('loadeddata', function () {
-  //       let canvas = document.createElement("canvas"),
-  //           width = video.width, //canvas的尺寸和图片一样
-  //           height = video.height;
-  //       canvas.width = width;
-  //       canvas.height = height;
-  //       canvas.getContext("2d").drawImage(video, 0, 0, width, height); //绘制canvas
-  //       dataURL = canvas.toDataURL('image/jpeg'); //转换为base64
-  //       resolve(dataURL);
-  //     });
-  //   })
-  // }
-
   addVideo() {
     const that = this
     Taro.chooseVideo({
@@ -186,26 +171,49 @@ class Home extends Component {
                   return response.json();
                 })
                 .then((responseData)=>{
-                  console.log('responseData',responseData);
                   if(responseData.status === 200){
-                    fileUpload({
-                      type: 2,
-                      url: [`${responseData.data.domain + responseData.data.path}`],
-                      userId: storage.data
-                    }).then(data => {
-                      if(data.data.status === 200){
-                        Toast.remove(key)
-                        Toast.success('上传成功')
-                        this.getUserMessage()
-                      }else{
-                        Toast.remove(key)
-                        Toast.fail(data.data.msg)
-                      }
+                    createThumbnail({
+                      url: `${responseData.data.domain + responseData.data.path}`,
+                      timeStamp: 1000,
+                      format: 'png'
                     })
-                    // that.getVideoBase64(`${responseData.data.domain + responseData.data.path}`).then(headImg => {
-                    //   console.log(headImg);
-                     
-                    // })
+                      .then(response => {
+                        const headImgData = new FormData()
+                        let headFile = {uri: response.path, type: 'multipart/form-data', name: 'headfile.png'};
+                        headImgData.append('file', headFile)
+                        headImgData.append('tenantId', storage.data)
+                        fetch(uploadUrl,{
+                          method:'POST',
+                          headers:{
+                            'Content-Type':'multipart/form-data',
+                          },
+                          body: headImgData,
+                        })
+                        .then((headResponse) => {
+                          return headResponse.json();
+                        })
+                        .then((headResponseData)=>{
+                          console.log('headResponseData',headResponseData);
+                          if(headResponseData.status === 200){
+                            fileUpload({
+                              type: 2,
+                              url: [`${responseData.data.domain + responseData.data.path}`],
+                              userId: storage.data,
+                              videoUrl: headResponseData.data.domain + headResponseData.data.path
+                            }).then(data => {
+                              if(data.data.status === 200){
+                                Toast.remove(key)
+                                Toast.success('上传成功')
+                                that.getUserMessage()
+                              }else{
+                                Toast.remove(key)
+                                Toast.fail(data.data.msg)
+                              }
+                            })
+                          }
+                        })
+                      })
+                      .catch(err => console.log({ err }));
                   }
                 })
                 .catch((error)=>{console.error('error',error)});
@@ -217,7 +225,6 @@ class Home extends Component {
   }
 
   // 上传图片
-  // 这里涉及到多图一起上传的处理
   uploadImage (tempFilePaths) {
     const key = Toast.loading('上传中...');
     Taro.getStorage({
@@ -270,7 +277,7 @@ class Home extends Component {
 
   historyVisiti() {
     Taro.navigateTo({
-      url: '/pages/home/components/historyVisit/index'
+      url: `/pages/home/components/historyVisit/index`
     })
   }
 
@@ -280,7 +287,10 @@ class Home extends Component {
 
   render () {
     const {imgArray, userInfo, selectSmallImg} = this.state
-    const imgArrayHeight = imgArray.length <= 5 ? 60 : imgArray.length < 11 && imgArray.length >= 6 ? 120 : 180 
+    const imgArrayHeight = imgArray.length <= 5 ? 60 : imgArray.length < 11 && imgArray.length >= 6 ? 140 : 200 
+    const topHeadBgImg = userInfo?.photos?.filter(reward => {
+      return reward.url.indexOf('mp4') === -1
+    })
     return (
       <View>
         <ScrollView
@@ -291,7 +301,13 @@ class Home extends Component {
         >
           <View className='container'>
             <CoverView className='controls'>
-              <CoverImage className='img' src={selectSmallImg || userInfo&&userInfo.photos[0]?.url} />
+              <CoverImage className='img' 
+                src={
+                  selectSmallImg 
+                  || 
+                  topHeadBgImg&&topHeadBgImg[0].url
+                } 
+              />
               <View className='rightTopImgAdd' onClick={this.addPhoto}>
                 <Icon name='plus' size='md' />
               </View>
@@ -370,14 +386,34 @@ class Home extends Component {
                   <View style={{ height: 42, display: 'flex', flexDirection: 'row', marginTop: -5 }}>
                   <WingBlank>
                     <Flex wrap='wrap'>
-                      {imgArray
-                        .map((reward) => {
-                          return <Image
-                            style={{width: 60, height: 60, marginLeft: 5 }}
-                            src={zwImg}
-                            key={reward.id}
-                          />
-                      })}
+                    {userInfo?.photos?.map(reward => {
+                      if(reward.type === 1){
+                        return (
+                          <View key={reward.id}>
+                            <Image
+                              style={{width: 60, height: 60, marginLeft: 5, borderRadius: 5, marginBottom: 10 }}
+                              src={reward.url}
+                              key={reward.id}
+                              className='filterImg'
+                            />
+                          </View>
+                        )
+                      }else{
+                        return (
+                          <View key={reward.id}>
+                            <Video
+                              style={{width: 60, height: 60, marginLeft: 5, borderRadius: 5, marginBottom: 10 }}
+                              src={reward.url}
+                              key={reward.id}
+                              autoplay={false}
+                              loop={false}
+                              poster={reward.videoUrl}
+                            />
+                          </View>
+                        )
+                      }
+                    })}
+                      
                     </Flex>
                   </WingBlank>
                   </View>
