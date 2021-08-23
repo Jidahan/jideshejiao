@@ -65,8 +65,18 @@ class Genderpage extends Component {
 
   okSubmit() {
     console.log('确定');
-    Taro.switchTab({
-      url: '/pages/index/index'
+    // 跳转主页
+    // Taro.switchTab({
+    //   url: '/pages/index/index'
+    // })
+
+    //跳转人脸识别
+    // Taro.navigateTo({
+    //   url: '/pages/face/index'
+    // })
+
+    Taro.navigateTo({
+      url: '/pages/beforeFace/index'
     })
   }
 

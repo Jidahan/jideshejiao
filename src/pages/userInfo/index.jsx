@@ -81,11 +81,11 @@ class Userinfo extends Component {
   }
 
   goMaPhoto() {
-    const { userInfo:{unlockPhotos} } = this.state
+    const { userInfo:{unlockPhotos, photos} } = this.state
     if(unlockPhotos === 1) {
       // 跳转详情
       Taro.navigateTo({
-        url: '/pages/photoLists/index'
+        url: `/pages/photoLists/index?data=${JSON.stringify(photos)}`
       })
     }else{
       this.setState({ photoImgsModal: true })

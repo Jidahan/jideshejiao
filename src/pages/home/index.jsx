@@ -50,11 +50,6 @@ class Home extends Component {
   }
 
   componentDidMount () {
-    let imgArray = []
-    for(let i = 1; i <= 10; i++) {
-      imgArray.push({ id: i })
-    }
-    this.setState({ imgArray })
     this.getUserMessage()
     Taro.eventCenter.on('refershHome',(arg)=>{
       if(arg?.status){
@@ -72,7 +67,7 @@ class Home extends Component {
           personalCenter(res.data).then(data => {
             if(data.data.status === 200){
               console.log(data);
-              this.setState({ userInfo: data.data.data  })
+              this.setState({ userInfo: data.data.data, imgArray: data.data.data.photos  })
             }else{
               Toast.fail(data.data.data)
             }
@@ -285,6 +280,12 @@ class Home extends Component {
     this.setState({ selectSmallImg: reward })
   }
 
+  myPhotosClick = (photos) => {
+    Taro.navigateTo({
+      url: `/pages/lookPhotos/index?data=${JSON.stringify(photos)}`,
+    })
+  }
+
   render () {
     const {imgArray, userInfo, selectSmallImg} = this.state
     const imgArrayHeight = imgArray.length <= 5 ? 60 : imgArray.length < 11 && imgArray.length >= 6 ? 140 : 200 
@@ -383,7 +384,7 @@ class Home extends Component {
                   }
                 />
                 <Card.Body style={{ height: imgArrayHeight, overflow: 'hidden' }}>
-                  <View style={{ height: 42, display: 'flex', flexDirection: 'row', marginTop: -5 }}>
+                  <View style={{ height: 42, display: 'flex', flexDirection: 'row', marginTop: -5 }} onClick={() => this.myPhotosClick(userInfo?.photos)}>
                   <WingBlank>
                     <Flex wrap='wrap'>
                     {userInfo?.photos?.map(reward => {
@@ -408,6 +409,7 @@ class Home extends Component {
                               autoplay={false}
                               loop={false}
                               poster={reward.videoUrl}
+                              showCenterPlayBtn={false}
                             />
                           </View>
                         )

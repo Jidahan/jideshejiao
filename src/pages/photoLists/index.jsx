@@ -1,7 +1,6 @@
 import { Component } from 'react';
-import { View, Image, ScrollView } from '@tarojs/components';
+import { View, Image, ScrollView, Video } from '@tarojs/components';
 import { Flex, WhiteSpace, WingBlank } from '@ant-design/react-native'
-import headImg from '../../images/1.png'
 import './index.less';
 
 class Photolists extends Component {
@@ -9,19 +8,13 @@ class Photolists extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      cardList: [
-        {id:1, focus: true}, 
-        {id:2, focus: false}
-      ]
+      cardList: []
     }
   }
 
   componentDidMount() {
-    let cardData = []
-    for(let i = 0; i <= 20; i++){
-      cardData.push({id: i, focus: Math.random() >= 0.5}, )
-    }
-    this.setState({ cardList: cardData })
+    const { route:{params:{data}} } = this.props
+    this.setState({ cardList: data&&JSON.parse(data) })
   }
 
   render() {
@@ -33,14 +26,31 @@ class Photolists extends Component {
           <Flex direction='row' justify='between' wrap='wrap'>
             {
               cardList.map(reward => {
-                return (
-                  <View style={{width: 100, height: 100, marginBottom: 10}} key={reward.id}>
-                    <Image
-                      style={{width: '100%', height: '100%', borderRadius: 10}}
-                      src={headImg}
-                    />
-                  </View>
-                )
+                if(reward.type === 1){
+                  return (
+                    <View style={{width: 100, height: 100, marginBottom: 10}} key={reward.id}>
+                      <Image
+                        style={{width: '100%', height: '100%', borderRadius: 10}}
+                        src={reward.src}
+                      />
+                    </View>
+                  )
+                }else{
+                  return (
+                    <View style={{width: 100, height: 100, marginBottom: 10}} key={reward.id}>
+                      <Video
+                        style={{width: '100%', height: '100%', borderRadius: 10}}
+                        src={reward.url}
+                        autoplay={false}
+                        loop={false}
+                        poster={reward.videoUrl}
+                        // controls={false}
+                        showCenterPlayBtn={false}
+                        // objectFit='fill'
+                      />
+                    </View>
+                  )
+                }
               })
             }
           </Flex>

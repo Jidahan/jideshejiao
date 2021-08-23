@@ -13,6 +13,9 @@ export default {
     'pages/citySelect/index',
     'pages/login/index',
     'pages/adPage/index',
+    'pages/face/index',
+    'pages/beforeFace/index',
+    'pages/lookPhotos/index',
   ],
   debug:true,
   tabBar:{
