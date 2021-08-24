@@ -65,7 +65,10 @@ class Userinfo extends Component {
               this.setState({ userInfo: data.data.data })
             }else{
               Toast.remove(key);
-              Toast.fail(data.data.data)
+              Toast.fail({
+                content: data.data.data,
+                duration: 2
+              })
             }
           })
         }
@@ -129,11 +132,17 @@ class Userinfo extends Component {
             console.log(data);
             if(data.data.status === 200){
               Toast.remove(key);
-              Toast.success('评价成功！')
+              Toast.success({
+                content: '评价成功！',
+                duration: 1
+              })
               this.getUserInfo()
             }else{
               Toast.remove(key);
-              Toast.fail(data.data.msg)
+              Toast.fail({
+                content: data.data.msg,
+                duration: 2
+              })
             }
           })
         }
@@ -168,11 +177,17 @@ class Userinfo extends Component {
           collectionUser({otherUserId: this.state.userId, userId: Number(res.data)}).then(data => {
             if(data.data.status === 200){
               Toast.remove(key)
-              Toast.success(data.data.data)
+              Toast.success({
+                content: data.data.data,
+                duration: 1
+              })
               this.getUserInfo()
             }else{
               Toast.remove(key)
-              Toast.fail(data.data.msg)
+              Toast.fail({
+                content: data.data.msg,
+                duration: 2
+              })
             }
           })
         } else {

@@ -77,8 +77,15 @@ class Index extends PureComponent {
             if(data.statusCode === 200){
               this.setState({ dataArray: data.data.data })
             }else{
-              Toast.fail(data.data.msg)
+              Toast.fail({
+                content: data.data.msg,
+                duration: 2
+              })
             }
+          })
+        }else{
+          Taro.navigateTo({
+            url: `'pages/login/index',`,
           })
         }
       },
@@ -140,7 +147,10 @@ class Index extends PureComponent {
                   pageNumber: page
                 });
               }else{
-                Toast.fail(data.data.msg)
+                Toast.fail({
+                  content: data.data.msg,
+                  duration: 2
+                })
               }
             })
           }
@@ -161,7 +171,10 @@ class Index extends PureComponent {
                   this.setState({ dataArray: data.data.data, isLoading: false })
                 }else{
                   this.setState({ isLoading: false })
-                  Toast.fail(data.data.msg)
+                  Toast.fail({
+                    content: data.data.msg,
+                    duration: 2
+                  })
                 }
               })
             }
@@ -201,7 +214,7 @@ class Index extends PureComponent {
       <View className='bodyOut'>
         <View className='topSearch'>
           <View style={{ width: '70%', position:'relative' }}>
-            <SearchBar defaultValue='初始值' placeholder='搜索' style={{ position: 'absolute', top: -22, bottom: 0, left: -10, height: '100%', width: '110%', border: 'none' }} onChange={this.searchOnChange} onCancel={this.searchOnCancelChange} value={this.state.searchValue} />
+            <SearchBar defaultValue='初始值' placeholder='搜索' style={{ position: 'absolute', top: -22, bottom: 0, left: -10, height: '100%', width: '110%' }} onChange={this.searchOnChange} onCancel={this.searchOnCancelChange} value={this.state.searchValue} />
           </View>
           <View>
             <Button size='small' className='searchRightButton' onPress={this.goCitySelect}>

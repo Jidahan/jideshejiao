@@ -2,11 +2,18 @@ import { Component } from 'react';
 import Taro from '@tarojs/taro'
 import { View, Image } from '@tarojs/components';
 import { Text, SafeAreaView, StyleSheet } from 'react-native';
-import { Icon, Button, Checkbox, Toast } from '@ant-design/react-native';
+import { Toast } from '@ant-design/react-native';
 import imgArr from './imgArr'
+import {
+  uploadUrl,
+  faceDetect
+} from './service'
 
 import './index.less';
 
+Toast.config({
+  duration: 0
+})
 class face extends Component {
 
     constructor(props) {
@@ -19,23 +26,42 @@ class face extends Component {
         sessionId: '',
         code: '',
         scrollImage:[],
-        imgSum: 1
+        imgSum: 1,
+        userId: '',
+        gender: ''
       }
     }
 
     componentDidMount() {
       this.start()
+
+      Taro.getStorage({
+        key: 'userId',
+        complete: (res) => {
+          if (res.errMsg === "getStorage:ok") {
+            this.setState({ userId: res.data })
+          }
+        }
+      })
+
+      Taro.getStorage({
+        key: 'gender',
+        complete: (res) => {
+          if (res.errMsg !== "getStorage:ok") {
+            this.setState({ gender: res.data })
+          }
+        }
+      })
     }
 
     start = () => {
-      clearInterval(this.setInterval)
       this.setState({
-        // apiKey: '7E79IypZU29vnFZ0RBBA6SBY',
-        // appID: '24034341',
-        // secretKey: 'B4EazYkGnjVxSoPpWhVe6vfpmGgkVD1b',
-        apiKey: 'ufFxjMqCidfloW6ly8rEAaEH',
-        appID: '24724593',
-        secretKey: 'BlzQA6al6KFxdd44LB242mZx4gcCX8PP',
+        apiKey: '7E79IypZU29vnFZ0RBBA6SBY',
+        appID: '24034341',
+        secretKey: 'B4EazYkGnjVxSoPpWhVe6vfpmGgkVD1b',
+        // apiKey: 'ufFxjMqCidfloW6ly8rEAaEH',
+        // appID: '24724593',
+        // secretKey: 'BlzQA6al6KFxdd44LB242mZx4gcCX8PP',
       }, () => {
         Taro.request({
           url: `https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=${this.state.apiKey}&client_secret=${this.state.secretKey}`,
@@ -45,6 +71,7 @@ class face extends Component {
           method: 'POST',
           complete: (res) => {
             if (res.statusCode === 200) {
+              console.log('res.data.access_token', res.data.access_token);
               this.setState({ access_token: res.data.access_token }, () => {
                 Taro.request({
                   url: `https://aip.baidubce.com/rest/2.0/face/v1/faceliveness/sessioncode?access_token=${res.data.access_token}`,
@@ -58,7 +85,7 @@ class face extends Component {
                     max_code_length: 1
                   },
                   complete: (sessionId) => {
-                    console.log(sessionId);
+                    console.log('sessionId', sessionId);
                     if (sessionId.data.err_no === 0) {
                       this.setState({ sessionId: sessionId.data.result.session_id, code: sessionId.data.result.code }, () => {
                         this.setInterval = setInterval(() => {
@@ -107,43 +134,110 @@ class face extends Component {
       const that = this
       this.setInterval && clearInterval(this.setInterval)
       Taro.chooseVideo({
-        sourceType: ['album','camera'],
-        maxDuration: 8,
         camera: 'front',
+        sourceType: ['camera', 'album'],
+        maxDuration: 8,
         success: function (res) {
-          console.log(res);
-          res.tempFilePath.replace('.mov', '.mp4')
-          var file = new File([res.tempFilePath], "video.mp4" ,{type: "video/mp4", lastModified: new Date});
-          console.log(file);
-          const fileReader = new FileReader()
-          fileReader.readAsDataURL(file)
-          fileReader.onload = function () { 
-            const base64 = this.result.substring(this.result.indexOf(',')+1)
-            console.log(base64);
-            Taro.request({
-              url: `https://aip.baidubce.com/rest/2.0/face/v1/faceliveness/verify?access_token=${that.state.access_token}`,
-              method: 'POST',
-              header: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-              },
-              data: {
-                type_identify: 'action',
-                video_base64: base64,
-                session_id: that.state.sessionId,
-              },
-              complete: (personInfo) => {
-                console.log(personInfo);
-                // Taro.switchTab({
-                //   url: '/pages/index/index'
-                // })
-                if (personInfo.data.err_no === 0) {
+          const key = Toast.loading('认证中...');
+          const formData = new FormData()
+          let file = {uri: res.tempFilePath, type: 'multipart/form-data', name: 'file.mp4'};   //这里的key(uri和type和name)不能改变,
+          formData.append('file', file)
+          formData.append('accessToken', that.state.access_token)
+          formData.append('sessionId', that.state.sessionId)
+          fetch(uploadUrl,{
+            method:'POST',
+            headers:{
+              'Content-Type':'multipart/form-data',
+            },
+            body: formData,
+          })
+            .then((response) => {
+              return response.json();
+            })
+            .then((responseData)=>{
+              if(responseData.status === 200){
+                const data = JSON.parse(responseData.data)
+                const { result: {best_image: {pic}}, err_no, error_msg } = data            
+                if(data.err_no === 0) {
+                  faceDetect({
+                    type: 1,
+                    userId: that.state.userId,
+                    base: pic,
+                    gender: that.state.gender
+                  }).then(data => {
+                    if(data.data.status === 200){
+                      Toast.remove(key)
+                      Toast.success({
+                        content: '认证成功，即将跳转...',
+                        duration: 1
+                      }).then(() => {
+                        setTimeout(() => {
+                          clearInterval(this.setInterval)
+                          Taro.switchTab({
+                            url: '/pages/index/index'
+                          })
+                        }, 1000);
+                      })
+                    }else{
+                      Toast.fail({
+                        content: data.data.msg,
+                        duration: 2
+                      })
+                    }
+                  })
                 }else{
-                  Toast.fail(personInfo.data.error_msg)
+                  switch (err_no) {
+                    case 216430:
+                    case 216431:
+                    case 216432:
+                    case 216433:
+                    case 216434:
+                      Toast.fail({
+                        content: '请重新尝试',
+                        duration: 2
+                      })
+                      break;
+                    case 216500:
+                      Toast.fail({
+                        content: '验证码错误',
+                        duration: 2
+                      })
+                      break;
+                    case 216501: 
+                      Toast.fail({
+                        content: '没有找到人脸',
+                        duration: 2
+                      })
+                      break;
+                    case 216502: 
+                      Toast.fail({
+                        content: '当前会话已失效,请重新进入页面',
+                        duration: 2
+                      })
+                      break;
+                    case 216507: 
+                      Toast.fail({
+                        content: '视频中有多张人脸，请重新录制',
+                        duration: 2
+                      })
+                      break;
+                    case 216908: 
+                      Toast.fail({
+                        content: '视频中人脸质量过低，请重新录制视频',
+                        duration: 2
+                      })
+                      break;
+                    default:
+                      Toast.fail({
+                        content: error_msg,
+                        duration: 2
+                      })
+                      break;
+                  }
                 }
               }
             })
-          }
-      
+            .catch((error)=>{console.error('error',error)});
         }
       })
     }

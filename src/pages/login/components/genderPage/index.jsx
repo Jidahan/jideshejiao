@@ -23,60 +23,20 @@ class Genderpage extends Component {
     this.okSubmit = this.okSubmit.bind(this)
   }
 
-  componentDidMount() {
-    Taro.getStorage({
-      key: 'token',
-      complete: (res) => {
-        if (res.errMsg === "getStorage:ok") {
-          console.log('token', res);
-        } else {
-          console.log('获取存储数据失败');
-        }
-      }
-    }).then(() => {
-      Taro.getStorage({
-        key: 'userId',
-        complete: (res) => {
-          if (res.errMsg === "getStorage:ok") {
-            console.log('userId', res);
-          } else {
-            console.log('获取存储数据失败');
-          }
-        }
-      })
-    }).then(() => {
-      Taro.getStorage({
-        key: 'newUser',
-        complete: (res) => {
-          if (res.errMsg === "getStorage:ok") {
-            console.log('newUser', res);
-          } else {
-            console.log('获取存储数据失败');
-          }
-        }
-      })
-    })
-    
-  }
+  componentDidMount() {}
 
   genderSubmit() {
     this.setState({ deterModal: true })
   }
 
   okSubmit() {
-    console.log('确定');
-    // 跳转主页
-    // Taro.switchTab({
-    //   url: '/pages/index/index'
-    // })
-
-    //跳转人脸识别
-    // Taro.navigateTo({
-    //   url: '/pages/face/index'
-    // })
-
-    Taro.navigateTo({
-      url: '/pages/beforeFace/index'
+    Taro.setStorage({
+      key: "gender",
+      data: this.state.genderValue
+    }).then(() => {
+      Taro.navigateTo({
+        url: '/pages/beforeFace/index'
+      })
     })
   }
 

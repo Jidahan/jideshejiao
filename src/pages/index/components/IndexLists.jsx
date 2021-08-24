@@ -32,15 +32,24 @@ const IndexLists = (props) => {
           collectionUser({otherUserId: info.userId, userId: Number(res.data)}).then(data => {
             if(data.data.status === 200){
               Toast.remove(key)
-              Toast.success(data.data.data)
+              Toast.success({
+                content: data.data.data,
+                duration: 1
+              })
               Taro.eventCenter.trigger('goLikeUserIsRefresh', {status: true, id: info.userId})
             }else{
               Toast.remove(key)
-              Toast.fail(data.data.msg)
+              Toast.fail({
+                content: data.data.msg,
+                duration: 2
+              })
             }
           })
         } else {
-          console.log('获取存储数据失败');
+          Toast.fail({
+            content: '获取存储数据失败',
+            duration: 2
+          })
         }
       }
     })

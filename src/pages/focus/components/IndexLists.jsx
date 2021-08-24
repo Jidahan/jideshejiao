@@ -33,14 +33,20 @@ const IndexLists = (props) => {
           collectionUser({otherUserId: info.userId, userId: Number(res.data)}).then(data => {
             if(data.data.status === 200){
               Toast.remove(key)
-              Toast.success(data.data.data)
+              Toast.success({
+                content: data.data.data,
+                duration: 1
+              })
               Taro.eventCenter.trigger('deleteLikeUser', {status: true, id: info.userId})
               setTimeout(() => {
                 Taro.eventCenter.trigger('deleteLikeUser', {status: false, id: info.userId})
               }, 10);
             }else{
               Toast.remove(key)
-              Toast.fail(data.data.msg)
+              Toast.fail({
+                content: data.data.msg,
+                duration: 2
+              })
             }
           })
         } else {

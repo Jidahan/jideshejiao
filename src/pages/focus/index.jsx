@@ -55,7 +55,10 @@ class Focus extends PureComponent {
             if(data.statusCode === 200){
               this.setState({ dataArray: data.data.data })
             }else{
-              Toast.fail(data.data.msg)
+              Toast.fail({
+                content: data.data.msg,
+                duration: 2
+              })
             }
           })
         }
@@ -88,7 +91,10 @@ class Focus extends PureComponent {
             pageNumber: page
           });
         }else{
-          Toast.fail(data.data.msg)
+          Toast.fail({
+            content: data.data.msg,
+            duration: 2
+          })
         }
       })
     }else{
@@ -104,7 +110,10 @@ class Focus extends PureComponent {
             })
           }else{
             this.setState({ isLoading: false })
-            Toast.fail(data.data.msg)
+            Toast.fail({
+              content: data.data.msg,
+              duration: 2
+            })
           }
         })
       });

@@ -25,6 +25,10 @@ import {
 } from './service';
 import './index.less'
 
+Toast.config({
+  duration: 0
+})
+
 const Item = List.Item;
 class Home extends Component {
 
@@ -47,6 +51,7 @@ class Home extends Component {
     this.addPhoto = this.addPhoto.bind(this)
     this.selectSmallImg = this.selectSmallImg.bind(this)
     this.addVideo = this.addVideo.bind(this)
+    this.goPersonAuthentication = this.goPersonAuthentication.bind(this)
   }
 
   componentDidMount () {
@@ -60,16 +65,20 @@ class Home extends Component {
   }
 
   getUserMessage() {
+    const key = Toast.loading('加载中...')
     Taro.getStorage({
       key: 'userId',
       complete: (res) => {
         if (res.errMsg === "getStorage:ok") {
           personalCenter(res.data).then(data => {
             if(data.data.status === 200){
-              console.log(data);
+              Toast.remove(key)
               this.setState({ userInfo: data.data.data, imgArray: data.data.data.photos  })
             }else{
-              Toast.fail(data.data.data)
+              Toast.fail({
+                content: data.data.msg,
+                duration: 2
+              })
             }
           })
         }
@@ -198,11 +207,17 @@ class Home extends Component {
                             }).then(data => {
                               if(data.data.status === 200){
                                 Toast.remove(key)
-                                Toast.success('上传成功')
+                                Toast.success({
+                                  content: '上传成功',
+                                  duration: 1
+                                })
                                 that.getUserMessage()
                               }else{
                                 Toast.remove(key)
-                                Toast.fail(data.data.msg)
+                                Toast.fail({
+                                  content: data.data.msg,
+                                  duration: 2
+                                })
                               }
                             })
                           }
@@ -250,11 +265,17 @@ class Home extends Component {
                 }).then(data => {
                   if(data.data.status === 200){
                     Toast.remove(key)
-                    Toast.success('上传成功')
+                    Toast.success({
+                      content: '上传成功',
+                      duration: 1
+                    })
                     this.getUserMessage()
                   }else{
                     Toast.remove(key)
-                    Toast.fail(data.data.msg)
+                    Toast.fail({
+                      content: data.data.msg,
+                      duration: 2
+                    })
                   }
                 })
               }
@@ -286,12 +307,17 @@ class Home extends Component {
     })
   }
 
+  goPersonAuthentication() {
+    console.log('进行真人认证');
+  }
+
   render () {
     const {imgArray, userInfo, selectSmallImg} = this.state
     const imgArrayHeight = imgArray.length <= 5 ? 60 : imgArray.length < 11 && imgArray.length >= 6 ? 140 : 200 
     const topHeadBgImg = userInfo?.photos?.filter(reward => {
       return reward.url.indexOf('mp4') === -1
     })
+    console.log(userInfo);
     return (
       <View>
         <ScrollView
@@ -361,9 +387,10 @@ class Home extends Component {
               thumb={
                 <Image src={realPersonImg} className='iconSizeStyle' />
               }
-              onPress={() => {}}
-              extra='已认证'
+              onPress={this.goPersonAuthentication}
+              extra={userInfo.personAuthentication === 1 ? '已认证' : '进行认证'}
               arrow='empty'
+              disabled={userInfo.personAuthentication === 1}
             >
               真人认证
             </Item>

@@ -18,7 +18,6 @@ export default (options = { method: 'GET', data: {} }) => {
       return data;
     },
     fail: (res => {
-      // console.log('fail', res);
       const { statusCode, data } = res;
       if (statusCode >= 200 && statusCode < 300) {
         console.log(`${new Date().toLocaleString()}【 URL=${options.url} 】【接口响应：】`,res.data);

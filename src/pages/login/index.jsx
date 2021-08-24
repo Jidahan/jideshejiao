@@ -10,7 +10,9 @@ import {
 
 import './index.less';
 
-
+Toast.config({
+  duration: 0
+})
 class Login extends Component {
 
   constructor(props) {
@@ -28,15 +30,10 @@ class Login extends Component {
       btnDisable:false,
       btnContent: '获取验证码',
     }
-    this.getCode = this.getCode.bind(this)
     this.loginSubmit = this.loginSubmit.bind(this)
   }
 
   componentDidMount() { }
-
-  getCode() {
-    console.log('获取验证码');
-  }
 
   loginSubmit() {
     const { phoneValue, codeValue, yqmValue, tourists, registered } = this.state
@@ -136,7 +133,10 @@ class Login extends Component {
       getPhoneSendCode(this.state.phoneValue).then(res => {
         if(res.data.status === 200){
           Toast.remove(key);
-          Toast.success('发送成功！')
+          Toast.success({
+            duration: 1,
+            content: '发送成功！'
+          })
           this.setState({
             btnDisable: true,
             btnContent: "重新获取(60s)",

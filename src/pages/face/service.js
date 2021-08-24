@@ -1,9 +1,12 @@
 import Request from '../../utils/request';
+import baseUrl from '../../utils/baseUrl';
 
-export const demo = (data) => {
+export const uploadUrl = `${baseUrl}/social/file/upload`
+
+export const faceDetect = (data) => {
   return Request({
-    url: '路径',
+    url: `/social/app/faceDetect/`,
     method: 'POST',
-    data,
+    data
   });
 };

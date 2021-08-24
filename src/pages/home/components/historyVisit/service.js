@@ -1,9 +1,9 @@
 import Request from '../../../../utils/request';
 
-export const demo = (data) => {
+export const findHistoricalVisitors = (data) => {
   return Request({
-    url: '路径',
+    url: `/social/app/findHistoricalVisitors`,
     method: 'POST',
-    data,
+    data
   });
 };

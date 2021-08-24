@@ -14,7 +14,7 @@ const dvaApp = dva.createApp( {
 });
 
 Toast.config({
-  duration: 2
+  duration: 1
 })
 
 const store = dvaApp.getStore();
