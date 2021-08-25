@@ -53,6 +53,7 @@ class Focus extends PureComponent {
           this.setState({ userId: res.data })
           myFollowList({ pageNumber, pageSize, userId: res.data }).then(data => {
             if(data.statusCode === 200){
+              console.log('123');
               this.setState({ dataArray: data.data.data })
             }else{
               Toast.fail({

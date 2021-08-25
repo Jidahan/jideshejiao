@@ -47,7 +47,7 @@ class face extends Component {
       Taro.getStorage({
         key: 'gender',
         complete: (res) => {
-          if (res.errMsg !== "getStorage:ok") {
+          if (res.errMsg === "getStorage:ok") {
             this.setState({ gender: res.data })
           }
         }
@@ -118,7 +118,10 @@ class face extends Component {
                         }, 130);
                       })
                     }else{
-                      Toast.fail(sessionId.data.error_msg)
+                      Toast.fail({
+                        content: sessionId.data.error_msg,
+                        duration: 2
+                      })
                     }
                   }
                 })
@@ -162,23 +165,23 @@ class face extends Component {
                   faceDetect({
                     type: 1,
                     userId: that.state.userId,
+                    gender: that.state.gender,
                     base: pic,
-                    gender: that.state.gender
                   }).then(data => {
                     if(data.data.status === 200){
                       Toast.remove(key)
                       Toast.success({
                         content: '认证成功，即将跳转...',
                         duration: 1
-                      }).then(() => {
-                        setTimeout(() => {
-                          clearInterval(this.setInterval)
-                          Taro.switchTab({
-                            url: '/pages/index/index'
-                          })
-                        }, 1000);
                       })
+                      setTimeout(() => {
+                        clearInterval(that.setInterval)
+                        Taro.switchTab({
+                          url: '/pages/index/index'
+                        })
+                      }, 1000);
                     }else{
+                      Toast.remove(key)
                       Toast.fail({
                         content: data.data.msg,
                         duration: 2
@@ -186,6 +189,7 @@ class face extends Component {
                     }
                   })
                 }else{
+                  Toast.remove(key)
                   switch (err_no) {
                     case 216430:
                     case 216431:
@@ -244,7 +248,7 @@ class face extends Component {
 
   render() {
     const { code, imgSum } = this.state
-    const codeText = code === '0' ? '眨眼' : code === '2' ? '右转' : code === '3' ? '左转' : code === '4' ? '抬头' : code === '5' ? '低头' : '错误'
+    const codeText = code === '0' ? '眨眼' : code === '2' ? '右转' : code === '3' ? '左转' : code === '4' ? '抬头' : code === '5' ? '低头' : '加载中'
     return (
       <SafeAreaView className='container'>
         <View className='outView' style={styles.oneView}>

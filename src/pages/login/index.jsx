@@ -46,12 +46,18 @@ class Login extends Component {
       return
     }
     if(!registered && !tourists) {
-      Toast.fail('请选择注册用户/游客用户进行登录！')
+      Toast.fail({
+        content: '请选择注册用户/游客用户进行登录！',
+        duration: 2
+      })
       return
     }
     if(tourists){
       if(!yqmValue) {
-        Toast.fail('游客登录邀请码不能为空！')
+        Toast.fail({
+          content: '游客登录邀请码不能为空！',
+          duration: 2
+        })
         this.setState({ yqmError: true })
         return
       } 
@@ -64,10 +70,16 @@ class Login extends Component {
           })
         }else{
           Toast.remove(key);
-          Toast.fail(`${res.data.msg}`)
+          Toast.fail({
+            content: `${res.data.msg}`,
+            duration: 2
+          })
         }
       }).catch(error => {
-        Toast.fail(`遇到了错误${error}`)
+        Toast.fail({
+          content: `遇到了错误${error}`,
+          duration: 2
+        })
       })
     }else{
       const key = Toast.loading('登录中...');
@@ -92,10 +104,16 @@ class Login extends Component {
           })
         }else{
           Toast.remove(key);
-          Toast.fail(`${res.data.msg}`)
+          Toast.fail({
+            content: `${res.data.msg}`,
+            duration: 2
+          })
         }
       }).catch(error => {
-        Toast.fail(`遇到了错误${error}`)
+        Toast.fail({
+          content: `遇到了错误${error}`,
+          duration: 2
+        })
       })
     }
    
@@ -126,7 +144,10 @@ class Login extends Component {
     const sendCode = () =>{
       if(!this.state.phoneValue) {
         this.setState({ phoneError: true })
-        Toast.fail('请输入手机号！')
+        Toast.fail({
+          content: '请输入手机号！',
+          duration: 2
+        })
         return
       }
       const key = Toast.loading('发送中...');
@@ -145,10 +166,16 @@ class Login extends Component {
           timeChange = setInterval(clock,1000);
         }else{
           Toast.remove(key);
-          Toast.fail(`遇到了错误${res.data.msg}`)
+          Toast.fail({
+            content: `遇到了错误${res.data.msg}`,
+            duration: 2
+          })
         }
       }).catch(error => {
-        Toast.fail(`遇到了错误${error}`)
+        Toast.fail({
+          content: `遇到了错误${error}`,
+          duration: 2
+        })
       })
       
     };
