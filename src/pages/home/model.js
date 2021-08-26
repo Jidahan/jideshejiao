@@ -1,25 +1,14 @@
 export default {
   namespace: 'home',
   state: {
-    jihan: ['1', '2', '3'],
-    twoData: true
+    isPersonPageGo: false
   },
   effects: {
-    *saveData({ payload }, { call, put }) {
-      const jihan = ['1', '2', '3', '4', '5']
+    *editPersonPageGoStatus({ payload }, { call, put }) {
       yield put({
         type: 'save',
         payload: {
-          jihan
-        }
-      })
-    },
-    *yincang({ payload }, { call, put }) {
-      const twoData = payload
-      yield put({
-        type: 'save',
-        payload: {
-          twoData
+          isPersonPageGo: payload
         }
       })
     },

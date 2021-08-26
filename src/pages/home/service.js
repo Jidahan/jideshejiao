@@ -18,11 +18,17 @@ export const fileUpload = (data) => {
   });
 };
 
-export const uploadFileByBase64 = `${baseUrl}/social/file/uploadFileByBase64`
-
 export const faceDetect = (data) => {
   return Request({
     url: `/social/app/faceDetect/`,
+    method: 'POST',
+    data
+  });
+};
+
+export const switchAuthenticationStatus = (data) => {
+  return Request({
+    url: `/social/web/switchAuthenticationStatus`,
     method: 'POST',
     data
   });

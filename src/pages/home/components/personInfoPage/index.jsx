@@ -1,5 +1,6 @@
 import { Component } from 'react'
 import Taro from '@tarojs/taro'
+import { connect } from 'react-redux'
 import { View, Text, CoverView, CoverImage, Image, ScrollView } from '@tarojs/components'
 import { Card, WhiteSpace, WingBlank, Button, List, InputItem, DatePicker, NoticeBar, Toast } from '@ant-design/react-native'
 import adImg from '../../images/ad.png'
@@ -128,9 +129,13 @@ class Personinfopage extends Component {
   }
 
   goCityPage() {
-    console.log('123');
-    Taro.navigateTo({
-      url: `/pages/citySelect/index`
+    this.props.dispatch({
+      type: 'home/editPersonPageGoStatus',
+      payload: true
+    }).then(() => {
+      Taro.navigateTo({
+        url: `/pages/citySelect/index`
+      })
     })
   }
 
@@ -350,4 +355,10 @@ class Personinfopage extends Component {
   }
 }
 
-export default Personinfopage
+export default connect(
+  ({
+    home,
+  }) => ({
+    home,
+  }),
+)(Personinfopage);

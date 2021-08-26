@@ -91,17 +91,21 @@ class Login extends Component {
             key: "token",
             data: res.data.data.accessToken
           })
-          Taro.setStorage({
-            key: "userId",
-            data: res.data.data.userId
-          })
-          Taro.setStorage({
-            key: "newUser",
-            data: res.data.data.newUser
-          })
-          Taro.navigateTo({
-            url: '/pages/login/components/genderPage/index'
-          })
+          if(res.data.data.newUser === 1) {
+            Taro.navigateTo({
+              url: `/pages/login/components/genderPage/index?userId=${res.data.data.userId}`
+            })
+          }else{
+            Taro.setStorage({
+              key: "userId",
+              data: res.data.data.userId,
+              success: () => {
+                Taro.switchTab({
+                  url: '/pages/index/index'
+                })
+              }
+            })
+          }
         }else{
           Toast.remove(key);
           Toast.fail({

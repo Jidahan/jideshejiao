@@ -26,7 +26,7 @@ class Beforeface extends Component {
       })
     }else{
       Taro.navigateTo({
-        url: '/pages/face/index'
+        url: `/pages/face/index?userId=${this.props.route.params.userId}`
       })
     }
   }

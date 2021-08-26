@@ -3,9 +3,9 @@ import Taro from '@tarojs/taro'
 import { createThumbnail } from "react-native-create-thumbnail";
 import { View, Text, CoverView, CoverImage, Image, ScrollView, Video } from '@tarojs/components'
 import { Icon, List, Button, WingBlank, Card, Toast, Flex, Modal } from '@ant-design/react-native'
+import RNFS from 'react-native-fs';
 import Clipboard from '@react-native-clipboard/clipboard'
 import ImagePicker from 'react-native-image-picker'
-import { connect } from 'react-redux'
 import zwImg from '../../images/zw.png'
 import personInfoImg from '../../images/personInfo.png'
 import manImg from '../../images/man.png'
@@ -23,7 +23,7 @@ import {
   uploadUrl,
   fileUpload,
   faceDetect,
-  uploadFileByBase64
+  switchAuthenticationStatus,
 } from './service';
 import './index.less'
 
@@ -42,6 +42,7 @@ class Home extends Component {
       userInfo: '',
       selectSmallImg: '',
       pushAll: false,
+      gender: ''
     },
     this.copyYqm = this.copyYqm.bind(this)
     this.adviceClick = this.adviceClick.bind(this)
@@ -54,6 +55,7 @@ class Home extends Component {
     this.selectSmallImg = this.selectSmallImg.bind(this)
     this.addVideo = this.addVideo.bind(this)
     this.goPersonAuthentication = this.goPersonAuthentication.bind(this)
+    this.personAuth = this.personAuth.bind(this)
   }
 
   componentDidMount () {
@@ -62,6 +64,14 @@ class Home extends Component {
       if(arg?.status){
         this.getUserMessage()
         Taro.eventCenter.trigger('refershHome', {status: false})
+      }
+    })
+    Taro.getStorage({
+      key: 'gender',
+      complete: (res) => {
+        if (res.errMsg === "getStorage:ok") {
+          this.setState({ gender: res.data })
+        }
       }
     })
   }
@@ -136,16 +146,12 @@ class Home extends Component {
   }
 
   addPhoto() {
-    // const that = this
     Taro.chooseImage({
       count: 1,
       sizeType: ['original', 'compressed'], // 可以指定是原图还是压缩图，默认二者都有
       sourceType: ['album', 'camera','user','environment'], // 可以指定来源是相册还是相机，默认二者都有，在H5浏览器端支持使用 `user` 和 `environment`分别指定为前后摄像头
       success: (res) => {
         this.uploadImage(res.tempFilePaths)
-      },
-      complete: function () {
-        // 返回选定照片的本地文件路径列表，tempFilePath可以作为img标签的src属性显示图片
       }
     })
   }
@@ -180,142 +186,92 @@ class Home extends Component {
                       timeStamp: parseInt(duration),
                       format: 'png'
                     }).then(videoEndImg => { //得到结尾的照片
-                      console.log('得到截取的照片', response.path, videoCenterImg.path, videoEndImg.path);
-                      const headImgData = new FormData()
-                      let headFile = {uri: response.path, type: 'multipart/form-data', name: 'headfile.png'};
-                      headImgData.append('file', headFile)
-                      fetch(uploadFileByBase64,{ //上传第1秒照片 得到base64
-                        method:'POST',
-                        headers:{
-                          'Content-Type':'multipart/form-data',
-                        },
-                        body: headImgData,
-                      })
-                      .then((headBaseResponse) => {
-                        return headBaseResponse.json();
-                      })
-                      .then((headResponseBaseData)=>{
-                        console.log('headResponseBaseDataheadResponseBaseData', headResponseBaseData);
-                        if(headResponseBaseData.status === 200){
-                          const headCenterImgData = new FormData()
-                          let headCenterFile = {uri: videoCenterImg.path, type: 'multipart/form-data', name: 'headcenterfile.png'};
-                          headCenterImgData.append('file', headCenterFile)
-                          fetch(uploadFileByBase64,{ //上传中间照片得到base64
-                            method:'POST',
-                            headers:{
-                              'Content-Type':'multipart/form-data',
-                            },
-                            body: headCenterImgData,
-                          })
-                          .then((headCenterResponse) => {
-                            return headCenterResponse.json();
-                          })
-                          .then(headCenterResponseData => {
-                            console.log('headCenterResponseDataheadCenterResponseData', headCenterResponseData);
-                            if(headCenterResponseData.status === 200){
-                              const headEndImgData = new FormData()
-                              let headEndFile = {uri: videoEndImg.path, type: 'multipart/form-data', name: 'headendfile.png'};
-                              headEndImgData.append('file', headEndFile)
-                              headEndImgData.append('tenantId', storage.data)
-                              fetch(uploadFileByBase64,{ //上传结尾照片得到base64
-                                method:'POST',
-                                headers:{
-                                  'Content-Type':'multipart/form-data',
-                                },
-                                body: headEndImgData,
-                              })
-                              .then((headEndResponse) => {
-                                return headEndResponse.json();
-                              })
-                              .then(headEndResponseData => {
-                                console.log('headEndResponseDataheadEndResponseData', headEndResponseData);
-                                
-                                if(headEndResponseData.status === 200){
-                                  faceDetect({ //进行人脸对比
-                                    type: 2,
-                                    userId: storage.data,
-                                    imgUrl: '',
-                                    base: '',
-                                    baseList: [
-                                      headResponseBaseData.data, 
-                                      headCenterResponseData.data,
-                                      headEndResponseData.data,
-                                    ],
-                                  }).then(personTrueFalsedata => {
-                                    if(personTrueFalsedata.data.status === 200){ //人脸对比成功
-                                      const formData = new FormData()
-                                      let file = {uri: res.tempFilePath, type: 'multipart/form-data', name: 'file.mp4'};   //这里的key(uri和type和name)不能改变,
-                                      formData.append('file', file)
-                                      formData.append('tenantId', storage.data)
-                                      fetch(uploadUrl,{
+                      RNFS.readFile(response.path, 'base64')
+                      .then((oneImgBase) => {
+                        RNFS.readFile(videoCenterImg.path, 'base64')
+                        .then((twoImgBase) => {
+                          RNFS.readFile(videoEndImg.path, 'base64')
+                          .then((threeImgBase) => {
+                            faceDetect({ //进行人脸对比
+                              type: 2,
+                              userId: storage.data,
+                              imgUrl: '',
+                              base: twoImgBase,
+                              baseList: [
+                                oneImgBase, 
+                                twoImgBase,
+                                threeImgBase,
+                              ],
+                            }).then(personTrueFalsedata => {
+                              if(personTrueFalsedata.data.status === 200){ //人脸对比成功
+                                const formData = new FormData()
+                                let file = {uri: res.tempFilePath, type: 'multipart/form-data', name: 'file.mp4'};   //这里的key(uri和type和name)不能改变,
+                                formData.append('file', file)
+                                formData.append('tenantId', storage.data)
+                                fetch(uploadUrl,{
+                                  method:'POST',
+                                  headers:{
+                                    'Content-Type':'multipart/form-data',
+                                  },
+                                  body:formData,
+                                })
+                                  .then((upresponsedata) => {
+                                    return upresponsedata.json();
+                                  })
+                                  .then((responseData)=>{
+                                    if(responseData.status === 200){
+                                      const headImgData = new FormData()
+                                      let headFile = {uri: response.path, type: 'multipart/form-data', name: 'headfile.png'};
+                                      headImgData.append('file', headFile)
+                                      fetch(uploadUrl,{ //上传第1秒照片
                                         method:'POST',
                                         headers:{
                                           'Content-Type':'multipart/form-data',
                                         },
-                                        body:formData,
+                                        body: headImgData,
                                       })
-                                        .then((upresponsedata) => {
-                                          return upresponsedata.json();
-                                        })
-                                        .then((responseData)=>{
-                                          if(responseData.status === 200){
-                                            fetch(uploadUrl,{ //上传第1秒照片
-                                              method:'POST',
-                                              headers:{
-                                                'Content-Type':'multipart/form-data',
-                                              },
-                                              body: headImgData,
-                                            })
-                                            .then((headResponse) => {
-                                              return headResponse.json();
-                                            })
-                                            .then((headResponseData)=>{
-                                              if(headResponseData.status === 200){
-                                                fileUpload({
-                                                  type: 2,
-                                                  url: [`${responseData.data.domain + responseData.data.path}`],
-                                                  userId: storage.data,
-                                                  videoUrl: headResponseData.data.domain + headResponseData.data.path
-                                                }).then(data => {
-                                                  if(data.data.status === 200){
-                                                    Toast.remove(key)
-                                                    Toast.success({
-                                                      content: '上传成功',
-                                                      duration: 1
-                                                    })
-                                                    that.getUserMessage()
-                                                  }else{
-                                                    Toast.remove(key)
-                                                    Toast.fail({
-                                                      content: data.data.msg,
-                                                      duration: 2
-                                                    })
-                                                  }
-                                                })
-                                              }
-                                            })
-                                            
-                                          }
-                                        })
-                                        .catch((error)=>{console.error('error',error)});
-                                    }else{
-                                      Toast.remove(key)
-                                      Toast.fail({
-                                        content: personTrueFalsedata.data.msg,
-                                        duration: 2
+                                      .then((headResponse) => {
+                                        return headResponse.json();
                                       })
+                                      .then((headResponseData)=>{
+                                        if(headResponseData.status === 200){
+                                          fileUpload({
+                                            type: 2,
+                                            url: [`${responseData.data.domain + responseData.data.path}`],
+                                            userId: storage.data,
+                                            videoUrl: headResponseData.data.domain + headResponseData.data.path
+                                          }).then(data => {
+                                            if(data.data.status === 200){
+                                              Toast.remove(key)
+                                              Toast.success({
+                                                content: '上传成功',
+                                                duration: 1
+                                              })
+                                              that.getUserMessage()
+                                            }else{
+                                              Toast.remove(key)
+                                              Toast.fail({
+                                                content: data.data.msg,
+                                                duration: 2
+                                              })
+                                            }
+                                          })
+                                        }
+                                      })
+                                      
                                     }
                                   })
-                                }
-                              })
-                            }
+                                  .catch((error)=>{console.error('error',error)});
+                              }else{
+                                Toast.remove(key)
+                                Toast.fail({
+                                  content: personTrueFalsedata.data.msg,
+                                  duration: 2
+                                })
+                              }
+                            })
                           })
-                        }else{
-                          Toast.fail({
-                            content: headResponseBaseData.msg,
-                            duration: 2
-                          })
-                        }
+                        })
                       })
                     })
                   })
@@ -339,84 +295,70 @@ class Home extends Component {
           let file = {uri: tempFilePaths[0], type: 'multipart/form-data', name: 'image.png'};   //这里的key(uri和type和name)不能改变,
           formData.append('file', file)
           formData.append('tenantId', storage.data)
-          fetch(uploadFileByBase64,{
-            method:'POST',
-            headers:{
-              'Content-Type':'multipart/form-data',
-            },
-            body:formData,
-          })
-            .then((response) => {
-              return response.json();
-            })
-            .then((imgBase64Data)=>{
-              if(imgBase64Data.status === 200){
-                faceDetect({
-                  imgUrl: '',
-                  type: 2,
-                  userId: storage.data,
-                  base: imgBase64Data.data
-                }).then(personTrueFalsedata => {
-                  if(personTrueFalsedata.data.status === 200){
-                    fetch(uploadUrl,{
-                      method:'POST',
-                      headers:{
-                        'Content-Type':'multipart/form-data',
-                      },
-                      body:formData,
-                    })
-                      .then((response) => {
-                        return response.json();
-                      })
-                      .then((responseData)=>{
-                        console.log('responseData',responseData);
-                        if(responseData.status === 200){
-                          fileUpload({
-                            type: 1,
-                            url: [`${responseData.data.domain + responseData.data.path}`],
-                            userId: storage.data
-                          }).then(data => {
-                            if(data.data.status === 200){
-                              Toast.remove(key)
-                              Toast.success({
-                                content: '上传成功',
-                                duration: 1
-                              })
-                              this.getUserMessage()
-                            }else{
-                              Toast.remove(key)
-                              Toast.fail({
-                                content: data.data.msg,
-                                duration: 2
-                              })
-                            }
+          RNFS.readFile(tempFilePaths[0], 'base64')
+          .then((content) => {
+              // content 为base64数据
+            faceDetect({
+              imgUrl: '',
+              type: 2,
+              userId: storage.data,
+              base: content
+            }).then(personTrueFalsedata => {
+              if(personTrueFalsedata.data.status === 200){
+                fetch(uploadUrl,{
+                  method:'POST',
+                  headers:{
+                    'Content-Type':'multipart/form-data',
+                  },
+                  body:formData,
+                })
+                  .then((response) => {
+                    return response.json();
+                  })
+                  .then((responseData)=>{
+                    console.log('responseData',responseData);
+                    if(responseData.status === 200){
+                      fileUpload({
+                        type: 1,
+                        url: [`${responseData.data.domain + responseData.data.path}`],
+                        userId: storage.data
+                      }).then(data => {
+                        if(data.data.status === 200){
+                          Toast.remove(key)
+                          Toast.success({
+                            content: '上传成功',
+                            duration: 1
+                          })
+                          this.getUserMessage()
+                        }else{
+                          Toast.remove(key)
+                          Toast.fail({
+                            content: data.data.msg,
+                            duration: 2
                           })
                         }
                       })
-                      .catch((error)=>{console.error('error',error)});
-                  }else{
-                    Toast.remove(key)
-                    Toast.fail({
-                      content: personTrueFalsedata.data.msg,
-                      duration: 2
-                    })
-                  }
-                }).catch(error => {
-                  Toast.remove(key)
-                  Toast.fail({
-                    content: '上传失败，请重试',
-                    duration: 2
+                    }
                   })
+                  .catch((error)=>{console.error('error',error)});
+              }else{
+                Toast.remove(key)
+                Toast.fail({
+                  content: personTrueFalsedata.data.msg,
+                  duration: 2
                 })
               }
-            })
-            .catch(() => {
+            }).catch(error => {
               Toast.remove(key)
               Toast.fail({
-                content: '网络似乎掉线了, 请重试..',
+                content: '上传失败，请重试',
                 duration: 2
               })
             })
+          })
+          .catch((err) => {
+            console.log("reading error: " + err);
+          });
         }
       }
     })
@@ -445,6 +387,26 @@ class Home extends Component {
 
   goPersonAuthentication() {
     console.log('进行真人认证');
+  }
+
+  personAuth() {
+    switchAuthenticationStatus({
+      certificationLevel: 2,
+      id: this.state.userInfo.id
+    }).then(data => {
+      if(data.data.status === 200){
+        Toast.success({
+          content: '已提交男神认证',
+          duration: 1
+        })
+        this.getUserMessage()
+      }else{
+        Toast.fail({
+          content: data.data.msg,
+          duration: 2
+        })
+      }
+    })
   }
 
   render () {
@@ -496,7 +458,7 @@ class Home extends Component {
               </View>
               <View className='bottomText'>
                 <Icon name='alert' size='md' color='#efb336' />
-                <Text style={{ color: 'white', fontWeight: 'bold' }}>全身照越多(至少一张正面俩张侧面),才能被评为男神！</Text>
+                <Text style={{ color: 'white', fontWeight: 'bold' }}>全身照越多(至少一张正面俩张侧面),才能被评为{this.state.gender === 2 ? '女神' : '男神'}！</Text>
               </View>
             </CoverView>
           </View>
@@ -511,13 +473,15 @@ class Home extends Component {
             </Item>
             <Item arrow='horizontal' 
               thumb={
+                this.state.gender === 2 ?
+                <Image src={womenImg} className='iconSizeStyle' style={{ width: 30, height: 30 }} />
+                :
                 <Image src={manImg} className='iconSizeStyle' style={{ width: 30, height: 30 }} />
-                // <Image src={womenImg} className='iconSizeStyle' style={{ width: 30, height: 30 }} />
               }
-              onPress={() => {}}
-              extra='审核中'
+              onPress={userInfo.certificationLevel !== 1 ? null : this.personAuth}
+              extra={userInfo.certificationLevel === 1 ? '普通用户' : userInfo.certificationLevel === 2 ? '待审核' : userInfo.certificationLevel === 3 ? '男神' : '女神'}
             >
-              男神认证
+             {this.state.gender === 2 ? '女神认证' : '男神认证'}
             </Item>
             <Item
               thumb={
@@ -685,12 +649,4 @@ class Home extends Component {
   }
 }
 
-export default connect(
-  ({
-    home,
-    loading,
-  }) => ({
-    home,
-    loading,
-  }),
-)(Home);
+export default Home

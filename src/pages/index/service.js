@@ -16,4 +16,12 @@ export const collectionUser = (data) => {
   });
 };
 
+export const getAdListsData = () => {
+  return Request({
+    url: `/social/advertising/findAllByPage?pageNumber=1&&pageSize=20&usable=1`,
+    method: 'GET',
+  });
+};
+
+
 

@@ -8,7 +8,7 @@ import {
   appUserList,
 } from './service'
 import PositionImg from '../../images/position.png'
-import adImg from '../../images/ad.png'
+import AdLists from './components/AdLists'
 import './index.less'
 
 class Index extends PureComponent {
@@ -27,18 +27,51 @@ class Index extends PureComponent {
       latitude: '34.343147',
       longitude: '108.939621',
       range: 10,
-      allDataHaveStopLoading: false
+      allDataHaveStopLoading: false,
     },
-    this.adClick = this.adClick.bind(this)
     this.searchOnChange = this.searchOnChange.bind(this)
     this.searchOnCancelChange = this.searchOnCancelChange.bind(this)
     this.goCitySelect = this.goCitySelect.bind(this)
   }
   
   componentDidMount () {
-    this.getUserLists()
-    this.refreshData()
-    this.updateCity()
+    // this.getUserLists()
+    // this.refreshData()
+    // this.updateCity()
+    const that = this
+    Taro.getLocation({
+      type: 'wgs84',
+      success: function (res) {
+        const latitude = res.latitude
+        const longitude = res.longitude
+        that.setState({
+          latitude,
+          longitude,
+        })
+        Taro.request({
+          url: `https://apis.map.qq.com/ws/geocoder/v1/?location=${latitude},${longitude}&key=XKYBZ-36R6D-DP74D-PFWPH-PICQ5-RHFJS`,
+          header: {
+            'Content-Type': 'application/json',
+          },
+          method: 'GET',
+          complete: (resCity) => {
+            if (resCity.statusCode === 200) {
+              const city = resCity.data.result.address_component.city.split('市')[0]
+              that.setState({ 
+                city
+              },() => {
+                that.getUserLists()
+                that.refreshData()
+                that.updateCity()
+              })
+            }else{
+              Toast.fail('定位失败')
+              that.setState({ isLoading: false })
+            }
+          },
+        })
+      }
+    })
   }
 
   updateCity() {
@@ -67,7 +100,7 @@ class Index extends PureComponent {
     })
   }
 
-  getUserLists() {
+  getUserLists() {    
     const { city, pageNumber, pageSize, latitude, longitude, range } = this.state
     Taro.getStorage({
       key: 'userId',
@@ -94,12 +127,6 @@ class Index extends PureComponent {
           url: `'pages/login/index',`,
         })
       }
-    })
-  }
-
-  adClick() {
-    Taro.navigateTo({
-      url: '/pages/adPage/index?url=www.baidu.com'
     })
   }
 
@@ -208,11 +235,9 @@ class Index extends PureComponent {
 
 
   render () {
-    // const FlatListHeight = this.state.dataArray.length > 0 && this.state.dataArray.length * 110 || 800
-    // console.log(this.state.dataArray.length, FlatListHeight);
     return (
       <View className='bodyOut'>
-        <View className='topSearch'>
+        <View className='topSearch' style={{ height: '15%' }}>
           <View style={{ width: '70%', position:'relative' }}>
             <SearchBar defaultValue='初始值' placeholder='搜索' style={{ position: 'absolute', top: -22, bottom: 0, left: -10, height: '100%', width: '110%' }} onChange={this.searchOnChange} onCancel={this.searchOnCancelChange} value={this.state.searchValue} />
           </View>
@@ -229,14 +254,10 @@ class Index extends PureComponent {
           </View>
         </View>
         <WhiteSpace size='xl' />
-        <View style={{ padding: 20, paddingTop: 0, paddingBottom: 0 }}>
-          <Image
-            style={{width: '100%', height: 120, borderRadius: 10}}
-            src={adImg}
-            onClick={this.adClick}
-          />
+        <View style={{ padding: 20, paddingTop: 0, paddingBottom: 0, height: '15%' }}>
+          <AdLists />
         </View>
-        <View>
+        <View style={{ marginBottom: 50, height: '60%' }}>
           <FlatList
             keyxtractor={this._keyxtractor}
             data={this.state.dataArray}
@@ -255,7 +276,7 @@ class Index extends PureComponent {
             onEndReached={() => {
               this.loadData(true)
             }}
-            style={{ height: 580 }}
+            style={{ height: '100%' }}
           />
 
         </View>
@@ -266,4 +287,3 @@ class Index extends PureComponent {
 }
 
 export default Index
-  

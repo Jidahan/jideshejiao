@@ -23,7 +23,9 @@ class Genderpage extends Component {
     this.okSubmit = this.okSubmit.bind(this)
   }
 
-  componentDidMount() {}
+  componentDidMount() {
+    console.log(this.props);
+  }
 
   genderSubmit() {
     this.setState({ deterModal: true })
@@ -35,7 +37,7 @@ class Genderpage extends Component {
       data: this.state.genderValue
     }).then(() => {
       Taro.navigateTo({
-        url: '/pages/beforeFace/index'
+        url: `/pages/beforeFace/index?userId=${this.props.route.params.userId}`
       })
     })
   }

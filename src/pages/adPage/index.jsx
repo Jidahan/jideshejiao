@@ -13,7 +13,7 @@ class Adpage extends Component {
   }
 
   componentDidMount() { 
-    this.setState({ url: `https://`+this.props.route.params.url })
+    this.setState({ url: this.props.route.params.url })
   }
 
   render() {

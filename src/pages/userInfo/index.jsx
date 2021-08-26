@@ -91,7 +91,15 @@ class Userinfo extends Component {
         url: `/pages/photoLists/index?data=${JSON.stringify(photos)}`
       })
     }else{
-      this.setState({ photoImgsModal: true })
+      if(!photos) {
+        Toast.info({
+          content: '该用户暂未上传照片',
+          duration: 2
+        })
+        return
+      }else{
+        this.setState({ photoImgsModal: true })
+      }
     }
   }
 
@@ -351,7 +359,7 @@ class Userinfo extends Component {
             <WingBlank size='lg'>
               <Card>
                 <Card.Header
-                  title='她的相册'
+                  title={`${userInfo.gender === 2 ? '她' : '他'}的相册`}
                   thumbStyle={{ width: 30, height: 30 }}
                   thumb={
                     <Image src={photoImg} className='iconSizeStyle' />
@@ -542,7 +550,7 @@ class Userinfo extends Component {
           <View style={{ paddingVertical: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Icon name='layout' color='#3b99fc' style={{ fontSize: 40 }} />
             <Text style={{ fontSize: 20, marginTop: 20 }}>付费相册</Text>
-            <Text style={{ marginTop: 20, marginBottom: 0 }}>有3张照片</Text>
+            <Text style={{ marginTop: 20, marginBottom: 0 }}>有{userInfo?.photos?.length}张照片</Text>
           </View>
         </Modal>
       </View>

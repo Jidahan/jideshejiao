@@ -34,16 +34,7 @@ class face extends Component {
 
     componentDidMount() {
       this.start()
-
-      Taro.getStorage({
-        key: 'userId',
-        complete: (res) => {
-          if (res.errMsg === "getStorage:ok") {
-            this.setState({ userId: res.data })
-          }
-        }
-      })
-
+      this.setState({ userId: this.props.route.params.userId })
       Taro.getStorage({
         key: 'gender',
         complete: (res) => {
@@ -55,6 +46,7 @@ class face extends Component {
     }
 
     start = () => {
+      const key = Toast.loading('正在加载相关资源...')
       this.setState({
         apiKey: '7E79IypZU29vnFZ0RBBA6SBY',
         appID: '24034341',
@@ -85,9 +77,9 @@ class face extends Component {
                     max_code_length: 1
                   },
                   complete: (sessionId) => {
-                    console.log('sessionId', sessionId);
                     if (sessionId.data.err_no === 0) {
                       this.setState({ sessionId: sessionId.data.result.session_id, code: sessionId.data.result.code }, () => {
+                        Toast.remove(key)
                         this.setInterval = setInterval(() => {
                           let num = this.state.imgSum;  ++num;
                           let codeSum
@@ -133,12 +125,10 @@ class face extends Component {
     }
 
     goPersonVideo = () => {
-      console.log('clear');
       const that = this
-      this.setInterval && clearInterval(this.setInterval)
       Taro.chooseVideo({
         camera: 'front',
-        sourceType: ['camera', 'album'],
+        sourceType: ['camera'],
         maxDuration: 8,
         success: function (res) {
           const key = Toast.loading('认证中...');
@@ -176,8 +166,14 @@ class face extends Component {
                       })
                       setTimeout(() => {
                         clearInterval(that.setInterval)
-                        Taro.switchTab({
-                          url: '/pages/index/index'
+                        Taro.setStorage({
+                          key: "userId",
+                          data: that.state.userId,
+                          success: () => {
+                            Taro.switchTab({
+                              url: '/pages/index/index'
+                            })
+                          }
                         })
                       }, 1000);
                     }else{
