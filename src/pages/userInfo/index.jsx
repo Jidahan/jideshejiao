@@ -2,6 +2,7 @@ import { Component } from 'react';
 import Taro from '@tarojs/taro';
 import { View, Text, CoverView, CoverImage, ScrollView, Image, Video } from '@tarojs/components'
 import { Icon, List, Button, WingBlank, Card, Flex, Modal, Radio, Toast } from '@ant-design/react-native'
+import { ImageBackground } from 'react-native';
 import { BlurView } from "@react-native-community/blur";
 import Clipboard from '@react-native-clipboard/clipboard'
 import manImg from '../../images/man.png'
@@ -11,6 +12,9 @@ import goodActionImg from '../../images/goodAction.png'
 import startImg from '../../images/start.png'
 import photoImg from '../../images/photo.png'
 import heartImg from '../../images/heart.png'
+import trueWomen from '../../images/trueWomen.png'
+import truePerson from '../../images/truePerson.png'
+import lookpagePosition from '../../images/lookpagePosition.png'
 import './index.less';
 import {
   appUserDetail,
@@ -66,8 +70,11 @@ class Userinfo extends Component {
             }else{
               Toast.remove(key);
               Toast.fail({
-                content: data.data.data,
+                content: data.data.msg,
                 duration: 2
+              })
+              Taro.navigateBack({
+                delta: 1
               })
             }
           })
@@ -220,6 +227,9 @@ class Userinfo extends Component {
     const { evaluationModal, photoImgsModal, userInfo, selectSmallImg } = this.state
     const imgArrayHeight = userInfo?.photos?.length <= 5 ? 80 : 140
     // const threePhoto = 
+    const headPhoto = userInfo?.photos?.filter((item) => {
+      return item.type === 1
+    })
     return (
       <View style={{ position: 'relative' }}>
         <ScrollView
@@ -230,66 +240,56 @@ class Userinfo extends Component {
         >
           <View className='container'>
             <CoverView className='controls'>
-              <CoverImage className='img' src={selectSmallImg || userInfo.photo} />
+              <CoverImage className='img' src={headPhoto&&headPhoto[0].url} />
+              <View className='img' style={{ backgroundColor: '#000000', position: 'absolute', opacity: 0.6  }}></View>
               <View className='rightTopImgAdd' onClick={this.goBack}>
                 <Icon name='left' size='md' className='leftIconGoBack' />
               </View>
               <View className='imgArray'>
-                <ScrollView
-                  scrollX
-                >
-                  {userInfo?.photos?.map(reward => {
-                    if(reward.url.indexOf('mp4') === -1){
-                      return (
-                        <View style={{width: 60, height: 60, marginLeft: 10}} className={reward === this.state.selectSmallImg ? 'selectImgArrayOneImg' : ''} key={reward.id} onClick={() => this.selectSmallImg(reward)}>
-                          <Image
-                            style={{width: '100%', height: '100%', borderRadius: 10}}
-                            src={reward?reward:null}
-                          />
-                        </View>
-                      )
-                    }
-                  })}
-                </ScrollView>
+                <View style={{width: 100, height: 100, marginLeft: 10}}>
+                  <Image
+                    style={{width: '100%', height: '100%', borderRadius: 10}}
+                    className='selectImgArrayOneImg'
+                    src={headPhoto&&headPhoto[0].url}
+                  />
+                </View>
+                <View style={{ marginLeft: 20, height: 100, display: 'flex', flexDirection: 'column', justifyContent: 'space-around' }}>
+                  <View className='row'>
+                    <Text style={{ color: '#ffffff', fontSize: 22 }}>{userInfo.nickName}</Text>
+                    <View className='row cardRightTop'>
+                      <Text style={{ color: '#ffffff', marginRight: 5 }}>{userInfo.onlineState === 1 ? '在线' : '离线'}</Text>
+                      <View className={`onlineOrNoOnlineStyle ${userInfo.onlineState === 1 ? 'online' : 'noOnline'}`}></View>
+                    </View>
+                  </View>
+
+                  <View className='row'>
+                    <Text style={{ color: '#ffffff' }}>{userInfo.age}岁</Text>
+                    <View style={{ width: 2, height: 2, backgroundColor: 'white', borderRadius: 2 }} className='point'></View>
+                    <Text style={{ color: '#ffffff', marginRight: 5 }}>{userInfo.constellation}</Text>
+                  </View>
+                </View>
               </View>
-              {
-                userInfo.gender === 2 ?
-                <View className='bottomTwoText'>
-                  <Image src={womenImg || null} className='iconSizeStyle' style={{ width: 20, height: 20 }} />
-                  <Text style={{ color: 'white', fontWeight: 'bold', marginLeft: 2 }}>她已通过女神认证</Text>
+              <View className='row bottomText' style={{ justifyContent: 'space-around' }}>
+                <View className='row'>
+                  {
+                    userInfo.personAuthentication === 1 ?
+                    <Image src={truePerson} style={{ width: 100, height: 31 }} />
+                    :
+                    null
+                  }
+                  {
+                    userInfo.gender === 2 ?
+                    <Image src={trueWomen} style={{ width: 100, height: 31, marginLeft: 10 }} />
+                    :
+                    <Image src={trueWomen} style={{ width: 100, height: 31, marginLeft: 10 }} />
+                  }
                 </View>
-                :
-                <View className='bottomTwoText'>
-                  <Image src={manImg || null} className='iconSizeStyle' style={{ width: 20, height: 20 }} />
-                  <Text style={{ color: 'white', fontWeight: 'bold', marginLeft: 2 }}>他已通过男神认证</Text>
+                <View className='row'>
+                  <Text style={{ color: '#ffffff', marginRight: 10 }}>{userInfo.city}</Text>
+                  <Image src={lookpagePosition} style={{ width: 20, height: 20 }} />
+                  <Text style={{ color: '#ffffff' }}>{userInfo.distance}</Text>
                 </View>
-              }
-              {
-                userInfo.gender === 2 ?
-                  userInfo.personAuthentication === 1 ?
-                  <View className='bottomText'>
-                    <Icon name='alert' size='md' color='#efb336' />
-                    <Text style={{ color: 'white', fontWeight: 'bold', marginLeft: 5 }}>她已通过真人面容认证</Text>
-                  </View>
-                  :
-                  <View className='bottomText'>
-                    <Icon name='alert' size='md' color='#efb336' />
-                    <Text style={{ color: 'white', fontWeight: 'bold', marginLeft: 5 }}>她暂时还未通过真人面容认证</Text>
-                  </View>
-                :
-                userInfo.personAuthentication === 1 ?
-                <View className='bottomText'>
-                  <Icon name='alert' size='md' color='#efb336' />
-                  <Text style={{ color: 'white', fontWeight: 'bold', marginLeft: 5 }}>他已通过真人面容认证</Text>
-                </View>
-                :
-                <View className='bottomText'>
-                  <Icon name='alert' size='md' color='#efb336' />
-                  <Text style={{ color: 'white', fontWeight: 'bold', marginLeft: 5 }}>他暂时还未通过真人面容认证</Text>
-                </View>
-              }
-              
-            
+              </View>
             </CoverView>
           </View>
           <List style={{ marginTop: 10 }}>

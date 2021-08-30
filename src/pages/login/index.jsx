@@ -1,13 +1,19 @@
 import { Component } from 'react';
 import Taro from '@tarojs/taro';
-import { View, Text } from '@tarojs/components';
+import { View, Text, Image } from '@tarojs/components';
 import { Icon, List, Button, WingBlank, InputItem, Toast, Checkbox, Modal, WhiteSpace } from '@ant-design/react-native'
-import { connect } from 'react-redux';
+import { ImageBackground, StyleSheet, SafeAreaView } from "react-native";
 import { 
   getPhoneSendCode,
   appLogin,
 } from './service';
-
+import bgImg from '../../images/loginbgimg.png'
+import loginlogo from '../../images/loginlogo.png'
+import loginPhone from '../../images/loginPhone.png'
+import loginYzm from '../../images/loginYzm.png'
+import loginYqm from '../../images/loginYqm.png'
+import signButton from '../../images/sign.png'
+import touristlogin from '../../images/touristlogin.png'
 import './index.less';
 
 Toast.config({
@@ -31,6 +37,8 @@ class Login extends Component {
       btnContent: '获取验证码',
     }
     this.loginSubmit = this.loginSubmit.bind(this)
+    this.beforeTouristLoginSubmit = this.beforeTouristLoginSubmit.bind(this)
+    this.beForeLoginSubmit = this.beForeLoginSubmit.bind(this)
   }
 
   componentDidMount() { }
@@ -123,6 +131,14 @@ class Login extends Component {
    
   }
 
+  beforeTouristLoginSubmit() {
+    this.setState({ registered: false, tourists: true })
+  }
+
+  beForeLoginSubmit() {
+    this.setState({ registered: true, tourists: false })
+  }
+
   render() {
     let timeChange;
     let ti = this.state.time;
@@ -185,99 +201,151 @@ class Login extends Component {
     };
 
     return (
-      <View className='login-page'>
-        <WingBlank size='lg' style={{ width: '80%' }}>
-          <List>
-            <InputItem
-              clear
-              error={this.state.phoneError}
-              value={this.state.phoneValue}
-              onChange={value => {
-                this.setState({
-                  phoneError: false,
-                  phoneValue: value,
-                });
-              }}
-              placeholder='请输入手机号'
-              style={{ marginLeft: -30 }}
-              type='phone'
-            >
-              <Icon name='mobile' style={{ padding: 0, margin: 0 }} />
-            </InputItem>
-            <Text style={{ backgroundColor: '#eee' }}></Text>
-            <InputItem
-              clear
-              error={this.state.codeError}
-              value={this.state.codeValue}
-              onChange={value => {
-                this.setState({
-                  codeError: false,
-                  codeValue: value,
-                });
-              }}
-              placeholder='请输入验证码'
-              style={{ marginLeft: -30 }}
-              extra={
-                <Button size='small' type='ghost' disabled={this.state.btnDisable} onPress={sendCode}>{this.state.btnContent}</Button>
+      <View style={styles.container}>
+        <ImageBackground source={bgImg} style={styles.image}>
+          <Text style={styles.loginText}>登录</Text>
+          <Image
+            style={styles.loginLogo}
+            src={loginlogo}
+          />
+          <WingBlank size='lg' style={{ width: '80%' }}>
+            <View>
+              <InputItem
+                clear
+                error={this.state.phoneError}
+                value={this.state.phoneValue}
+                onChange={value => {
+                  this.setState({
+                    phoneError: false,
+                    phoneValue: value,
+                  });
+                }}
+                placeholder='请输入手机号'
+                placeholderTextColor='#ffffff'
+                type='phone'
+                style={styles.phoneInput}
+              >
+                <Image src={loginPhone} style={styles.phone} className='boxShadowInput' />
+              </InputItem>
+              <Text style={{ backgroundColor: 'transparent', height: 20 }}></Text>
+              <InputItem
+                clear
+                error={this.state.codeError}
+                value={this.state.codeValue}
+                onChange={value => {
+                  this.setState({
+                    codeError: false,
+                    codeValue: value,
+                  });
+                }}
+                placeholder='请输入验证码'
+                placeholderTextColor='#ffffff'
+                style={styles.phoneInput}
+                extra={
+                  <Button size='small' disabled={this.state.btnDisable} onPress={sendCode} style={styles.getYzm}><Text style={styles.yzmColor}>{this.state.btnContent}</Text></Button>
+                }
+              >
+                <Image src={loginYzm} style={styles.phone} className='boxShadowInput' />
+              </InputItem>
+              <Text style={{ backgroundColor: 'transparent', height: 20 }}></Text>
+              {
+                this.state.registered ?
+                <InputItem
+                  clear
+                  type='number'
+                  error={this.state.yqmError}
+                  value={this.state.yqmValue}
+                  onChange={value => {
+                    this.setState({
+                      yqmError: false,
+                      yqmValue: value,
+                    });
+                  }}
+                  placeholderTextColor='#ffffff'
+                  placeholder='请输入邀请码（选填）'
+                  style={styles.phoneInput}
+                >
+                  <Image src={loginYqm} style={styles.phone} className='boxShadowInput' />
+                </InputItem>
+                :
+                <InputItem
+                  clear
+                  type='number'
+                  error={this.state.yqmError}
+                  value={this.state.yqmValue}
+                  onChange={value => {
+                    this.setState({
+                      yqmError: false,
+                      yqmValue: value,
+                    });
+                  }}
+                  placeholderTextColor='#ffffff'
+                  placeholder='请输入邀请码（必填）'
+                  style={styles.phoneInput}
+                >
+                  <Image src={loginYqm} style={styles.phone} className='boxShadowInput' />
+                </InputItem>
               }
-            >
-              <Icon name='safety-certificate' style={{ padding: 0, margin: 0 }} />
-            </InputItem>
-            <Text style={{ backgroundColor: '#eee' }}></Text>
-            <InputItem
-              clear
-              type='number'
-              error={this.state.yqmError}
-              value={this.state.yqmValue}
-              onChange={value => {
-                this.setState({
-                  yqmError: false,
-                  yqmValue: value,
-                });
-              }}
-              placeholder='请输入邀请码'
-            >
-              <View>
-                <Text>邀请码</Text><Text style={{ color: '#a51ce2' }}>(选填)</Text>
-              </View>
-            </InputItem>
-          </List>
-          <WhiteSpace size='lg' />
-          <View className='bottomSelect'>
-            <Checkbox
-              checked={this.state.registered}
-              // style={{ color: '#f00' }}
-              onChange={event => {
-                this.setState({ tourists: false, registered: event.target.checked });
-              }}
-            >
-              注册用户
-            </Checkbox>
-            <Checkbox
-              checked={this.state.tourists}
-              // style={{ color: '#f00' }}
-              onChange={event => {
-                this.setState({ registered:false, tourists: event.target.checked });
-              }}
-            >
-              游客用户
-            </Checkbox>
-          </View>
-          <WhiteSpace size='lg' />
-          <Button type='primary' onPress={this.loginSubmit}>登录</Button>
+            </View>
 
-        </WingBlank>
+          </WingBlank>
+          {this.state.registered ?
+           <View style={styles.bottomView}>
+            <Image src={signButton} onClick={this.loginSubmit} style={styles.signUserButton} />
+            <Text className='touristsButton' onClick={this.beforeTouristLoginSubmit}>游客登录</Text>
+          </View>
+          :
+          <View style={styles.bottomView}>
+            <Image src={touristlogin} onClick={this.loginSubmit} style={styles.signUserButton} />
+            <Text className='touristsButton'onClick={this.beForeLoginSubmit}>注册用户登录</Text>
+          </View>
+          }
+          
+        </ImageBackground>
       </View>
     )
   }
 }
 
 export default Login
-// 下面用来connect数据层
-// export default connect(
-//   ({
-//     login,
-//   }) => ({
-//     login,
-//   }),
-// )(Login);
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  loginText: {
+    color: 'white',
+    fontSize: 28
+  },
+  image: {
+    flex: 1,
+    justifyContent: 'space-around',
+    alignItems: 'center',
+  },
+  loginLogo: {
+    width: 130,
+    height: 152
+  },
+  phoneInput: {
+    marginLeft: -30,
+    color: 'white',
+  },
+  phone: {
+    width: 28,
+    height: 28,
+    padding: 0,
+    margin: 0,
+  },
+  getYzm: {
+    borderRadius: 20,
+  },
+  yzmColor: {
+    color: '#FF939D'
+  },
+  signUserButton: {
+    height: 60
+  },
+  bottomView: {
+    alignItems: 'center'
+  }
+})

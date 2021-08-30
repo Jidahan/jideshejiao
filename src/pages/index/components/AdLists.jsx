@@ -42,9 +42,9 @@ const AdLists = (props) => {
       adLists ?
       adLists&&adLists.map(reward => {
         return (
-          <View key={reward.id} style={{ height: 120 }}>
+          <View key={reward.id} style={{ height: 150 }}>
             <Image
-              style={{width: '100%', height: 120, borderRadius: 10}}
+              style={{width: '100%', height: 150, borderRadius: 10}}
               src={reward.cover}
               onClick={() => adClick(reward.url)}
             />
@@ -52,9 +52,9 @@ const AdLists = (props) => {
         )
       })
       :
-      <View style={{ height: 120 }}>
+      <View style={{ height: 150 }}>
         <Image
-          style={{width: '100%', height: 120, borderRadius: 10}}
+          style={{width: '100%', height: 150, borderRadius: 10}}
           src={adImg}
           onClick={() => adClick('https://www.baidu.com')}
         />

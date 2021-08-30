@@ -2,13 +2,14 @@ import { PureComponent } from 'react'
 import Taro from '@tarojs/taro'
 import { View, Text, Image } from '@tarojs/components'
 import { Icon, WhiteSpace, Button, SearchBar, Toast } from '@ant-design/react-native'
-import { FlatList, ActivityIndicator, RefreshControl } from 'react-native';
+import { FlatList, ActivityIndicator, RefreshControl, StyleSheet, TextInput } from 'react-native';
 import IndexLists from './components/IndexLists'
 import { 
   appUserList,
 } from './service'
 import PositionImg from '../../images/position.png'
 import AdLists from './components/AdLists'
+import searchImg from '../../images/search.png'
 import './index.less'
 
 class Index extends PureComponent {
@@ -35,43 +36,46 @@ class Index extends PureComponent {
   }
   
   componentDidMount () {
-    // this.getUserLists()
-    // this.refreshData()
-    // this.updateCity()
-    const that = this
-    Taro.getLocation({
-      type: 'wgs84',
-      success: function (res) {
-        const latitude = res.latitude
-        const longitude = res.longitude
-        that.setState({
-          latitude,
-          longitude,
-        })
-        Taro.request({
-          url: `https://apis.map.qq.com/ws/geocoder/v1/?location=${latitude},${longitude}&key=XKYBZ-36R6D-DP74D-PFWPH-PICQ5-RHFJS`,
-          header: {
-            'Content-Type': 'application/json',
-          },
-          method: 'GET',
-          complete: (resCity) => {
-            if (resCity.statusCode === 200) {
-              const city = resCity.data.result.address_component.city.split('市')[0]
-              that.setState({ 
-                city
-              },() => {
-                that.getUserLists()
-                that.refreshData()
-                that.updateCity()
-              })
-            }else{
-              Toast.fail('定位失败')
-              that.setState({ isLoading: false })
-            }
-          },
-        })
-      }
-    })
+    this.getUserLists()
+    this.refreshData()
+    this.updateCity()
+    // const that = this
+    // Taro.getLocation({
+    //   type: 'wgs84',
+    //   success: function (res) {
+    //     const latitude = res.latitude
+    //     const longitude = res.longitude
+    //     that.setState({
+    //       latitude,
+    //       longitude,
+    //     })
+    //     Taro.request({
+    //       url: `https://apis.map.qq.com/ws/geocoder/v1/?location=${latitude},${longitude}&key=XKYBZ-36R6D-DP74D-PFWPH-PICQ5-RHFJS`,
+    //       header: {
+    //         'Content-Type': 'application/json',
+    //       },
+    //       method: 'GET',
+    //       complete: (resCity) => {
+    //         if (resCity.statusCode === 200) {
+    //           const city = resCity.data.result.address_component.city.split('市')[0]
+    //           that.setState({ 
+    //             city
+    //           },() => {
+    //             that.getUserLists()
+    //             that.refreshData()
+    //             that.updateCity()
+    //           })
+    //         }else{
+    //           Toast.fail('定位失败')
+    //           that.setState({ isLoading: false })
+    //         }
+    //       },
+    //     })
+    //   },
+    //   error: function(error) {
+    //     console.log(error);
+    //   }
+    // })
   }
 
   updateCity() {
@@ -117,14 +121,14 @@ class Index extends PureComponent {
             }
           })
         }else{
-          Taro.navigateTo({
-            url: `'pages/login/index',`,
+          Taro.redirectTo({
+            url: `pages/login/index`,
           })
         }
       },
       error: () => {
-        Taro.navigateTo({
-          url: `'pages/login/index',`,
+        Taro.redirectTo({
+          url: `pages/login/index`,
         })
       }
     })
@@ -237,24 +241,19 @@ class Index extends PureComponent {
   render () {
     return (
       <View className='bodyOut'>
-        <View className='topSearch' style={{ height: '15%' }}>
+        <View className='topSearch' style={{ height: '13%' }}>
           <View style={{ width: '70%', position:'relative' }}>
-            <SearchBar defaultValue='初始值' placeholder='搜索' style={{ position: 'absolute', top: -22, bottom: 0, left: -10, height: '100%', width: '110%' }} onChange={this.searchOnChange} onCancel={this.searchOnCancelChange} value={this.state.searchValue} />
+            <SearchBar placeholder='输入昵称搜索' style={{ position: 'absolute', top: -18, bottom: 0, left: -10, height: '80%', width: '110%', borderRadius: 20, backgroundColor: '#E8E8E8' }} onChange={this.searchOnChange} onCancel={this.searchOnCancelChange} value={this.state.searchValue} />
           </View>
-          <View>
-            <Button size='small' className='searchRightButton' onPress={this.goCitySelect}>
-              <View>
-                <Text className='searchRightButtonText'>附近</Text>
-              </View>
-              <Image
-                style='width: 20px;height: 20px'
-                src={PositionImg}
-              />
-            </Button>
+          <View onClick={this.goCitySelect} style={styles.position}>
+            <Image
+              style={{ width: 20, height: 20 }}
+              src={PositionImg}
+            />
+            <Text className='searchRightButtonText'>附近</Text>
           </View>
         </View>
-        <WhiteSpace size='xl' />
-        <View style={{ padding: 20, paddingTop: 0, paddingBottom: 0, height: '15%' }}>
+        <View style={{ padding: 20, paddingTop: 0, paddingBottom: 0 }}>
           <AdLists />
         </View>
         <View style={{ marginBottom: 50, height: '60%' }}>
@@ -287,3 +286,11 @@ class Index extends PureComponent {
 }
 
 export default Index
+
+const styles = StyleSheet.create({
+  position: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center'
+  }
+})
