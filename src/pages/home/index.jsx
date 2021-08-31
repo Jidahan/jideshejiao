@@ -96,7 +96,6 @@ class Home extends Component {
       }
     })
   }
-  
 
   personInfoClick() {
     Taro.navigateTo({

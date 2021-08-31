@@ -49,14 +49,14 @@ class Personinfopage extends Component {
     const { route:{params:{data}} } = this.props
     const userInfo = JSON.parse(data)
     this.setState({ 
-      nickName: userInfo.nickName,
-      cityName: userInfo.city,
-      birthdayName: userInfo.birthday,
-      wxName: userInfo.wxAccount,
-      height: userInfo.height,
-      weight: userInfo.weight,
-      aidou: userInfo.individualValues,
-      photos: userInfo.photos
+      nickName: userInfo?.nickName,
+      cityName: userInfo?.city,
+      birthdayName: userInfo?.birthday === '' ? '' : userInfo?.birthday,
+      wxName: userInfo?.wxAccount,
+      height: userInfo?.height,
+      weight: userInfo?.weight,
+      aidou: userInfo?.individualValues,
+      photos: userInfo?.photos.length === 0 ? '' : userInfo?.photos
     })
 
     Taro.eventCenter.on('updatePersonInfoPageCity',(arg)=>{
@@ -274,7 +274,7 @@ class Personinfopage extends Component {
             昵称
           </Item>
           <DatePicker
-            value={new Date(this.state.birthdayName)}
+            value={!this.state.birthdayName ? '' : new Date(this.state.birthdayName)}
             mode='date'
             defaultDate={new Date()}
             minDate={new Date(1900, 7, 6)}

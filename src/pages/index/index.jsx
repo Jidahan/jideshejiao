@@ -34,11 +34,19 @@ class Index extends PureComponent {
     this.searchOnCancelChange = this.searchOnCancelChange.bind(this)
     this.goCitySelect = this.goCitySelect.bind(this)
   }
+
+  onTabItemTap() {
+    this.setState({ pageNumber: 1 }, () => {
+      this.getUserLists()
+      this.refreshData()
+    })
+  }
   
   componentDidMount () {
     this.getUserLists()
     this.refreshData()
     this.updateCity()
+
     // const that = this
     // Taro.getLocation({
     //   type: 'wgs84',
@@ -93,13 +101,12 @@ class Index extends PureComponent {
     Taro.eventCenter.on('goLikeUserIsRefresh',(arg)=>{
       if(arg?.status){
         const likenowData = this.state.dataArray.map(reward => {
-          if(reward.userId === arg?.id){
+          if(reward.userId === arg.id){
             reward.collectionIs = reward.collectionIs === 1 ? 2 : 1
           }
           return reward
         })
         this.setState({ dataArray: likenowData })
-        Taro.eventCenter.trigger('goLikeUserIsRefresh', {status: false, id: ''})
       }
     })
   }
@@ -239,6 +246,10 @@ class Index extends PureComponent {
     }
   }
 
+  componentDidHide() {
+    Taro.eventCenter.off('goLikeUserIsRefresh')
+  }
+
 
   render () {
     return (
@@ -259,7 +270,7 @@ class Index extends PureComponent {
         <View style={{ padding: 20, paddingTop: 0, paddingBottom: 0 }}>
           <AdLists />
         </View>
-        <View style={{ marginBottom: 50, height: '60%' }}>
+        <View style={{ marginBottom: 50, height: '63%' }}>
           <FlatList
             keyxtractor={this._keyxtractor}
             data={this.state.dataArray}

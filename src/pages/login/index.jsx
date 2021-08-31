@@ -41,7 +41,7 @@ class Login extends Component {
     this.beForeLoginSubmit = this.beForeLoginSubmit.bind(this)
   }
 
-  componentDidMount() { }
+  componentDidMount() {}
 
   loginSubmit() {
     const { phoneValue, codeValue, yqmValue, tourists, registered } = this.state

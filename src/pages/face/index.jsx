@@ -3,17 +3,20 @@ import Taro from '@tarojs/taro'
 import { View, Image } from '@tarojs/components';
 import { Text, SafeAreaView, StyleSheet } from 'react-native';
 import { Toast } from '@ant-design/react-native';
+// import Sound from 'react-native-sound';
 import imgArr from './imgArr'
 import {
   uploadUrl,
   faceDetect
 } from './service'
-import blinkMp from '../../images/blink.mp3'
+import audioccc from '../../images/blink.mp3'
 import './index.less';
 
 Toast.config({
   duration: 0
 })
+var Sound = require('react-native-sound');
+
 class face extends Component {
 
     constructor(props) {
@@ -48,12 +51,12 @@ class face extends Component {
     start = () => {
       const key = Toast.loading('正在加载相关资源...')
       this.setState({
-        apiKey: '7E79IypZU29vnFZ0RBBA6SBY',
-        appID: '24034341',
-        secretKey: 'B4EazYkGnjVxSoPpWhVe6vfpmGgkVD1b',
-        // apiKey: 'ufFxjMqCidfloW6ly8rEAaEH',
-        // appID: '24724593',
-        // secretKey: 'BlzQA6al6KFxdd44LB242mZx4gcCX8PP',
+        // apiKey: '7E79IypZU29vnFZ0RBBA6SBY',
+        // appID: '24034341',
+        // secretKey: 'B4EazYkGnjVxSoPpWhVe6vfpmGgkVD1b',
+        apiKey: 'ufFxjMqCidfloW6ly8rEAaEH',
+        appID: '24724593',
+        secretKey: 'BlzQA6al6KFxdd44LB242mZx4gcCX8PP',
       }, () => {
         Taro.request({
           url: `https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=${this.state.apiKey}&client_secret=${this.state.secretKey}`,
@@ -80,6 +83,29 @@ class face extends Component {
                     if (sessionId.data.err_no === 0) {
                       this.setState({ sessionId: sessionId.data.result.session_id, code: sessionId.data.result.code }, () => {
                         Toast.remove(key)
+                        let blinkPath = require('../../images/blink.mp3');
+                        let turnRightPath = require('../../images/turn_right.mp3');
+                        let turnLeftPath = require('../../images/turn_left.mp3');
+                        let headUpPath = require('../../images/head_up.mp3');
+                        let headDownPath = require('../../images/head_down.mp3');
+                        const audioPath = sessionId.data.result.code === '0' ? blinkPath : sessionId.data.result.code === '2' ? turnRightPath : sessionId.data.result.code === '3' ? turnLeftPath : sessionId.data.result.code === '4' ? headUpPath : sessionId.data.result.code === '5' ? headDownPath : ''
+                        Sound.setCategory('Playback');
+                        var sound = new Sound(audioPath, (error) => { 
+                          if (error) { 
+                            return; 
+                          } 
+                          sound.play((success) => { 
+                            if (success) { 
+                              // sound.setNumberOfLoops(-1)
+                              // setTimeout(() => {
+                              //   sound.stop()
+                              // }, 30000);  
+                              sound.release(); 
+                            } else { 
+                              console.log('playback failed due to audio decoding errors'); 
+                            } 
+                          });
+                        });
                         this.setInterval = setInterval(() => {
                           let num = this.state.imgSum;  ++num;
                           let codeSum
@@ -114,6 +140,7 @@ class face extends Component {
                         content: sessionId.data.error_msg,
                         duration: 2
                       })
+                      Toast.remove(key)
                     }
                   }
                 })

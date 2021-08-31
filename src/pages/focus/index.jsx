@@ -33,6 +33,13 @@ class Focus extends PureComponent {
     this.refreshData()
   }
 
+  onTabItemTap() {
+    this.setState({ pageNumber: 1 }, () => {
+      this.getlikeUserLists()
+      this.refreshData()
+    })
+  }
+
   refreshData() {
     Taro.eventCenter.on('deleteLikeUser',(arg)=>{
       if(arg?.status){

@@ -1,4 +1,5 @@
 import { Component } from 'react'
+import Taro from '@tarojs/taro'
 /* dva */
 import { Provider } from 'react-redux'
 import { Toast } from '@ant-design/react-native'
@@ -16,6 +17,13 @@ const dvaApp = dva.createApp( {
 Toast.config({
   duration: 1
 })
+
+Taro.setTabBarStyle({
+  color: '#101010',
+  selectedColor: '#FF5358',
+  borderStyle: '#DCDCDC'
+})
+
 
 const store = dvaApp.getStore();
 class App extends Component {
