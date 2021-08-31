@@ -86,6 +86,13 @@ class Index extends PureComponent {
     // })
   }
 
+  // componentDidShow() {
+  //   this.setState({ pageNumber: 1 }, () => {
+  //     this.getUserLists()
+  //     this.refreshData()
+  //   })
+  // }
+
   updateCity() {
     Taro.eventCenter.on('updateCity',(arg)=>{
       if(arg?.status){
@@ -155,6 +162,7 @@ class Index extends PureComponent {
   }
 
   searchOnCancelChange(val) {
+    Taro.hideKeyboard()
     this.setState({ searchValue: '' })
   }
 
@@ -256,8 +264,8 @@ class Index extends PureComponent {
       <View className='bodyOut'>
         <View className='topSearch' style={{ height: '13%' }}>
           <View style={{ width: '70%', position:'relative' }}>
-            <InputItem clear placeholder='输入昵称搜索' style={{ position: 'absolute', bottom: 0, left: -10, height: '80%', width: '110%', borderRadius: 20, backgroundColor: '#E8E8E8', paddingLeft: 10 }} onChange={this.searchOnChange} onCancel={this.searchOnCancelChange} value={this.state.searchValue} />
-            {/* <SearchBar placeholder='输入昵称搜索' style={{ position: 'absolute', top: -18, bottom: 0, left: -10, height: '80%', width: '110%', borderRadius: 20, backgroundColor: '#E8E8E8' }} onChange={this.searchOnChange} onCancel={this.searchOnCancelChange} value={this.state.searchValue} /> */}
+            {/* <InputItem clear placeholder='输入昵称搜索' style={{ position: 'absolute', bottom: 0, left: -10, height: '80%', width: '110%', borderRadius: 20, backgroundColor: '#E8E8E8', paddingLeft: 10 }} onChange={this.searchOnChange} onCancel={this.searchOnCancelChange} value={this.state.searchValue} /> */}
+            <SearchBar placeholder='输入昵称搜索' style={{ position: 'absolute', top: -18, bottom: 0, left: -10, height: '80%', width: '110%', borderRadius: 20, backgroundColor: '#E8E8E8' }} onChange={this.searchOnChange} onCancel={this.searchOnCancelChange} value={this.state.searchValue} />
           </View>
           <View onClick={this.goCitySelect} style={styles.position}>
             <Image

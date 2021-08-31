@@ -1,6 +1,7 @@
 import { Component } from 'react'
 import Taro from '@tarojs/taro'
 import { createThumbnail } from "react-native-create-thumbnail";
+import { ImageBackground } from 'react-native';
 import { View, Text, CoverView, CoverImage, Image, ScrollView, Video } from '@tarojs/components'
 import { Icon, List, Button, WingBlank, Card, Toast, Flex, Modal } from '@ant-design/react-native'
 import RNFS from 'react-native-fs';
@@ -432,6 +433,12 @@ class Home extends Component {
       return reward.url.indexOf('mp4') === -1
     })
     console.log(userInfo);
+
+    const sourceUrl = {
+      uri: selectSmallImg 
+      || 
+      topHeadBgImg&&topHeadBgImg.length > 0&&topHeadBgImg[0].url
+    }
     return (
       <View>
         <ScrollView
@@ -441,7 +448,36 @@ class Home extends Component {
           showsVerticalScrollIndicator={false}
         >
           <View className='container'>
-            <CoverView className='controls'>
+            <ImageBackground className='img' source={sourceUrl}>
+              <View className='rightTopImgAdd' onClick={this.addPhoto}>
+                <Icon name='plus' size='md' style={{ color: 'white', fontSize: 30 }} />
+              </View>
+              <Text className='imgOnText'>{userInfo.nickName}</Text>
+              <Text className='imgOnTwoText'>{userInfo.city} {userInfo.age}岁</Text>
+              <View className='imgArray'>
+                <ScrollView
+                  scrollX
+                >
+                  {userInfo?.photos?.map(reward => {
+                    if(reward.url.indexOf('mp4') === -1){
+                      return (
+                        <View style={{width: 50, height: 50, marginLeft: 10}} className={reward === this.state.selectSmallImg ? 'selectImgArrayOneImg' : ''} key={reward.id} onClick={() => this.selectSmallImg(reward)}>
+                          <Image
+                            style={{width: '100%', height: '100%', borderRadius: 10}}
+                            src={reward?reward.url:null}
+                          />
+                        </View>
+                      )
+                    }
+                  })}
+                </ScrollView>
+              </View>
+              <View className='bottomText'>
+                <Icon name='alert' size='md' color='#efb336' />
+                <Text style={{ color: 'white', fontWeight: 'bold' }}>全身照越多(至少一张正面俩张侧面),才能被评为{this.state.gender === 2 ? '女神' : '男神'}！</Text>
+              </View>
+            </ImageBackground>
+            {/* <CoverView className='controls'>
               <CoverImage className='img' 
                 src={
                   selectSmallImg 
@@ -476,7 +512,7 @@ class Home extends Component {
                 <Icon name='alert' size='md' color='#efb336' />
                 <Text style={{ color: 'white', fontWeight: 'bold' }}>全身照越多(至少一张正面俩张侧面),才能被评为{this.state.gender === 2 ? '女神' : '男神'}！</Text>
               </View>
-            </CoverView>
+            </CoverView> */}
           </View>
           <List style={{ marginTop: 10 }}>
             <Item arrow='horizontal' 

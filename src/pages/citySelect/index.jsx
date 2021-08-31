@@ -30,272 +30,269 @@ export function rx(UIPX) {
 }
 
 class cityList extends Component {
-    constructor(props) {
-      super(props);
-      totalHeight = this._gotTotalHeightArray();
-      letters = this._gotLettersArray();
-    }
+  constructor(props) {
+    super(props);
+    totalHeight = this._gotTotalHeightArray();
+    letters = this._gotLettersArray();
+  }
 
-    state = {
-      currentCity: "正在定位...",
-    };
+  state = {
+    currentCity: "正在定位...",
+  };
 
-    //总的处理选择城市事件
-    selectEndResultCity(cityName) {
-        const { home:{isPersonPageGo} } = this.props
-        if(cityName === '正在定位...' || cityName === '定位失败，重新定位'){
-            const that = this
-            Taro.getLocation({
-              type: 'wgs84',
-              success: function (res) {
-                const latitude = res.latitude
-                const longitude = res.longitude
-                Taro.request({
-                  url: `https://apis.map.qq.com/ws/geocoder/v1/?location=${latitude},${longitude}&key=XKYBZ-36R6D-DP74D-PFWPH-PICQ5-RHFJS`,
-                  header: {
-                    'Content-Type': 'application/json',
-                  },
-                  method: 'GET',
-                  complete: (res) => {
-                    if (res.statusCode === 200) {
-                      const city = res.data.result.address_component.city.split('市')[0]
-                      that.setState({ 
-                        currentCity: city
-                      })
-                    }else{
-                      Toast.fail('定位失败')
-                      that.setState({ 
-                        currentCity: '定位失败，重新定位'
-                      })
-                    }
-                  },
-                })
-              }
-            })
-            return
-          }
-          const that = this
-          Taro.navigateBack({
-            delta: 1,
-            success: function () {
-                console.log('isPersonPageGo', isPersonPageGo);
-                if(isPersonPageGo){
-                    that.props.dispatch({
-                        type: 'home/editPersonPageGoStatus',
-                        payload: false
-                    }).then(() => {
-                      Taro.eventCenter.trigger('updatePersonInfoPageCity', {status: true, city: cityName})
-                    })
-                }else{
-                    Taro.eventCenter.trigger('updateCity', {status: true, city: cityName})
-                }
-            }
-          })
-    }
-
-    // 获取每个字母区域的高度
-    _gotTotalHeightArray() {
-      let totalArray = []
-      for (let i = 0; i < cityDatas.length; i++) {
-          let eachHeight = ROW_HEIGHT * (cityDatas[i].data.length + 1);
-          totalArray.push(eachHeight);
-      }
-      return totalArray
-    }
-
-    // 获取字母列表头
-    _gotLettersArray() {
-        let LettersArray = []
-        for (let i = 0; i < cityDatas.length; i++) {
-            let element = cityDatas[i];
-            LettersArray.push(element.title)
-        }
-        return LettersArray
-    }
-
-    UNSAFE_componentWillMount() {
-        this.gotCurrentLocation();
-        this.requestHotCityList();
-    }
-
-    async gotCurrentLocation() {
-        Taro.getStorage({
-            key: 'positionCity',
+  //总的处理选择城市事件
+  selectEndResultCity(cityName) {
+    const { home:{isPersonPageGo} } = this.props
+    if(cityName === '正在定位...' || cityName === '定位失败，重新定位'){
+      const that = this
+      Taro.getLocation({
+        type: 'wgs84',
+        success: function (res) {
+          const latitude = res.latitude
+          const longitude = res.longitude
+          Taro.request({
+            url: `https://apis.map.qq.com/ws/geocoder/v1/?location=${latitude},${longitude}&key=XKYBZ-36R6D-DP74D-PFWPH-PICQ5-RHFJS`,
+            header: {
+              'Content-Type': 'application/json',
+            },
+            method: 'GET',
             complete: (res) => {
-              if (res.errMsg !== "getStorage:ok") {
-                const that = this
-                Taro.getLocation({
-                  type: 'wgs84',
-                  success: function (latlog) {
-                    const latitude = latlog.latitude
-                    const longitude = latlog.longitude
-                    Taro.request({
-                      url: `https://apis.map.qq.com/ws/geocoder/v1/?location=${latitude},${longitude}&key=XKYBZ-36R6D-DP74D-PFWPH-PICQ5-RHFJS`,
-                      header: {
-                        'Content-Type': 'application/json',
-                      },
-                      method: 'GET',
-                      complete: (result) => {
-                        if (result.statusCode === 200) {
-                          const city = result.data.result.address_component.city.split('市')[0]
-                          Taro.setStorage({
-                            key: "positionCity",
-                            data: city
-                          })
-                          that.setState({
-                            currentCity: city,
-                          })
-                        }else{
-                          Toast.fail('定位失败')
-                          that.setState({
-                            currentCity: '定位失败，重新定位'
-                          })
-                        }
-                      },
-                    })
-                  }
+              if (res.statusCode === 200) {
+                const city = res.data.result.address_component.city.split('市')[0]
+                that.setState({ 
+                  currentCity: city
                 })
               }else{
-                this.setCurrentLocation(res.data)
+                Toast.fail('定位失败')
+                that.setState({ 
+                  currentCity: '定位失败，重新定位'
+                })
               }
+            },
+          })
+        }
+      })
+      return
+    }
+    const that = this
+    Taro.navigateBack({
+      delta: 1,
+      success: function () {
+        console.log('isPersonPageGo', isPersonPageGo);
+        if(isPersonPageGo){
+          that.props.dispatch({
+              type: 'home/editPersonPageGoStatus',
+              payload: false
+          }).then(() => {
+            Taro.eventCenter.trigger('updatePersonInfoPageCity', {status: true, city: cityName})
+          })
+        }else{
+          Taro.eventCenter.trigger('updateCity', {status: true, city: cityName})
+        }
+      }
+    })
+  }
+
+    // 获取每个字母区域的高度
+  _gotTotalHeightArray() {
+    let totalArray = []
+    for (let i = 0; i < cityDatas.length; i++) {
+      let eachHeight = ROW_HEIGHT * (cityDatas[i].data.length + 1);
+      totalArray.push(eachHeight);
+    }
+    return totalArray
+  }
+
+  // 获取字母列表头
+  _gotLettersArray() {
+    let LettersArray = []
+    for (let i = 0; i < cityDatas.length; i++) {
+      let element = cityDatas[i];
+      LettersArray.push(element.title)
+    }
+    return LettersArray
+  }
+
+  UNSAFE_componentWillMount() {
+    this.gotCurrentLocation();
+    this.requestHotCityList();
+  }
+
+  async gotCurrentLocation() {
+    Taro.getStorage({
+      key: 'positionCity',
+      complete: (res) => {
+        if (res.errMsg !== "getStorage:ok") {
+          const that = this
+          Taro.getLocation({
+            type: 'wgs84',
+            success: function (latlog) {
+              const latitude = latlog.latitude
+              const longitude = latlog.longitude
+              Taro.request({
+                url: `https://apis.map.qq.com/ws/geocoder/v1/?location=${latitude},${longitude}&key=XKYBZ-36R6D-DP74D-PFWPH-PICQ5-RHFJS`,
+                header: {
+                  'Content-Type': 'application/json',
+                },
+                method: 'GET',
+                complete: (result) => {
+                  if (result.statusCode === 200) {
+                    const city = result.data.result.address_component.city.split('市')[0]
+                    Taro.setStorage({
+                      key: "positionCity",
+                      data: city
+                    })
+                    that.setState({
+                      currentCity: city,
+                    })
+                  }else{
+                    Toast.fail('定位失败')
+                    that.setState({
+                      currentCity: '定位失败，重新定位'
+                    })
+                  }
+                },
+              })
             }
           })
-        
-    }
-
-    requestHotCityList() {
-        hotCitys = defaultHotCityArray
-    }
-
-    currentCityAction(name) {
-        this.selectEndResultCity(name)
-    }
-
-    // 点击右侧字母滑动到相应位置
-    scrollToList(item, index) {
-        console.log(item, index);
-        let position = 0;
-        for (let i = 0; i < index; i++) {
-            position += totalHeight[i]
+        }else{
+          this.setCurrentLocation(res.data)
         }
-        this.refs.scrollView.scrollTo({
-            x: 0,
-            y: position,
-            animated: true
-        });
+      }
+    })
+  }
+
+  requestHotCityList() {
+    hotCitys = defaultHotCityArray
+  }
+
+  currentCityAction(name) {
+    this.selectEndResultCity(name)
+  }
+
+  // 点击右侧字母滑动到相应位置
+  scrollToList(item, index) {
+    let position = 0;
+    for (let i = 0; i < index; i++) {
+      position += totalHeight[i]
     }
+    this.refs.scrollView.scrollTo({
+      x: 0,
+      y: position,
+      animated: true
+    });
+  }
 
-    /*右侧索引*/
-    _renderSideSectionView() {
-        const sectionItem = cityDatas.map((item, index) => {
-            return (
-                <Text onPress={() => this.scrollToList(item, index)} key={index} style={styles.rightSideText}>
-                    {item.sortLetters}
-                </Text>
-            )
-        });
+  /*右侧索引*/
+  _renderSideSectionView() {
+    const sectionItem = cityDatas.map((item, index) => {
+      return (
+        <Text onPress={() => this.scrollToList(item, index)} key={index} style={styles.rightSideText}>
+          {item.sortLetters}
+        </Text>
+      )
+    });
 
-        return (
-            <View style={styles.rightSlideArea}>
-                {sectionItem}
+    return (
+      <View style={styles.rightSlideArea}>
+        {sectionItem}
+      </View>
+    );
+  }
+
+  // 渲染城市列表
+  _renderCityList() {
+    let lists = [];
+    for (let i = 0; i < cityDatas.length; i++) {
+      let sections = cityDatas[i];
+      let header =
+        <View key={sections.title} style={styles.cityLetterBox}>
+          <Text style={styles.cityLetterText}>{sections.sortLetters}</Text>
+        </View>;
+      lists.push(header);
+
+      for (let j = 0; j < sections.data.length; j++) {
+        let element = sections.data[j];
+        let cityCell =
+          <TouchableOpacity key={element.name + j} onPress={() => {
+            this.selectCity(element)
+          }}
+          >
+            <View style={styles.cityTextBox}>
+              <Text style={styles.cityTextStyle}>{element.name}</Text>
             </View>
-        );
+          </TouchableOpacity>;
+
+        lists.push(cityCell);
+      }
     }
-
-    // 渲染城市列表
-    _renderCityList() {
-        let lists = [];
-        for (let i = 0; i < cityDatas.length; i++) {
-            let sections = cityDatas[i];
-            let header =
-                <View key={sections.title} style={styles.cityLetterBox}>
-                    <Text style={styles.cityLetterText}>{sections.sortLetters}</Text>
-                </View>;
-            lists.push(header);
-
-            for (let j = 0; j < sections.data.length; j++) {
-                let element = sections.data[j];
-                let cityCell =
-                    <TouchableOpacity key={element.name + j} onPress={() => {
-                        this.selectCity(element)
-                    }}
-                    >
-                        <View style={styles.cityTextBox}>
-                            <Text style={styles.cityTextStyle}>{element.name}</Text>
-                        </View>
-                    </TouchableOpacity>;
-
-                lists.push(cityCell);
-            }
-        }
-        return lists;
-    }
+    return lists;
+  }
 
     selectCity(cityItem) {
-        this.selectEndResultCity(cityItem.name)
+      this.selectEndResultCity(cityItem.name)
     }
 
     hotCity(name) {
-        this.selectEndResultCity(name)
+      this.selectEndResultCity(name)
     }
 
     renderHotCityArray(hotCityArray) {
-        let eleArray = [];
-        let subArray = hotCityArray.slice(0, 12);
-        for (let index = 0; index < subArray.length; index++) {
-            const element = subArray[index];
-            const ele =
-                <TouchableOpacity key={element.cityCode} onPress={() => {this.hotCity(element.cityName)}}>
-                    <View style={[styles.textView, {marginTop: 10}]}>
-                        <Text style={{color: "#333333", fontSize: 14,}}>{element.cityName}</Text>
-                    </View>
-                </TouchableOpacity>;
-            eleArray.push(ele);
-
-        }
-        return eleArray;
+      let eleArray = [];
+      let subArray = hotCityArray.slice(0, 12);
+      for (let index = 0; index < subArray.length; index++) {
+        const element = subArray[index];
+        const ele =
+          <TouchableOpacity key={element.cityCode} onPress={() => {this.hotCity(element.cityName)}}>
+            <View style={[styles.textView, {marginTop: 10}]}>
+              <Text style={{color: "#333333", fontSize: 14,}}>{element.cityName}</Text>
+            </View>
+          </TouchableOpacity>;
+        eleArray.push(ele);
+      }
+      return eleArray;
     }
 
     render() {
-        return (
-            <View style={{flex: 1}}>
-                <View style={{backgroundColor: "#FFFFFF"}}>
-                    <Text style={styles.titleText}>当前定位城市</Text>
-                    <View style={styles.currentView}>
-                        <TouchableOpacity onPress={() => {
-                            this.currentCityAction(this.state.currentCity)
-                        }}
-                          style={{width: 100,}}
-                        >
-                            <View style={[styles.textView, {marginLeft: 15, width: 100,}]}>
-                                <Text style={{color: "#C49225", fontSize: 14,}}>{this.state.currentCity}</Text>
-                            </View>
-                        </TouchableOpacity>
-                    </View>
-
-                    <Text style={styles.titleText}>热门城市</Text>
-                    <View style={styles.hotView}>
-                        {this.renderHotCityArray(hotCitys)}
-                    </View>
+      return (
+        <View style={{flex: 1}}>
+          <View style={{backgroundColor: "#FFFFFF"}}>
+            <Text style={styles.titleText}>当前定位城市</Text>
+            <View style={styles.currentView}>
+              <TouchableOpacity onPress={() => {
+                this.currentCityAction(this.state.currentCity)
+              }}
+                style={{width: 100,}}
+              >
+                <View style={[styles.textView, {marginLeft: 15, width: 100,}]}>
+                  <Text style={{color: "#C49225", fontSize: 14,}}>{this.state.currentCity}</Text>
                 </View>
-
-                <ScrollView 
-                  style={{backgroundColor: '#FFFFFF', height: 400}}
-                  ref='scrollView'
-                  scrollY
-                  scrollWithAnimation
-                  enableBackToTop
-                  scrollTop={0}
-                  lowerThreshold={250}
-                  enableFlex
-                  scrollAnchoring
-                >
-                    {this._renderCityList()}
-                </ScrollView>
-
-                {this._renderSideSectionView()}
+              </TouchableOpacity>
             </View>
-        )
+
+            <Text style={styles.titleText}>热门城市</Text>
+            <View style={styles.hotView}>
+              {this.renderHotCityArray(hotCitys)}
+            </View>
+          </View>
+
+          <ScrollView 
+            style={{backgroundColor: '#FFFFFF', height: 400}}
+            ref='scrollView'
+            scrollY
+            scrollWithAnimation
+            enableBackToTop
+            scrollTop={0}
+            lowerThreshold={250}
+            enableFlex
+            scrollAnchoring
+          >
+              {this._renderCityList()}
+          </ScrollView>
+
+          {this._renderSideSectionView()}
+        </View>
+      )
     }
 }
 

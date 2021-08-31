@@ -40,6 +40,13 @@ class Focus extends PureComponent {
     })
   }
 
+  // componentDidShow() {
+  //   this.setState({ pageNumber: 1 }, () => {
+  //     this.getlikeUserLists()
+  //     this.refreshData()
+  //   })
+  // }
+
   refreshData() {
     Taro.eventCenter.on('deleteLikeUser',(arg)=>{
       if(arg?.status){
@@ -181,7 +188,7 @@ class Focus extends PureComponent {
           onEndReached={() => {
             this.loadData(true)
           }}
-          style={{ marginBottom: 200, height: '100%' }}
+          style={{ marginBottom: 200, height: '90%' }}
         />
       </View>
     )
