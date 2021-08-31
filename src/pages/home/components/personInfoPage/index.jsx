@@ -1,17 +1,22 @@
 import { Component } from 'react'
 import Taro from '@tarojs/taro'
 import { connect } from 'react-redux'
+import RNFS from 'react-native-fs';
 import { View, Text, CoverView, CoverImage, Image, ScrollView } from '@tarojs/components'
 import { Card, WhiteSpace, WingBlank, Button, List, InputItem, DatePicker, NoticeBar, Toast } from '@ant-design/react-native'
-import adImg from '../../images/ad.png'
-import headImg from '../../images/1.png'
+import { ImageBackground } from 'react-native'
+import headImg from '../../../../images/1.png'
+import editPersonImg from '../../../../images/editPersonImg.png'
+import editUserInfoButtonImg from '../../../../images/editUserInfo.png'
 import './index.less';
 import {
   userSetting, 
   uploadUrl,
-  fileUpload
+  fileUpload,
+  faceDetect
 } from './service';
 
+const Item = List.Item;
 class Personinfopage extends Component {
 
   constructor(props) {
@@ -37,6 +42,7 @@ class Personinfopage extends Component {
     this.birthdayOnChange = this.birthdayOnChange.bind(this)
     this.updateHeadImg = this.updateHeadImg.bind(this)
     this.goCityPage = this.goCityPage.bind(this)
+    this.goEditPage = this.goEditPage.bind(this)
   }
 
   componentDidMount() { 
@@ -58,16 +64,33 @@ class Personinfopage extends Component {
         this.setState({ cityName: arg?.city })
       }
     })
+
+    Taro.eventCenter.on('editUserPageSubmit',(arg)=>{
+      if(arg?.status){
+        this.props.dispatch({
+          type: 'userInfo/returnAllState',
+          callback: (response) => {
+            this.setState({ 
+              nickName: response.nickName,
+              wxName: response.wx,
+              height: response.height,
+              weight: response.weight,
+              aidou: response.aidou,
+            })
+          }
+        })
+      }
+    })
   }
 
   formSubmit(e) {
     const { nickName, cityName, wxName, height, weight, aidou, birthdayName } = this.state
-    if(!nickName) { this.setState({ nickNameError: true }); return }
-    if(!cityName) { this.setState({ cityNameError: true }); return }
-    if(!wxName) { this.setState({ wxNameError: true }); return }
-    if(!height) { this.setState({ heightError: true }); return }
-    if(!weight) { this.setState({ weightError: true }); return }
-    if(!aidou) { this.setState({ aidouError: true }); return }
+    if(!nickName) { Toast.fail({ content: '昵称为空', duration: 2 }); return }
+    if(!cityName) { Toast.fail({ content: '常驻城市为空', duration: 2 }); return }
+    if(!wxName) { Toast.fail({ content: '微信为空', duration: 2 }); return }
+    if(!height) { Toast.fail({ content: '身高为空', duration: 2 }); return }
+    if(!weight) { Toast.fail({ content: '体重为空', duration: 2 }); return }
+    if(!aidou) { Toast.fail({ content: '个人价值为空', duration: 2 }); return }
     if(!birthdayName) {
       Toast.fail({
         content: '请填写生日',
@@ -141,7 +164,7 @@ class Personinfopage extends Component {
 
   // 上传图片
   uploadImage (tempFilePaths) {
-    const key = Toast.loading('上传中...');
+    const key = Toast.loading('上传/认证中...');
     Taro.getStorage({
       key: 'userId',
       complete: (storage) => {
@@ -150,37 +173,63 @@ class Personinfopage extends Component {
           let file = {uri: tempFilePaths[0], type: 'multipart/form-data', name: 'image.png'};   //这里的key(uri和type和name)不能改变,
           formData.append('file', file)
           formData.append('tenantId', storage.data)
-          fetch(uploadUrl,{
-            method:'POST',
-            headers:{
-              'Content-Type':'multipart/form-data',
-            },
-            body:formData,
-          })
-            .then((response) => {
-              return response.json();
-            })
-            .then((responseData)=>{
-              console.log('responseData',responseData);
-              if(responseData.status === 200){
-                fileUpload({
-                  type: 1,
-                  url: [`${responseData.data.domain + responseData.data.path}`],
-                  userId: storage.data
-                }).then(data => {
-                  if(data.data.status === 200){
-                    Toast.remove(key)
-                    Toast.success('上传成功')
-                    Taro.eventCenter.trigger('refershHome', {status: true})
-                    this.setState({ newPhoto: responseData.data.domain + responseData.data.path })
-                  }else{
-                    Toast.remove(key)
-                    Toast.fail(data.data.msg)
-                  }
+          RNFS.readFile(tempFilePaths[0], 'base64')
+          .then((content) => {
+            // content 为base64数据
+            faceDetect({
+              imgUrl: '',
+              type: 2,
+              userId: storage.data,
+              base: content
+            }).then(personTrueFalsedata => {
+              if(personTrueFalsedata.data.status === 200){
+                fetch(uploadUrl,{
+                  method:'POST',
+                  headers:{
+                    'Content-Type':'multipart/form-data',
+                  },
+                  body:formData,
+                })
+                  .then((response) => {
+                    return response.json();
+                  })
+                  .then((responseData)=>{
+                    console.log('responseData',responseData);
+                    if(responseData.status === 200){
+                      fileUpload({
+                        type: 1,
+                        url: [`${responseData.data.domain + responseData.data.path}`],
+                        userId: storage.data
+                      }).then(data => {
+                        if(data.data.status === 200){
+                          Toast.remove(key)
+                          Toast.success({
+                            content: '上传成功',
+                            duration: 1
+                          })
+                          Taro.eventCenter.trigger('refershHome', {status: true})
+                          this.setState({ newPhoto: responseData.data.domain + responseData.data.path })
+                        }else{
+                          Toast.remove(key)
+                          Toast.fail({
+                            content: data.data.msg,
+                            duration: 2
+                          })
+                        }
+                      })
+                    }
+                  })
+                  .catch((error)=>{console.error('error',error)});
+              }else{
+                Toast.remove(key)
+                Toast.fail({
+                  content: personTrueFalsedata.data.msg,
+                  duration: 2
                 })
               }
             })
-            .catch((error)=>{console.error('error',error)});
+          })
+          
         }
       }
     })
@@ -191,39 +240,79 @@ class Personinfopage extends Component {
     this.setState({ birthdayName: value });
   }
 
-  render() {
-    const customIcon = (
-      <Image
-        src='https://zos.alipayobjects.com/rmsportal/bRnouywfdRsCcLU.png'
-        style={{ width: 12, height: 12 }}
-      />
-    );
+  goEditPage(key) {
+    Taro.navigateTo({
+      url: `/pages/home/components/personInfoPage/components/editUserInfo?key=${key}`
+    })
+  }
 
+  render() {
     const topHeadBgImg = this.state.photos&&this.state.photos?.filter(reward => {
       return reward.url.indexOf('mp4') === -1
     })
-
+    
+    const sourceUrl = {
+      uri: this.state.newPhoto || topHeadBgImg&&topHeadBgImg.length > 0 && topHeadBgImg[0].url
+    }
     return (
-      <View>
-         <ScrollView
+      <View style={{ display: 'flex', flex: 1, flexDirection: 'column', justifyContent: 'space-between' }}>
+        <List>
+          <Item disabled extra={
+            <View className='imgOutView'>
+              <ImageBackground
+                source={sourceUrl || headImg}
+                style={{width:100,height:100}} imageStyle={{borderRadius:100}}
+              >
+                <Image src={editPersonImg} className='imgOnTextBottom' />
+              </ImageBackground>
+            </View>
+          } onPress={this.updateHeadImg}
+          >
+            头像
+          </Item>
+          <Item disabled extra={this.state.nickName || ''} arrow='horizontal' onPress={() => this.goEditPage('nickName')}>
+            昵称
+          </Item>
+          <DatePicker
+            value={new Date(this.state.birthdayName)}
+            mode='date'
+            defaultDate={new Date()}
+            minDate={new Date(1900, 7, 6)}
+            maxDate={new Date(2026, 11, 3)}
+            onChange={this.birthdayOnChange}
+            format='YYYY-MM-DD'
+          >
+            <List.Item arrow='horizontal'>生日</List.Item>
+          </DatePicker>
+          <Item disabled extra={this.state.height&&this.state.height+'cm' || ''} arrow='horizontal' onPress={() => this.goEditPage('height')}>
+            身高
+          </Item>
+          <Item disabled extra={this.state.weight&&this.state.weight+'kg' || ''} arrow='horizontal' onPress={() => this.goEditPage('weight')}>
+            体重
+          </Item>
+          <Item disabled extra={this.state.aidou+'爱豆/颗' || ''} arrow='horizontal' onPress={() => this.goEditPage('aidou')}>
+            个人价值
+          </Item>
+          <Item disabled extra={this.state.cityName || ''} arrow='horizontal' onPress={this.goCityPage}>
+            常住城市
+          </Item>
+          <View className='myCode'>
+            <View className='mycodeLeft'></View>
+            <Text className='mycodeRight'>社交账号</Text>
+          </View>
+          <Item disabled extra={this.state.wxName || '未填写'} arrow='horizontal' onPress={() => this.goEditPage('wx')}>
+            微信
+          </Item>
+        </List>
+        <Image src={editUserInfoButtonImg} onClick={this.formSubmit} className='editUserInfoButton' />
+        
+         {/* <ScrollView
            style={{ backgroundColor: '#f5f5f9', marginBottom: 10 }}
            automaticallyAdjustContentInsets={false}
            showsHorizontalScrollIndicator={false}
            showsVerticalScrollIndicator={false}
          >
-          <View className='container'>
-            <CoverView className='controls'>
-              <CoverImage className='img' src={adImg} />
-              <View className='imgOnTextView'>
-                <Image
-                  src={this.state.newPhoto || topHeadBgImg&&topHeadBgImg[0].url || headImg}
-                  className='imgOnText'
-                  onClick={this.updateHeadImg}
-                />
-              </View>
-              <Text className='imgOnTwoText' onClick={this.updateHeadImg}>上传头像</Text>
-            </CoverView>
-          </View>
+       
           <View style={{ marginTop: 88 }}>
             <WingBlank size='lg'>
               <Card>
@@ -349,7 +438,7 @@ class Personinfopage extends Component {
           </View>
           
           
-        </ScrollView>
+        </ScrollView> */}
       </View>
     )
   }
@@ -358,7 +447,9 @@ class Personinfopage extends Component {
 export default connect(
   ({
     home,
+    userInfo
   }) => ({
     home,
+    userInfo
   }),
 )(Personinfopage);

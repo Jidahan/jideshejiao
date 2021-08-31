@@ -8,8 +8,7 @@ import Clipboard from '@react-native-clipboard/clipboard'
 import ImagePicker from 'react-native-image-picker'
 import zwImg from '../../images/zw.png'
 import personInfoImg from '../../images/personInfo.png'
-import manImg from '../../images/man.png'
-import womenImg from '../../images/women.png'
+import manImg from '../../images/homeman.png'
 import realPersonImg from '../../images/realPerson.png'
 import photoImg from '../../images/photo.png'
 import historyCallPersonImg from '../../images/historyCallPerson.png'
@@ -297,7 +296,7 @@ class Home extends Component {
           formData.append('tenantId', storage.data)
           RNFS.readFile(tempFilePaths[0], 'base64')
           .then((content) => {
-              // content 为base64数据
+            // content 为base64数据
             faceDetect({
               imgUrl: '',
               type: 2,
@@ -379,10 +378,28 @@ class Home extends Component {
     this.setState({ selectSmallImg: reward })
   }
 
-  myPhotosClick = (photos) => {
-    Taro.navigateTo({
-      url: `/pages/lookPhotos/index?data=${JSON.stringify(photos)}`,
+  myPhotosClick = (url) => {
+    // Taro.navigateTo({
+    //   url: `/pages/lookPhotos/index?data=${JSON.stringify(this.state.userInfo.photos)}&key=${key}`,
+    // })
+
+    const userInfoPhotos = this.state.userInfo.photos.filter((item) => {
+      return item.type === 1
     })
+    const i1=userInfoPhotos.findIndex((value)=>value.url===url);
+    let imgAry = userInfoPhotos.map(reward => {
+      return reward.url
+    })
+
+    Taro.previewImage({
+      urls: imgAry,
+      current: imgAry[i1]
+    })
+  }
+
+  myVideoClick = (id) => {
+    let videoContext = Taro.createVideoContext(id)
+    videoContext.requestFullScreen()
   }
 
   goPersonAuthentication() {
@@ -474,12 +491,12 @@ class Home extends Component {
             <Item arrow='horizontal' 
               thumb={
                 this.state.gender === 2 ?
-                <Image src={womenImg} className='iconSizeStyle' style={{ width: 30, height: 30 }} />
+                <Image src={manImg} className='iconSizeStyle' style={{ width: 30, height: 30 }} />
                 :
                 <Image src={manImg} className='iconSizeStyle' style={{ width: 30, height: 30 }} />
               }
               onPress={userInfo.certificationLevel !== 1 ? null : this.personAuth}
-              extra={userInfo.certificationLevel === 1 ? '普通用户' : userInfo.certificationLevel === 2 ? '待审核' : userInfo.certificationLevel === 3 ? '男神' : '女神'}
+              extra={userInfo.certificationLevel === 1 ? '普通用户' : userInfo.certificationLevel === 2 ? '待审核' : userInfo.certificationLevel === 3 ? '男神' : userInfo.certificationLevel === 4 ? '女神' : ''}
             >
              {this.state.gender === 2 ? '女神认证' : '男神认证'}
             </Item>
@@ -511,13 +528,13 @@ class Home extends Component {
                   }
                 />
                 <Card.Body style={{ height: imgArrayHeight, overflow: 'hidden' }}>
-                  <View style={{ height: 42, display: 'flex', flexDirection: 'row', marginTop: -5 }} onClick={() => this.myPhotosClick(userInfo?.photos)}>
+                  <View style={{ height: 42, display: 'flex', flexDirection: 'row', marginTop: -5 }} >
                   <WingBlank>
                     <Flex wrap='wrap'>
                     {userInfo?.photos?.map(reward => {
                       if(reward.type === 1){
                         return (
-                          <View key={reward.id}>
+                          <View key={reward.id} onClick={() => this.myPhotosClick(reward.url)}>
                             <Image
                               style={{width: 60, height: 60, marginLeft: 5, borderRadius: 5, marginBottom: 10 }}
                               src={reward.url}
@@ -528,7 +545,7 @@ class Home extends Component {
                         )
                       }else{
                         return (
-                          <View key={reward.id}>
+                          <View key={reward.id} onClick={() => this.myVideoClick(`videocc${reward.id}`)}>
                             <Video
                               style={{width: 60, height: 60, marginLeft: 5, borderRadius: 5, marginBottom: 10 }}
                               src={reward.url}
@@ -537,6 +554,7 @@ class Home extends Component {
                               loop={false}
                               poster={reward.videoUrl}
                               showCenterPlayBtn={false}
+                              id={`videocc${reward.id}`}
                             />
                           </View>
                         )

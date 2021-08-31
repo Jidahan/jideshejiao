@@ -8,7 +8,7 @@ import {
   uploadUrl,
   faceDetect
 } from './service'
-
+import blinkMp from '../../images/blink.mp3'
 import './index.less';
 
 Toast.config({

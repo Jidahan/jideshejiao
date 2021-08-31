@@ -18,3 +18,11 @@ export const fileUpload = (data) => {
     data
   });
 };
+
+export const faceDetect = (data) => {
+  return Request({
+    url: `/social/app/faceDetect/`,
+    method: 'POST',
+    data
+  });
+};

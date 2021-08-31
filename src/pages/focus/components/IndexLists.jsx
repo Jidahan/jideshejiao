@@ -1,14 +1,16 @@
 import Taro from '@tarojs/taro'
 import { View, Text, Image } from '@tarojs/components'
+import { StyleSheet } from 'react-native'
 import { Flex, WhiteSpace, WingBlank, Button, Card, SearchBar, Toast } from '@ant-design/react-native'
-
-import PositionImg from '../../../images/position.png'
+import PositionImg from '../../../images/indexposition.png'
 import heartImg from '../../../images/heart.png'
 import selectHeatImg from '../../../images/selectHeart.png'
 import personImg from '../../../images/person.png'
 import startImg from '../../../images/start.png'
 import manImg from '../../../images/man.png'
 import womenImg from '../../../images/women.png'
+import hotImg from '../../../images/hot.png'
+import adSumImg from '../../../images/adSum.png'
 import { 
   collectionUser,
 } from '../service'
@@ -76,7 +78,6 @@ const IndexLists = (props) => {
                           style={{ width: 18, height: 18 }}
                           src={womenImg}
                         />
-                        <Text style={{ color: '#d4237a' }}>女神</Text>
                       </View>
                     :
                       <View className='row' style={{ marginLeft: 5 }}>
@@ -84,41 +85,40 @@ const IndexLists = (props) => {
                           style='width: 18px;height: 18px'
                           src={manImg}
                         />
-                        <Text style={{ color: '#1296db' }}>男神</Text>
                       </View>
                     }
                   </View>
                   <View className='row' style={{ justifyContent: 'space-between', width: '50%' }}>
                     <Text>{item.city}</Text>
-                    <Text style={{ marginLeft: 5 }}>{item.age}岁{item.constellation}</Text>
-                    <Text style={{ color: '#d4237a', marginLeft: 5 }}>热度 {item.hotNum}</Text>
-                  </View>
-                  <View className='row' style={{ justifyContent: 'space-between', width: '50%' }}>
-                    <View className='row cardContentBottomLeft'>
+                    <View className='row' style={{ marginLeft: 10 }}>
                       <Image
                         style={{ width: 13, height: 13 }}
                         src={PositionImg}
                       />
-                      <Text>{item.distance}</Text>
+                      <Text style={styles.eeeStyle}>{item.distance}</Text>
                     </View>
-                    <View className='row cardContentBottomCenter' style={{ zIndex: 99 }}>
-                      <Image
-                        style={{ width: 13, height: 13 }}
-                        src={personImg}
-                      />
-                      <Text style={{ color: '#ccc' }}>离线</Text>
+                    {/* <Text style={{ marginLeft: 5 }}>{item.age}岁{item.constellation}</Text>
+                    <Text style={{ color: '#d4237a', marginLeft: 5 }}>热度 {item.hotNum}</Text> */}
+                  </View>
+                  <View className='row' style={{ justifyContent: 'space-between', width: '50%' }}>
+                    <View className='row'>
+                      <Image src={hotImg} style={styles.hotStyle} />
+                      <Text style={{ color: '#d4237a', marginLeft: 2 }}>{item.hotNum}</Text>
                     </View>
                     <View className='row cardContentBottomCenter'>
                       <Image
-                        style={{ width: 13, height: 13 }}
-                        src={startImg}
+                        style={styles.adStyle}
+                        src={adSumImg}
                       />
-                      <Text>爱豆 {item.individualValues}</Text>
+                      <Text style={{ color: '#FA8100' }}>{item.individualValues}</Text>
                     </View>
                   </View>
                 </View>
               </View>
-              
+              <View className='row cardRightTop'>
+                <Text style={{ color: '#121212', marginRight: 5 }}>{item.onlineState === 1 ? '在线' : '离线'}</Text>
+                <View className={`onlineOrNoOnlineStyle ${item.onlineState === 1 ? 'online' : 'noOnline'}`}></View>
+              </View>
               <View className='cardRightHeat'>
                 {item.collectionIs === 1 ? 
                   <Image src={selectHeatImg} style={{width: 25, height: 25}} onClick={(e) => likeUser(item, e)} />
@@ -135,3 +135,21 @@ const IndexLists = (props) => {
 }
 
 export default IndexLists
+
+const styles = StyleSheet.create({
+  nameStyle: {
+    fontSize: 20
+  },
+  eeeStyle: {
+    color: '#868686'
+  },
+  hotStyle: {
+    width: 20,
+    height: 20
+  },
+  adStyle: {
+    width: 20,
+    height: 20,
+    marginLeft: 20
+  }
+})

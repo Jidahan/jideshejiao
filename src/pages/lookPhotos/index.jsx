@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { PureComponent } from 'react';
 import { Carousel } from '@ant-design/react-native';
 import { StyleSheet, SafeAreaView } from 'react-native';
 import { View, Image, Video } from '@tarojs/components'
@@ -6,30 +6,30 @@ import { View, Image, Video } from '@tarojs/components'
 
 import './index.less';
 
-class Lookphotos extends Component {
+class Lookphotos extends PureComponent {
 
   constructor(props) {
     super(props)
     this.state = {
-      photos: []
+      photos: [],
+      key: ''
     }
   }
 
   componentDidMount() { 
-    const { route:{params:{data}} } = this.props
-    this.setState({ photos: data&&JSON.parse(data) })
+    const { route:{params:{data, key}} } = this.props
+    this.setState({ photos: data&&JSON.parse(data), key })
   }
 
   render() {
-    const { photos } = this.state
-    console.log(photos);
+    const { photos, key } = this.state
+    console.log(key);
     return (
       <SafeAreaView style={styles.container}>
         <Carousel
           style={styles.wrapper}
-          selectedIndex={2}
+          selectedIndex={0}
           infinite
-          dots
         >
           {photos.map(reward => {
             if(reward.type === 1){

@@ -3,10 +3,11 @@ import Taro from '@tarojs/taro'
 import { View, Text, CoverView, CoverImage, Image, ScrollView } from '@tarojs/components'
 import { Radio, List, Button, WingBlank, InputItem, Toast, Checkbox, Modal, WhiteSpace } from '@ant-design/react-native'
 
-import { connect } from 'react-redux';
-
-import adImg from '../../../../images/ad.png'
-import admanImg from '../../../../images/adman.png'
+import womenno from '../../../../images/womenno.png'
+import manno from '../../../../images/manno.png'
+import womenyes from '../../../../images/womenyes.png'
+import manyes from '../../../../images/manyes.png'
+import gendersubmit from '../../../../images/gendersubmit.png'
 import './index.less';
 
 const RadioItem = Radio.RadioItem;
@@ -45,38 +46,12 @@ class Genderpage extends Component {
   render() {
     return (
       <View className='gender-page'>
-        <WingBlank size='lg' style={{ width: '80%' }}>
-          <List style={{ marginTop: 12 }}>
-            <RadioItem
-              checked={this.state.genderValue === 1}
-              onChange={event => {
-                if (event.target.checked) {
-                  this.setState({ genderValue: 1 });
-                }
-              }}
-            >
-              <View>
-                <Image src={admanImg} className={this.state.genderValue === 1 ? 'select' : ''} style={{ marginLeft: -10, height: 150 }} />
-                <Text className='imgOnText'>精英男士</Text>
-              </View>
-            </RadioItem>
-            <RadioItem
-              checked={this.state.genderValue === 2}
-              onChange={event => {
-                if (event.target.checked) {
-                  this.setState({ genderValue: 2 });
-                }
-              }}
-            >
-              <View>
-                <Image src={adImg} className={this.state.genderValue === 2 ? 'select' : ''} style={{ marginLeft: -10, height: 150 }} />
-                <Text className='imgOnText'>美丽女士</Text>
-              </View>
-            </RadioItem>
-          </List>
-          <WhiteSpace size='lg' />
-          <Button type='primary' onPress={this.genderSubmit}>确定</Button>
-        </WingBlank>
+        <Image src={this.state.genderValue === 1 ? manyes : manno} onClick={() => { this.setState({ genderValue: 1 }) }} className='imgStyle' style={{ marginTop: 50 }} />
+        <Image src={this.state.genderValue === 2 ? womenyes : womenno} onClick={() => { this.setState({ genderValue: 2 }) }} className='imgStyle' />
+        <View style={{ alignItems: 'center', marginTop: 120 }}>
+          <Image src={gendersubmit} onClick={this.genderSubmit} className='submitStyle' />
+          <Text style={{ color: '#ACACAC', marginTop: 10 }}>* 性别一旦选定无法修改 *</Text>
+        </View>
         <Modal
           title={null}
           transparent

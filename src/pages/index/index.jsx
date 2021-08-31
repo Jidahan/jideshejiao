@@ -1,7 +1,7 @@
 import { PureComponent } from 'react'
 import Taro from '@tarojs/taro'
 import { View, Text, Image } from '@tarojs/components'
-import { Icon, WhiteSpace, Button, SearchBar, Toast } from '@ant-design/react-native'
+import { Icon, WhiteSpace, Button, SearchBar, Toast, InputItem } from '@ant-design/react-native'
 import { FlatList, ActivityIndicator, RefreshControl, StyleSheet, TextInput } from 'react-native';
 import IndexLists from './components/IndexLists'
 import { 
@@ -105,12 +105,12 @@ class Index extends PureComponent {
   }
 
   getUserLists() {    
-    const { city, pageNumber, pageSize, latitude, longitude, range } = this.state
+    const { city, pageNumber, pageSize, latitude, longitude, range, searchValue } = this.state
     Taro.getStorage({
       key: 'userId',
       complete: (res) => {
         if (res.errMsg === "getStorage:ok") {
-          appUserList({city, pageNumber, pageSize, latitude, longitude, range, userId: res.data}).then(data => {
+          appUserList({city, pageNumber, pageSize, latitude, longitude, range, userId: res.data, searchValue}).then(data => {
             if(data.statusCode === 200){
               this.setState({ dataArray: data.data.data })
             }else{
@@ -141,8 +141,10 @@ class Index extends PureComponent {
   }
 
   searchOnChange(val) {
-    console.log(val);
-    this.setState({ searchValue: val })
+    this.setState({ searchValue: val, pageNumber: 1 }, () => {
+      this.getUserLists()
+      this.refreshData()
+    })
   }
 
   searchOnCancelChange(val) {
@@ -157,14 +159,14 @@ class Index extends PureComponent {
 
   loadData(refresh) {
     if (refresh) {
-      const { city, pageNumber, pageSize, latitude, longitude, range } = this.state
+      const { city, pageNumber, pageSize, latitude, longitude, range, searchValue } = this.state
       let page = pageNumber + 1
       let dataArray = [];
       Taro.getStorage({
         key: 'userId',
         complete: (res) => {
           if (res.errMsg === "getStorage:ok") {
-            appUserList({city, pageNumber: page, pageSize, latitude, longitude, range, userId: res.data}).then(data => {
+            appUserList({city, pageNumber: page, pageSize, latitude, longitude, range, userId: res.data, searchValue}).then(data => {
               if(data.statusCode === 200){
                 if(data.data.data.length < pageSize){
                   this.setState({
@@ -192,12 +194,12 @@ class Index extends PureComponent {
         isLoading: true,
         pageNumber: 1
       }, () => {
-        const { city, pageNumber, pageSize, latitude, longitude, range } = this.state
+        const { city, pageNumber, pageSize, latitude, longitude, range, searchValue } = this.state
         Taro.getStorage({
           key: 'userId',
           complete: (res) => {
             if (res.errMsg === "getStorage:ok") {
-              appUserList({city, pageNumber, pageSize, latitude, longitude, range, userId: res.data}).then(data => {
+              appUserList({city, pageNumber, pageSize, latitude, longitude, range, userId: res.data, searchValue}).then(data => {
                 if(data.statusCode === 200){
                   this.setState({ dataArray: data.data.data, isLoading: false })
                 }else{
@@ -230,7 +232,7 @@ class Index extends PureComponent {
     }else{
       return (
         <View style={{ alignItems: 'center' }}>
-          <Icon name='meh' color='black' style={{ fontSize: 36, margin: 10 }} />
+          <Icon name='meh' color='black' style={{ fontSize: 28, margin: 10 }} />
           <Text>已全部加载啦～</Text>
         </View>
       )
@@ -243,14 +245,15 @@ class Index extends PureComponent {
       <View className='bodyOut'>
         <View className='topSearch' style={{ height: '13%' }}>
           <View style={{ width: '70%', position:'relative' }}>
-            <SearchBar placeholder='输入昵称搜索' style={{ position: 'absolute', top: -18, bottom: 0, left: -10, height: '80%', width: '110%', borderRadius: 20, backgroundColor: '#E8E8E8' }} onChange={this.searchOnChange} onCancel={this.searchOnCancelChange} value={this.state.searchValue} />
+            <InputItem clear placeholder='输入昵称搜索' style={{ position: 'absolute', bottom: 0, left: -10, height: '80%', width: '110%', borderRadius: 20, backgroundColor: '#E8E8E8', paddingLeft: 10 }} onChange={this.searchOnChange} onCancel={this.searchOnCancelChange} value={this.state.searchValue} />
+            {/* <SearchBar placeholder='输入昵称搜索' style={{ position: 'absolute', top: -18, bottom: 0, left: -10, height: '80%', width: '110%', borderRadius: 20, backgroundColor: '#E8E8E8' }} onChange={this.searchOnChange} onCancel={this.searchOnCancelChange} value={this.state.searchValue} /> */}
           </View>
           <View onClick={this.goCitySelect} style={styles.position}>
             <Image
               style={{ width: 20, height: 20 }}
               src={PositionImg}
             />
-            <Text className='searchRightButtonText'>附近</Text>
+            <Text className='searchRightButtonText'>{this.state.city || '附近'}</Text>
           </View>
         </View>
         <View style={{ padding: 20, paddingTop: 0, paddingBottom: 0 }}>
@@ -291,6 +294,7 @@ const styles = StyleSheet.create({
   position: {
     display: 'flex',
     flexDirection: 'row',
-    alignItems: 'center'
+    alignItems: 'center',
+    marginTop: 2
   }
 })

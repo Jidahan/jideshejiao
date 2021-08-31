@@ -38,6 +38,11 @@ class Historyvisit extends PureComponent {
           this.setState({ userId: res.data })
           findHistoricalVisitors({ pageNumber, pageSize, userId: res.data }).then(data => {
             if(data.statusCode === 200){
+              if(data.data.data.length === 0) {
+                this.setState({
+                  allDataHaveStopLoading: true
+                })
+              }
               this.setState({ dataArray: data.data.data })
             }else{
               Toast.fail({

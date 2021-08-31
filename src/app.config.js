@@ -6,6 +6,7 @@ export default {
     'pages/home/components/advicePage/index',
     'pages/home/components/personInfoPage/index',
     'pages/home/components/historyVisit/index',
+    'pages/home/components/personInfoPage/components/editUserInfo',
     'pages/userInfo/index',
     'pages/photoLists/index',
     'pages/pay/index',
@@ -19,26 +20,26 @@ export default {
   ],
   debug:true,
   tabBar:{
-    color:'#eeeeee',
+    color:'#242424',
     selectedColor:'#f0a1a1',
     list:[
       {
         text:'首页',
         pagePath:'pages/index/index',
-        iconPath:'images/tarbarIcon.png',
-        selectedIconPath: 'images/tarbarSelectedIcon.png'
+        iconPath:'images/index.png',
+        selectedIconPath: 'images/indexSelect.png'
       },
       {
         text:'关注',
         pagePath:'pages/focus/index',
-        iconPath:'images/tarbarIcon.png',
-        selectedIconPath: 'images/tarbarSelectedIcon.png'
+        iconPath:'images/fouce.png',
+        selectedIconPath: 'images/fouceSelect.png'
       },
       {
         text:'我的',
         pagePath:'pages/home/index',
-        iconPath:'images/tarbarIcon.png',
-        selectedIconPath: 'images/tarbarSelectedIcon.png'
+        iconPath:'images/my.png',
+        selectedIconPath: 'images/mySelect.png'
       },
     ]
   },

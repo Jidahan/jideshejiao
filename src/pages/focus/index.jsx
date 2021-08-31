@@ -53,7 +53,11 @@ class Focus extends PureComponent {
           this.setState({ userId: res.data })
           myFollowList({ pageNumber, pageSize, userId: res.data }).then(data => {
             if(data.statusCode === 200){
-              console.log('123');
+              if(data.data.data.length === 0) {
+                this.setState({
+                  allDataHaveStopLoading: true
+                })
+              }
               this.setState({ dataArray: data.data.data })
             }else{
               Toast.fail({
@@ -136,7 +140,7 @@ class Focus extends PureComponent {
     }else{
       return (
         <View style={{ alignItems: 'center' }}>
-          <Icon name='meh' color='black' style={{ fontSize: 36, margin: 10 }} />
+          <Icon name='meh' color='black' style={{ fontSize: 28, margin: 10 }} />
           <Text>已全部加载啦～</Text>
         </View>
       )

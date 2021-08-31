@@ -84,7 +84,7 @@ class cityList extends Component {
                         type: 'home/editPersonPageGoStatus',
                         payload: false
                     }).then(() => {
-                        Taro.eventCenter.trigger('updatePersonInfoPageCity', {status: true, city: cityName})
+                      Taro.eventCenter.trigger('updatePersonInfoPageCity', {status: true, city: cityName})
                     })
                 }else{
                     Taro.eventCenter.trigger('updateCity', {status: true, city: cityName})
@@ -300,11 +300,11 @@ class cityList extends Component {
 }
 
 export default connect(
-    ({
-      home,
-    }) => ({
-      home,
-    }),
+  ({
+    home,
+  }) => ({
+    home,
+  }),
 )(cityList);
 
 const styles = StyleSheet.create({

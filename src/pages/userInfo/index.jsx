@@ -9,12 +9,16 @@ import manImg from '../../images/man.png'
 import womenImg from '../../images/women.png'
 import selectHeartImg from '../../images/selectHeart.png'
 import goodActionImg from '../../images/goodAction.png'
-import startImg from '../../images/start.png'
+import startImg from '../../images/adSum.png'
 import photoImg from '../../images/photo.png'
-import heartImg from '../../images/heart.png'
+import heartImg from '../../images/userInfoSelect.png'
 import trueWomen from '../../images/trueWomen.png'
+import trueMan from '../../images/trueMan.png'
 import truePerson from '../../images/truePerson.png'
 import lookpagePosition from '../../images/lookpagePosition.png'
+import scoreLeftImg from '../../images/scoreFunction.png'
+import unlockRightImg from '../../images/unlock.png'
+import userInfoNoSelect from '../../images/userInfoNoSelect.png'
 import './index.less';
 import {
   appUserDetail,
@@ -225,8 +229,7 @@ class Userinfo extends Component {
 
   render() {
     const { evaluationModal, photoImgsModal, userInfo, selectSmallImg } = this.state
-    const imgArrayHeight = userInfo?.photos?.length <= 5 ? 80 : 140
-    // const threePhoto = 
+    const imgArrayHeight = userInfo?.photos?.length <= 4 ? 110 : userInfo?.photos?.length > 4 ? 170 : 60
     const headPhoto = userInfo?.photos?.filter((item) => {
       return item.type === 1
     })
@@ -281,7 +284,7 @@ class Userinfo extends Component {
                     userInfo.gender === 2 ?
                     <Image src={trueWomen} style={{ width: 100, height: 31, marginLeft: 10 }} />
                     :
-                    <Image src={trueWomen} style={{ width: 100, height: 31, marginLeft: 10 }} />
+                    <Image src={trueMan} style={{ width: 100, height: 31, marginLeft: 10 }} />
                   }
                 </View>
                 <View className='row'>
@@ -292,7 +295,7 @@ class Userinfo extends Component {
               </View>
             </CoverView>
           </View>
-          <List style={{ marginTop: 10 }}>
+          <List>
             <Item 
               arrow='' 
               thumb={null}
@@ -300,134 +303,104 @@ class Userinfo extends Component {
                 userInfo.collectionIs === 1 ? 
                   <View className='copyExtra' style={{ position: 'relative' }}>
                     <Image 
-                      src={selectHeartImg} 
-                      style={{width: 30, height: 30, position: 'absolute', right: 60, top: -15}}
+                      src={userInfoNoSelect} 
+                      style={{width: 80, height: 30, position: 'absolute', right: 10, top: -15}}
                       onClick={this.goLikeFunction}
                     />
-                    <Text style={{position: 'absolute', bottom: -8, right: 10, fontSize: 16}} onClick={this.goLikeFunction}>已关注</Text>
                   </View>
                 :
                 <View className='copyExtra' style={{ position: 'relative' }}>
                   <Image 
                     src={heartImg} 
-                    style={{width: 30, height: 30, position: 'absolute', right: 45, top: -15}}
+                    style={{width: 80, height: 30, position: 'absolute', right: 10, top: -15}}
                     onClick={this.goLikeFunction}
                   />
-                  <Text style={{position: 'absolute', bottom: -8, right: 10, fontSize: 16}} onClick={this.goLikeFunction}>关注</Text>
                 </View>
               }
-            >
-              <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start' }}>
-                <Text style={{ fontSize: 16 }}>{userInfo.nickName}</Text>
-                <View style={{ marginLeft: 10 }}>
-                  <Icon name='environment' size='md' style={{ color: '#d4237a' }} />
-                </View>
-                <Text style={{ color: '#8a8a8a', fontSize: 16 }}>{userInfo.distance} {userInfo.onlineState === 1 ? '在线' : '离线'}</Text>
-              </View>
-            </Item>
-
-            <Item 
-              arrow='' 
-              thumb={null}
-              extra={null}
-            >
-              <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start' }}>
-                <Text style={{ fontSize: 16 }}>{userInfo.city}</Text>
-                <Text style={{ marginLeft: 10, fontSize: 16 }}>{userInfo.age}岁</Text>
-                <Text style={{ marginLeft: 10, fontSize: 16 }}>{userInfo.constellation}</Text>
-              </View>
-            </Item>
-
-            <Item 
-              arrow='' 
-              thumb={null}
-              extra={null}
             >
               <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start' }}>
                 <Image 
                   src={goodActionImg} 
                   style={{width: 28, height: 28}}
                 />
-                <Text style={{ marginLeft: 10, fontSize: 16 }}>好评 {userInfo.praiseNum}</Text>
+                <Text style={{ marginLeft: 5, fontSize: 16 }}>好评: {userInfo.praiseNum}</Text>
                 <Image
                   src={startImg}
-                  style={{width: 28, height: 28, marginLeft: 15}}
+                  style={{width: 28, height: 28, marginLeft: 10}}
                 />
-                <Text style={{ marginLeft: 10, fontSize: 16 }}>爱豆 {userInfo.individualValues}</Text>
+                <Text style={{ marginLeft: 5, fontSize: 16 }}>爱豆: {userInfo.individualValues}</Text>
               </View>
             </Item>
+            <View className='inlineView'></View>
+            <Card>
+              <Card.Header
+                title='Ta的相册'
+                thumb={null}
+                style={{ borderColor: 'white' }}
+                extra={
+                  <Item arrow='horizontal' 
+                    onPress={this.goMaPhoto} 
+                  >
+                    <Text style={{ fontSize: 18, marginLeft: 80 }}>更多</Text>
+                  </Item>
+                }
+              />
+              <Card.Body style={{ height: imgArrayHeight, overflow: 'hidden' }}>
+                <WingBlank className='photosAll'>
+                  <Flex wrap='wrap' align='center' justify='between'>
+                  {userInfo?.photos?.map(reward => {
+                    if(reward.type === 1){
+                      return (
+                        <View key={reward.id}>
+                          <Image
+                            style={{width: 70, height: 70, marginLeft: 10, borderRadius: 5, marginBottom: 10 }}
+                            src={reward.url}
+                            key={reward.id}
+                            className='filterImg'
+                          />
+                          {userInfo.unlockPhotos === 2?
+                            <BlurView
+                              className='absoluteBlurView'
+                              blurType='light'
+                              blurAmount={8}
+                              reducedTransparencyFallbackColor='white'
+                            />
+                          :
+                            null
+                          }
+                        </View>
+                      )
+                    }else{
+                      return (
+                        <View key={reward.id}>
+                          <Video
+                            style={{width: 70, height: 70, marginLeft: 10, borderRadius: 5, marginBottom: 10 }}
+                            src={reward.url}
+                            key={reward.id}
+                            autoplay={false}
+                            loop={false}
+                            poster={reward.videoUrl}
+                          />
+                          {userInfo.unlockPhotos === 2?
+                            <BlurView
+                              className='absoluteBlurView'
+                              blurType='light'
+                              blurAmount={8}
+                              reducedTransparencyFallbackColor='white'
+                            />
+                          :
+                            null
+                          }
+                        </View>
+                      )
+                    }
+                  })}
+                  </Flex>
+                </WingBlank>
+              </Card.Body>
+            </Card>
+            <View className='inlineView'></View>
             <WingBlank size='lg'>
-              <Card>
-                <Card.Header
-                  title={`${userInfo.gender === 2 ? '她' : '他'}的相册`}
-                  thumbStyle={{ width: 30, height: 30 }}
-                  thumb={
-                    <Image src={photoImg} className='iconSizeStyle' />
-                  }
-                  extra={
-                    <Item arrow='horizontal' 
-                      onPress={this.goMaPhoto} 
-                    >
-                      <Text style={{ fontSize: 18, marginLeft: 60 }}>更多</Text>
-                    </Item>
-                  }
-                />
-                <Card.Body style={{ height: imgArrayHeight, overflow: 'hidden' }}>
-                  <View style={{ height: 42, display: 'flex', flexDirection: 'row', marginTop: -5 }}>
-                  <WingBlank>
-                    <Flex wrap='wrap'>
-                    {userInfo?.photos?.map(reward => {
-                      if(reward.type === 1){
-                        return (
-                          <View key={reward.id}>
-                            <Image
-                              style={{width: 60, height: 60, marginLeft: 5, borderRadius: 5, marginBottom: 10 }}
-                              src={reward.url}
-                              key={reward.id}
-                              className='filterImg'
-                            />
-                            {userInfo.unlockPhotos === 2?
-                              <BlurView
-                                className='absoluteBlurView'
-                                blurType='light'
-                                blurAmount={8}
-                                reducedTransparencyFallbackColor='white'
-                              />
-                            :
-                              null
-                            }
-                          </View>
-                        )
-                      }else{
-                        return (
-                          <View key={reward.id}>
-                            <Video
-                              style={{width: 60, height: 60, marginLeft: 5, borderRadius: 5, marginBottom: 10 }}
-                              src={reward.url}
-                              key={reward.id}
-                              autoplay={false}
-                              loop={false}
-                              poster={reward.videoUrl}
-                            />
-                            {userInfo.unlockPhotos === 2?
-                              <BlurView
-                                className='absoluteBlurView'
-                                blurType='light'
-                                blurAmount={8}
-                                reducedTransparencyFallbackColor='white'
-                              />
-                            :
-                              null
-                            }
-                          </View>
-                        )
-                      }
-                    })}
-                    </Flex>
-                  </WingBlank>
-                  </View>
-                </Card.Body>
-              </Card>
               <Item
                 thumb={null}
                 disabled
@@ -456,11 +429,11 @@ class Userinfo extends Component {
                 thumb={null}
                 extra={
                   userInfo.unlockWeChat === 2 ?
-                  <Text style={{ color: '#3b99fc' }} onClick={this.spenMoneyLook}>
+                  <Text style={{ color: '#592DFF' }} onClick={this.spenMoneyLook}>
                     解锁查看
                   </Text>
                   :
-                  <Text style={{ color: '#3b99fc' }} onClick={this.copyWx}>
+                  <Text style={{ color: '#592DFF' }} onClick={this.copyWx}>
                     {userInfo.wxAccount	}
                   </Text>
                 }
@@ -471,19 +444,19 @@ class Userinfo extends Component {
             </WingBlank>
           </List>
         </ScrollView>
+        
         <View className='bottomButton'>
-          {userInfo.evaluated === 1 ?
-          <Button type='primary' style={{ width: 150, backgroundColor: '#9409a8', borderColor: '#9409a8' }} disabled>已评价</Button>
-          :
-          <Button type='primary' style={{ width: 150, backgroundColor: '#9409a8', borderColor: '#9409a8' }} onPress={this.evaluation}>评价</Button>
-          }
-          {
-            userInfo.unlockPhotos === 1 && userInfo.unlockWeChat === 1 ?
-            <Button type='primary' style={{ width: 150, backgroundColor: '#2aa515', borderColor: '#2aa515' }} disabled>已解锁</Button>
-            :
-            <Button type='primary' style={{ width: 150, backgroundColor: '#2aa515', borderColor: '#2aa515' }} onPress={this.unlock}>解锁</Button>
-          }
-        </View>
+          <ImageBackground source={scoreLeftImg} style={{ height: 50 }} className='cc'>
+            <View onClick={userInfo.evaluated === 1 ? null : this.evaluation} style={{ width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontSize: 18, color: '#F6386F' }}>{userInfo.evaluated === 1 ? '已评价' : '评价'}</Text>
+            </View>
+          </ImageBackground>
+          <ImageBackground source={unlockRightImg} className='cc' style={{ height: 50, alignItems: 'center', justifyContent: 'center', marginLeft: '-10%' }}>
+            <View onClick={userInfo.unlockPhotos === 1 && userInfo.unlockWeChat === 1 ? null : this.unlock} style={{ width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontSize: 18, color: '#FFFFFF' }}>{userInfo.unlockPhotos === 1 && userInfo.unlockWeChat === 1 ? '已解锁' : '解锁'}</Text>
+            </View>
+          </ImageBackground>
+        </View>      
 
         <Modal
           title='评价'
@@ -534,7 +507,7 @@ class Userinfo extends Component {
         </Modal>
 
         <Modal
-          title=''
+          title='付费相册'
           transparent
           onClose={() => {
             this.setState({ photoImgsModal: false })
@@ -543,14 +516,12 @@ class Userinfo extends Component {
           visible={photoImgsModal}
           closable
           footer={[
-            { text: '取消', onPress: () => console.log('cancel') },
-            { text: '解锁相册', onPress: this.handOkPayPhotos },
+            { text: '暂不解锁', onPress: () => console.log('cancel'), style: { color: '#A9A9A9' } },
+            { text: '立即解锁', onPress: this.handOkPayPhotos, style: { color: '#F6386F' } },
           ]}
         >
           <View style={{ paddingVertical: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Icon name='layout' color='#3b99fc' style={{ fontSize: 40 }} />
-            <Text style={{ fontSize: 20, marginTop: 20 }}>付费相册</Text>
-            <Text style={{ marginTop: 20, marginBottom: 0 }}>有{userInfo?.photos?.length}张照片</Text>
+            <Text style={{ marginTop: 20, marginBottom: 0 }}>该相册为付费相册，共有<Text style={{ color: '#F6386F' }}>{userInfo?.photos?.length}</Text>张照片解锁后可查看</Text>
           </View>
         </Modal>
       </View>
