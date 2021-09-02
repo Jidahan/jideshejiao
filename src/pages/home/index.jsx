@@ -2,12 +2,13 @@ import { Component } from 'react'
 import Taro from '@tarojs/taro'
 import { createThumbnail } from "react-native-create-thumbnail";
 import { ImageBackground } from 'react-native';
-import { View, Text, CoverView, CoverImage, Image, ScrollView, Video } from '@tarojs/components'
+import { View, Text, Image, ScrollView, Video } from '@tarojs/components'
 import { Icon, List, Button, WingBlank, Card, Toast, Flex, Modal } from '@ant-design/react-native'
 import RNFS from 'react-native-fs';
 import Clipboard from '@react-native-clipboard/clipboard'
 import ImagePicker from 'react-native-image-picker'
-import zwImg from '../../images/zw.png'
+import zwWomen from '../../images/zwWomen.png'
+import zwMan from '../../images/zwMan.png'
 import personInfoImg from '../../images/personInfo.png'
 import manImg from '../../images/homeman.png'
 import realPersonImg from '../../images/realPerson.png'
@@ -74,6 +75,10 @@ class Home extends Component {
         }
       }
     })
+  }
+
+  componentDidShow() {
+    this.getUserMessage()
   }
 
   getUserMessage() {
@@ -377,12 +382,14 @@ class Home extends Component {
   selectSmallImg(reward) {
     this.setState({ selectSmallImg: reward })
   }
+  
+  goPhotosPage = (id) => {
+    Taro.navigateTo({
+      url: `/pages/photoLists/index?userId=${id}&parent=home`,
+    })
+  }
 
   myPhotosClick = (url) => {
-    // Taro.navigateTo({
-    //   url: `/pages/lookPhotos/index?data=${JSON.stringify(this.state.userInfo.photos)}&key=${key}`,
-    // })
-
     const userInfoPhotos = this.state.userInfo.photos.filter((item) => {
       return item.type === 1
     })
@@ -428,16 +435,14 @@ class Home extends Component {
 
   render () {
     const {imgArray, userInfo, selectSmallImg} = this.state
-    const imgArrayHeight = imgArray.length <= 5 ? 60 : imgArray.length < 11 && imgArray.length >= 6 ? 140 : 200 
-    const topHeadBgImg = userInfo?.photos?.filter(reward => {
+    const imgArrayHeight = imgArray.length < 5 ? 90 : imgArray.length < 11 && imgArray.length >= 6 ? 160 : 210 
+    const topHeadBgImg = userInfo.photos&&userInfo.photos?.filter(reward => {
       return reward.url.indexOf('mp4') === -1
     })
-    console.log(userInfo);
-
     const sourceUrl = {
-      uri: selectSmallImg 
+      uri: selectSmallImg.url
       || 
-      topHeadBgImg&&topHeadBgImg.length > 0&&topHeadBgImg[0].url
+      topHeadBgImg&&topHeadBgImg.length > 0 && topHeadBgImg[0].url
     }
     return (
       <View>
@@ -448,7 +453,7 @@ class Home extends Component {
           showsVerticalScrollIndicator={false}
         >
           <View className='container'>
-            <ImageBackground className='img' source={sourceUrl}>
+            <ImageBackground className='img' source={sourceUrl || this.state.gender === 2 ? zwWomen : zwMan}>
               <View className='rightTopImgAdd' onClick={this.addPhoto}>
                 <Icon name='plus' size='md' style={{ color: 'white', fontSize: 30 }} />
               </View>
@@ -458,14 +463,16 @@ class Home extends Component {
                 <ScrollView
                   scrollX
                 >
-                  {userInfo?.photos?.map(reward => {
+                  {userInfo?.photos?.map((reward) => {
                     if(reward.url.indexOf('mp4') === -1){
                       return (
                         <View style={{width: 50, height: 50, marginLeft: 10}} className={reward === this.state.selectSmallImg ? 'selectImgArrayOneImg' : ''} key={reward.id} onClick={() => this.selectSmallImg(reward)}>
-                          <Image
-                            style={{width: '100%', height: '100%', borderRadius: 10}}
-                            src={reward?reward.url:null}
-                          />
+                          <ImageBackground 
+                            source={{uri: reward?reward.url:null}}
+                            style={{width: '100%', height: '100%'}}
+                            imageStyle={{ borderRadius: 10 }}
+                          >
+                          </ImageBackground>
                         </View>
                       )
                     }
@@ -477,42 +484,7 @@ class Home extends Component {
                 <Text style={{ color: 'white', fontWeight: 'bold' }}>全身照越多(至少一张正面俩张侧面),才能被评为{this.state.gender === 2 ? '女神' : '男神'}！</Text>
               </View>
             </ImageBackground>
-            {/* <CoverView className='controls'>
-              <CoverImage className='img' 
-                src={
-                  selectSmallImg 
-                  || 
-                  topHeadBgImg&&topHeadBgImg.length > 0&&topHeadBgImg[0].url
-                } 
-              />
-              <View className='rightTopImgAdd' onClick={this.addPhoto}>
-                <Icon name='plus' size='md' />
-              </View>
-              <Text className='imgOnText'>{userInfo.nickName}</Text>
-              <Text className='imgOnTwoText'>{userInfo.city} {userInfo.age}岁</Text>
-              <View className='imgArray'>
-                <ScrollView
-                  scrollX
-                >
-                  {userInfo?.photos?.map(reward => {
-                    if(reward.url.indexOf('mp4') === -1){
-                      return (
-                        <View style={{width: 50, height: 50, marginLeft: 10}} className={reward === this.state.selectSmallImg ? 'selectImgArrayOneImg' : ''} key={reward.id} onClick={() => this.selectSmallImg(reward)}>
-                          <Image
-                            style={{width: '100%', height: '100%', borderRadius: 10}}
-                            src={reward?reward.url:null}
-                          />
-                        </View>
-                      )
-                    }
-                  })}
-                </ScrollView>
-              </View>
-              <View className='bottomText'>
-                <Icon name='alert' size='md' color='#efb336' />
-                <Text style={{ color: 'white', fontWeight: 'bold' }}>全身照越多(至少一张正面俩张侧面),才能被评为{this.state.gender === 2 ? '女神' : '男神'}！</Text>
-              </View>
-            </CoverView> */}
+          
           </View>
           <List style={{ marginTop: 10 }}>
             <Item arrow='horizontal' 
@@ -563,21 +535,37 @@ class Home extends Component {
                   }
                 />
                 <Card.Body style={{ height: imgArrayHeight, overflow: 'hidden' }}>
-                  <View style={{ height: 42, display: 'flex', flexDirection: 'row', marginTop: -5 }} >
-                  <WingBlank>
-                    <Flex wrap='wrap'>
+                  <WingBlank >
+                    <Flex direction='row' justify='between' wrap='wrap'>
                     {userInfo?.photos?.map(reward => {
                       if(reward.type === 1){
-                        return (
-                          <View key={reward.id} onClick={() => this.myPhotosClick(reward.url)}>
-                            <Image
-                              style={{width: 60, height: 60, marginLeft: 5, borderRadius: 5, marginBottom: 10 }}
-                              src={reward.url}
-                              key={reward.id}
-                              className='filterImg'
-                            />
-                          </View>
-                        )
+                        if(userInfo?.photos.length === 8&&userInfo?.photos[userInfo?.photos.length - 1].id === reward.id){
+                          return (
+                            <View key={reward.id} onClick={() => this.goPhotosPage(userInfo.id)}>
+                              <ImageBackground 
+                                source={{uri: reward.url}}
+                                style={{width: 70, height: 70, marginLeft: 5, marginBottom: 10, alignItems: 'center', justifyContent: 'center' }}
+                                imageStyle={{ borderRadius: 5 }}
+                                key={reward.id}
+                              >
+                                <Text style={{ color: 'white', fontSize: 20 }}>更多</Text>
+                              </ImageBackground>
+                            </View>
+                          )
+                        }else{
+                          return (
+                            <View key={reward.id} onClick={() => this.myPhotosClick(reward.url)}>
+                              <ImageBackground 
+                                source={{uri: reward.url}}
+                                style={{width: 70, height: 70, marginLeft: 5, marginBottom: 10 }}
+                                imageStyle={{ borderRadius: 5 }}
+                                key={reward.id}
+                              >
+                              </ImageBackground>
+                            </View>
+                          )
+                        }
+                        
                       }else{
                         return (
                           <View key={reward.id} onClick={() => this.myVideoClick(`videocc${reward.id}`)}>
@@ -595,10 +583,20 @@ class Home extends Component {
                         )
                       }
                     })}
-                      
+                    {
+                      userInfo?.photos?.length % 2 === 0 ?
+                      <>
+                        <View style={{width: 70, height: 70, marginLeft: 5, marginBottom: 10 }}></View>
+                        <View style={{width: 70, height: 70, marginLeft: 5, marginBottom: 10 }}></View>
+                      </>
+                      :
+                      <>
+                        <View style={{width: 70, height: 70, marginLeft: 5, marginBottom: 10 }}></View>
+                        <View style={{width: 70, height: 70, marginLeft: 5, marginBottom: 10 }}></View>
+                      </>
+                    }          
                     </Flex>
                   </WingBlank>
-                  </View>
                 </Card.Body>
                 <Card.Footer
                   content='上传更多照片，才能吸引异性～'

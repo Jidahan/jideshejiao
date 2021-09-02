@@ -51,12 +51,12 @@ class face extends Component {
     start = () => {
       const key = Toast.loading('正在加载相关资源...')
       this.setState({
-        // apiKey: '7E79IypZU29vnFZ0RBBA6SBY',
-        // appID: '24034341',
-        // secretKey: 'B4EazYkGnjVxSoPpWhVe6vfpmGgkVD1b',
-        apiKey: 'ufFxjMqCidfloW6ly8rEAaEH',
-        appID: '24724593',
-        secretKey: 'BlzQA6al6KFxdd44LB242mZx4gcCX8PP',
+        apiKey: '7E79IypZU29vnFZ0RBBA6SBY',
+        appID: '24034341',
+        secretKey: 'B4EazYkGnjVxSoPpWhVe6vfpmGgkVD1b',
+        // apiKey: 'ufFxjMqCidfloW6ly8rEAaEH',
+        // appID: '24724593',
+        // secretKey: 'BlzQA6al6KFxdd44LB242mZx4gcCX8PP',
       }, () => {
         Taro.request({
           url: `https://aip.baidubce.com/oauth/2.0/token?grant_type=client_credentials&client_id=${this.state.apiKey}&client_secret=${this.state.secretKey}`,

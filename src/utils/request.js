@@ -18,6 +18,7 @@ export default (options = { method: 'GET', data: {} }) => {
       return data;
     },
     fail: (res => {
+      console.log('请求出错：', res);
       const { statusCode, data } = res;
       if (statusCode >= 200 && statusCode < 300) {
         console.log(`${new Date().toLocaleString()}【 URL=${options.url} 】【接口响应：】`,res.data);
@@ -34,7 +35,7 @@ export default (options = { method: 'GET', data: {} }) => {
       }
     }),
     complete: (res) => {
-      console.log('complete', res);
+      console.log('接口执行完成：', res);
       return res.data
     },
   })

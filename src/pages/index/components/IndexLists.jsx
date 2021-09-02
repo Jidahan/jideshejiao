@@ -38,7 +38,7 @@ const IndexLists = (props) => {
                 content: data.data.data,
                 duration: 1
               })
-              Taro.eventCenter.trigger('goLikeUserIsRefresh', {status: true, id: info.userId})
+              Taro.eventCenter.trigger('goLikeUserIsRefresh', {status: true, id: info.userId, nowDisabledUser: info.collectionIs})
             }else{
               Toast.remove(key)
               Toast.fail({

@@ -229,29 +229,29 @@ class cityList extends Component {
     return lists;
   }
 
-    selectCity(cityItem) {
-      this.selectEndResultCity(cityItem.name)
-    }
+  selectCity(cityItem) {
+    this.selectEndResultCity(cityItem.name)
+  }
 
-    hotCity(name) {
-      this.selectEndResultCity(name)
-    }
+  hotCity(name) {
+    this.selectEndResultCity(name)
+  }
 
-    renderHotCityArray(hotCityArray) {
-      let eleArray = [];
-      let subArray = hotCityArray.slice(0, 12);
-      for (let index = 0; index < subArray.length; index++) {
-        const element = subArray[index];
-        const ele =
-          <TouchableOpacity key={element.cityCode} onPress={() => {this.hotCity(element.cityName)}}>
-            <View style={[styles.textView, {marginTop: 10}]}>
-              <Text style={{color: "#333333", fontSize: 14,}}>{element.cityName}</Text>
-            </View>
-          </TouchableOpacity>;
-        eleArray.push(ele);
-      }
-      return eleArray;
+  renderHotCityArray(hotCityArray) {
+    let eleArray = [];
+    let subArray = hotCityArray.slice(0, 12);
+    for (let index = 0; index < subArray.length; index++) {
+      const element = subArray[index];
+      const ele =
+        <TouchableOpacity key={element.cityCode} onPress={() => {this.hotCity(element.cityName)}}>
+          <View style={[styles.textView, {marginTop: 10}]}>
+            <Text style={{color: "#333333", fontSize: 14,}}>{element.cityName}</Text>
+          </View>
+        </TouchableOpacity>;
+      eleArray.push(ele);
     }
+    return eleArray;
+  }
 
     render() {
       return (
@@ -287,7 +287,7 @@ class cityList extends Component {
             enableFlex
             scrollAnchoring
           >
-              {this._renderCityList()}
+            {this._renderCityList()}
           </ScrollView>
 
           {this._renderSideSectionView()}

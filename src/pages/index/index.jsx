@@ -1,18 +1,17 @@
-import { PureComponent } from 'react'
+import { PureComponent, Component } from 'react'
 import Taro from '@tarojs/taro'
 import { View, Text, Image } from '@tarojs/components'
-import { Icon, WhiteSpace, Button, SearchBar, Toast, InputItem } from '@ant-design/react-native'
-import { FlatList, ActivityIndicator, RefreshControl, StyleSheet, TextInput } from 'react-native';
+import { Icon, SearchBar, Toast } from '@ant-design/react-native'
+import { FlatList, ActivityIndicator, RefreshControl, StyleSheet } from 'react-native';
 import IndexLists from './components/IndexLists'
 import { 
   appUserList,
 } from './service'
 import PositionImg from '../../images/position.png'
 import AdLists from './components/AdLists'
-import searchImg from '../../images/search.png'
 import './index.less'
 
-class Index extends PureComponent {
+class Index extends Component {
 
   _keyxtractor = (item, index) => item.id
 
@@ -37,68 +36,78 @@ class Index extends PureComponent {
 
   onTabItemTap() {
     this.setState({ pageNumber: 1 }, () => {
-      this.getUserLists()
       this.refreshData()
+      this.getUserLists()
     })
   }
-  
-  componentDidMount () {
-    this.getUserLists()
-    this.refreshData()
-    this.updateCity()
 
-    // const that = this
-    // Taro.getLocation({
-    //   type: 'wgs84',
-    //   success: function (res) {
-    //     const latitude = res.latitude
-    //     const longitude = res.longitude
-    //     that.setState({
-    //       latitude,
-    //       longitude,
-    //     })
-    //     Taro.request({
-    //       url: `https://apis.map.qq.com/ws/geocoder/v1/?location=${latitude},${longitude}&key=XKYBZ-36R6D-DP74D-PFWPH-PICQ5-RHFJS`,
-    //       header: {
-    //         'Content-Type': 'application/json',
-    //       },
-    //       method: 'GET',
-    //       complete: (resCity) => {
-    //         if (resCity.statusCode === 200) {
-    //           const city = resCity.data.result.address_component.city.split('市')[0]
-    //           that.setState({ 
-    //             city
-    //           },() => {
-    //             that.getUserLists()
-    //             that.refreshData()
-    //             that.updateCity()
-    //           })
-    //         }else{
-    //           Toast.fail('定位失败')
-    //           that.setState({ isLoading: false })
-    //         }
-    //       },
-    //     })
-    //   },
-    //   error: function(error) {
-    //     console.log(error);
-    //   }
-    // })
+  componentDidMount () {
+    // this.refreshData()
+    // this.getUserLists()
+    // this.updateCity()
+
+    const that = this
+    Taro.getLocation({
+      type: 'wgs84',
+      success: function (res) {
+        const latitude = res.latitude
+        const longitude = res.longitude
+        that.setState({
+          latitude,
+          longitude,
+        })
+        Taro.request({
+          url: `https://apis.map.qq.com/ws/geocoder/v1/?location=${latitude},${longitude}&key=XKYBZ-36R6D-DP74D-PFWPH-PICQ5-RHFJS`,
+          header: {
+            'Content-Type': 'application/json',
+          },
+          method: 'GET',
+          complete: (resCity) => {
+            console.log(resCity);
+            if (resCity.statusCode === 200) {
+              if(!resCity.data.result.address_component.city){
+                that.setState({ isLoading: false, allDataHaveStopLoading: true })
+                Toast.info({
+                  content: `当前定位城市为${resCity.data.result.address_component.nation}`,
+                  duration: 2
+                })
+                that.setState({city: resCity.data.result.address_component.nation})
+              }else{
+                const city = resCity.data.result.address_component.city.split('市')[0]
+                that.setState({ 
+                  city
+                },() => {
+                  that.getUserLists()
+                  that.refreshData()
+                  that.updateCity()
+                })
+              }
+            }else{
+              Toast.fail({
+                content: '定位失败',
+                dur: 2
+              })
+              that.setState({ isLoading: false, allDataHaveStopLoading: true })
+            }
+          },
+        })
+      },
+      error: function(error) {
+        console.log(error);
+      }
+    })
   }
 
-  // componentDidShow() {
-  //   this.setState({ pageNumber: 1 }, () => {
-  //     this.getUserLists()
-  //     this.refreshData()
-  //   })
-  // }
+  componentDidShow() {
+    this.refreshData()
+  }
 
   updateCity() {
     Taro.eventCenter.on('updateCity',(arg)=>{
       if(arg?.status){
         this.setState({ city: arg?.city, pageNumber: 1 }, () => {
-          this.getUserLists()
           this.refreshData()
+          this.getUserLists()
         })
       }
     })
@@ -107,13 +116,17 @@ class Index extends PureComponent {
   refreshData() {
     Taro.eventCenter.on('goLikeUserIsRefresh',(arg)=>{
       if(arg?.status){
-        const likenowData = this.state.dataArray.map(reward => {
+        const resultData = this.state.dataArray.map(reward => {
           if(reward.userId === arg.id){
-            reward.collectionIs = reward.collectionIs === 1 ? 2 : 1
+            reward.collectionIs = arg.nowDisabledUser === 1 ? 2 : 1
           }
           return reward
         })
-        this.setState({ dataArray: likenowData })
+        this.setState((prevState)=>{
+          delete prevState.dataArray;
+          return prevState;
+        })
+        this.setState({ dataArray: resultData })
       }
     })
   }
@@ -156,8 +169,8 @@ class Index extends PureComponent {
 
   searchOnChange(val) {
     this.setState({ searchValue: val, pageNumber: 1 }, () => {
-      this.getUserLists()
       this.refreshData()
+      this.getUserLists()
     })
   }
 
@@ -264,8 +277,16 @@ class Index extends PureComponent {
       <View className='bodyOut'>
         <View className='topSearch' style={{ height: '13%' }}>
           <View style={{ width: '70%', position:'relative' }}>
-            {/* <InputItem clear placeholder='输入昵称搜索' style={{ position: 'absolute', bottom: 0, left: -10, height: '80%', width: '110%', borderRadius: 20, backgroundColor: '#E8E8E8', paddingLeft: 10 }} onChange={this.searchOnChange} onCancel={this.searchOnCancelChange} value={this.state.searchValue} /> */}
-            <SearchBar placeholder='输入昵称搜索' style={{ position: 'absolute', top: -18, bottom: 0, left: -10, height: '80%', width: '110%', borderRadius: 20, backgroundColor: '#E8E8E8' }} onChange={this.searchOnChange} onCancel={this.searchOnCancelChange} value={this.state.searchValue} />
+            <SearchBar 
+              placeholder='输入昵称搜索' 
+              style={{ position: 'absolute', top: -18, bottom: 0, left: -10, height: '80%', width: '110%', borderRadius: 20, backgroundColor: '#E8E8E8' }} 
+              onChange={this.searchOnChange} 
+              onCancel={this.searchOnCancelChange} 
+              value={this.state.searchValue}
+              styles={{
+                wrapper: {backgroundColor: 'white'}
+              }}
+            />
           </View>
           <View onClick={this.goCitySelect} style={styles.position}>
             <Image

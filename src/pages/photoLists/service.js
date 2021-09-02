@@ -1,8 +1,16 @@
 import Request from '../../utils/request';
 
-export const demo = (data) => {
+export const getUserPhotos = (data) => {
   return Request({
-    url: '路径',
+    url: '/social/app/getUserPhotos',
+    method: 'POST',
+    data,
+  });
+};
+
+export const delUserData = (data) => {
+  return Request({
+    url: '/social/app/delUserData',
     method: 'POST',
     data,
   });

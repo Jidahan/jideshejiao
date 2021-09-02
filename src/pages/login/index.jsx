@@ -32,7 +32,7 @@ class Login extends Component {
       registered: true,
       tourists: false,
       yqmError: false,
-      time: 60,
+      time: 3,
       btnDisable:false,
       btnContent: '获取验证码',
     }
@@ -70,7 +70,7 @@ class Login extends Component {
         return
       } 
       const key = Toast.loading('登录中...');
-      appLogin({tel: this.state.phoneValue, code: this.state.codeValue, invitationCode: this.state.yqmValue}).then(res => {
+      appLogin({tel: this.state.phoneValue.replace(/\s/g,''), code: this.state.codeValue, invitationCode: this.state.yqmValue}).then(res => {
         if(res.data.status === 200){
           Toast.remove(key);
           Taro.navigateTo({
@@ -91,7 +91,7 @@ class Login extends Component {
       })
     }else{
       const key = Toast.loading('登录中...');
-      appLogin({tel: this.state.phoneValue, code: this.state.codeValue, invitationCode: this.state.yqmValue}).then(res => {
+      appLogin({tel: this.state.phoneValue.replace(/\s/g,''), code: this.state.codeValue, invitationCode: this.state.yqmValue}).then(res => {
         console.log(res);
         if(res.data.status === 200){
           Toast.remove(key);
@@ -162,7 +162,7 @@ class Login extends Component {
       }
     };
     const sendCode = () =>{
-      if(!this.state.phoneValue) {
+      if(!this.state.phoneValue.replace(/\s/g,'')) {
         this.setState({ phoneError: true })
         Toast.fail({
           content: '请输入手机号！',
@@ -171,7 +171,7 @@ class Login extends Component {
         return
       }
       const key = Toast.loading('发送中...');
-      getPhoneSendCode(this.state.phoneValue).then(res => {
+      getPhoneSendCode(this.state.phoneValue.replace(/\s/g,'')).then(res => {
         if(res.data.status === 200){
           Toast.remove(key);
           Toast.success({

@@ -5,7 +5,7 @@ import RNFS from 'react-native-fs';
 import { View, Text, CoverView, CoverImage, Image, ScrollView } from '@tarojs/components'
 import { Card, WhiteSpace, WingBlank, Button, List, InputItem, DatePicker, NoticeBar, Toast } from '@ant-design/react-native'
 import { ImageBackground } from 'react-native'
-import headImg from '../../../../images/1.png'
+import headImg from '../../../../images/zwWomen.png'
 import editPersonImg from '../../../../images/editPersonImg.png'
 import editUserInfoButtonImg from '../../../../images/editUserInfo.png'
 import './index.less';

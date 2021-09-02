@@ -40,6 +40,7 @@ class Userinfo extends Component {
       userId: '',
       userInfo: '',
       selectSmallImg: '',
+      lookUnlockPhotosUrlModal: false
     }
     this.goBack = this.goBack.bind(this)
     this.goMaPhoto = this.goMaPhoto.bind(this)
@@ -95,11 +96,11 @@ class Userinfo extends Component {
   }
 
   goMaPhoto() {
-    const { userInfo:{unlockPhotos, photos} } = this.state
+    const { userInfo:{unlockPhotos, photos, id} } = this.state
     if(unlockPhotos === 1) {
       // 跳转详情
       Taro.navigateTo({
-        url: `/pages/photoLists/index?data=${JSON.stringify(photos)}`
+        url: `/pages/photoLists/index?userId=${id}`
       })
     }else{
       if(!photos) {
@@ -227,12 +228,51 @@ class Userinfo extends Component {
     });
   }
 
+  imageClick(url) {
+    if (this.state.userInfo.unlockPhotos === 2) {
+      this.setState({ lookUnlockPhotosUrlModal:true, lookUnlockPhotosUrl: url })
+      // Taro.previewImage({
+      //   urls: [url],
+      //   current: url
+      // })
+      setTimeout(() => {
+        this.setState({ lookUnlockPhotosUrlModal:false, lookUnlockPhotosUrl: '' })
+      }, 2000);
+      return
+    }
+    const userInfoPhotos = this.state.userInfo.photos.filter((item) => {
+      return item.type === 1
+    })
+    const i1=userInfoPhotos.findIndex((value)=>value.url===url);
+    let imgAry = userInfoPhotos.map(reward => {
+      return reward.url
+    })
+    Taro.previewImage({
+      urls: imgAry,
+      current: imgAry[i1]
+    })
+  }
+
+  myVideoClick(id) {
+    let videoContext = Taro.createVideoContext(id)
+    videoContext.requestFullScreen()
+    if (this.state.userInfo.unlockPhotos === 2) {
+      setTimeout(() => {
+        videoContext.exitFullScreen()
+      }, 2000);
+    }
+  }
+
   render() {
+    const images = [{
+      url: this.state.lookUnlockPhotosUrl,
+    }]
     const { evaluationModal, photoImgsModal, userInfo, selectSmallImg } = this.state
     const imgArrayHeight = userInfo?.photos?.length <= 4 ? 110 : userInfo?.photos?.length > 4 ? 170 : 60
     const headPhoto = userInfo?.photos?.filter((item) => {
       return item.type === 1
     })
+    
     return (
       <View style={{ position: 'relative' }}>
         <ScrollView
@@ -243,56 +283,59 @@ class Userinfo extends Component {
         >
           <View className='container'>
             <CoverView className='controls'>
-              <CoverImage className='img' src={headPhoto&&headPhoto[0].url} />
+              <ImageBackground source={{uri: headPhoto&&headPhoto[0].url}} className='img'>
               <View className='img' style={{ backgroundColor: '#000000', position: 'absolute', opacity: 0.6  }}></View>
-              <View className='rightTopImgAdd' onClick={this.goBack}>
-                <Icon name='left' size='md' className='leftIconGoBack' />
-              </View>
-              <View className='imgArray'>
-                <View style={{width: 100, height: 100, marginLeft: 10}}>
-                  <Image
-                    style={{width: '100%', height: '100%', borderRadius: 10}}
-                    className='selectImgArrayOneImg'
-                    src={headPhoto&&headPhoto[0].url}
-                  />
+                <View className='rightTopImgAdd' onClick={this.goBack}>
+                  <Icon name='left' size='md' className='leftIconGoBack' />
                 </View>
-                <View style={{ marginLeft: 20, height: 100, display: 'flex', flexDirection: 'column', justifyContent: 'space-around' }}>
-                  <View className='row'>
-                    <Text style={{ color: '#ffffff', fontSize: 22 }}>{userInfo.nickName}</Text>
-                    <View className='row cardRightTop'>
-                      <Text style={{ color: '#ffffff', marginRight: 5 }}>{userInfo.onlineState === 1 ? '在线' : '离线'}</Text>
-                      <View className={`onlineOrNoOnlineStyle ${userInfo.onlineState === 1 ? 'online' : 'noOnline'}`}></View>
+                <View className='imgArray'>
+                  <View style={{width: 100, height: 100, marginLeft: 10}}>
+                    <ImageBackground
+                      source={{uri: headPhoto&&headPhoto[0].url}}
+                      style={{width: '100%', height: '100%', borderRadius: 10}}
+                      imageStyle={{ borderRadius: 10 }}
+                      className='selectImgArrayOneImg'
+                    >
+                    </ImageBackground>
+                  </View>
+                  <View style={{ marginLeft: 20, height: 100, display: 'flex', flexDirection: 'column', justifyContent: 'space-around' }}>
+                    <View className='row'>
+                      <Text style={{ color: '#ffffff', fontSize: 22 }}>{userInfo.nickName}</Text>
+                      <View className='row cardRightTop'>
+                        <Text style={{ color: '#ffffff', marginRight: 5 }}>{userInfo.onlineState === 1 ? '在线' : '离线'}</Text>
+                        <View className={`onlineOrNoOnlineStyle ${userInfo.onlineState === 1 ? 'online' : 'noOnline'}`}></View>
+                      </View>
+                    </View>
+
+                    <View className='row'>
+                      <Text style={{ color: '#ffffff' }}>{userInfo.age}岁</Text>
+                      <View style={{ width: 2, height: 2, backgroundColor: 'white', borderRadius: 2 }} className='point'></View>
+                      <Text style={{ color: '#ffffff', marginRight: 5 }}>{userInfo.constellation}</Text>
                     </View>
                   </View>
-
+                </View>
+                <View className='row bottomText' style={{ justifyContent: 'space-around' }}>
                   <View className='row'>
-                    <Text style={{ color: '#ffffff' }}>{userInfo.age}岁</Text>
-                    <View style={{ width: 2, height: 2, backgroundColor: 'white', borderRadius: 2 }} className='point'></View>
-                    <Text style={{ color: '#ffffff', marginRight: 5 }}>{userInfo.constellation}</Text>
+                    {
+                      userInfo.personAuthentication === 1 ?
+                      <Image src={truePerson} style={{ width: 100, height: 31 }} />
+                      :
+                      null
+                    }
+                    {
+                      userInfo.gender === 2 ?
+                      <Image src={trueWomen} style={{ width: 100, height: 31, marginLeft: 10 }} />
+                      :
+                      <Image src={trueMan} style={{ width: 100, height: 31, marginLeft: 10 }} />
+                    }
+                  </View>
+                  <View className='row'>
+                    <Text style={{ color: '#ffffff', marginRight: 10 }}>{userInfo.city}</Text>
+                    <Image src={lookpagePosition} style={{ width: 20, height: 20 }} />
+                    <Text style={{ color: '#ffffff' }}>{userInfo.distance}</Text>
                   </View>
                 </View>
-              </View>
-              <View className='row bottomText' style={{ justifyContent: 'space-around' }}>
-                <View className='row'>
-                  {
-                    userInfo.personAuthentication === 1 ?
-                    <Image src={truePerson} style={{ width: 100, height: 31 }} />
-                    :
-                    null
-                  }
-                  {
-                    userInfo.gender === 2 ?
-                    <Image src={trueWomen} style={{ width: 100, height: 31, marginLeft: 10 }} />
-                    :
-                    <Image src={trueMan} style={{ width: 100, height: 31, marginLeft: 10 }} />
-                  }
-                </View>
-                <View className='row'>
-                  <Text style={{ color: '#ffffff', marginRight: 10 }}>{userInfo.city}</Text>
-                  <Image src={lookpagePosition} style={{ width: 20, height: 20 }} />
-                  <Text style={{ color: '#ffffff' }}>{userInfo.distance}</Text>
-                </View>
-              </View>
+              </ImageBackground>
             </CoverView>
           </View>
           <List>
@@ -351,19 +394,23 @@ class Userinfo extends Component {
                   {userInfo?.photos?.map(reward => {
                     if(reward.type === 1){
                       return (
-                        <View key={reward.id}>
-                          <Image
-                            style={{width: 70, height: 70, marginLeft: 10, borderRadius: 5, marginBottom: 10 }}
-                            src={reward.url}
+                        <View key={reward.id} onClick={() => this.imageClick(reward.url)}>
+                          <ImageBackground
+                            style={{width: 70, height: 70, marginLeft: 10, marginBottom: 10}}
+                            source={{ uri: reward.url }}
                             key={reward.id}
                             className='filterImg'
-                          />
+                            imageStyle={{ borderRadius: 5 }}
+                          >
+
+                          </ImageBackground>
                           {userInfo.unlockPhotos === 2?
                             <BlurView
                               className='absoluteBlurView'
                               blurType='light'
                               blurAmount={8}
                               reducedTransparencyFallbackColor='white'
+                              onClick={() => this.imageClick(reward)}
                             />
                           :
                             null
@@ -372,7 +419,7 @@ class Userinfo extends Component {
                       )
                     }else{
                       return (
-                        <View key={reward.id}>
+                        <View key={reward.id} onClick={() => this.myVideoClick(`videocc${reward.id}`)}>
                           <Video
                             style={{width: 70, height: 70, marginLeft: 10, borderRadius: 5, marginBottom: 10 }}
                             src={reward.url}
@@ -380,6 +427,7 @@ class Userinfo extends Component {
                             autoplay={false}
                             loop={false}
                             poster={reward.videoUrl}
+                            id={`videocc${reward.id}`}
                           />
                           {userInfo.unlockPhotos === 2?
                             <BlurView
@@ -523,6 +571,21 @@ class Userinfo extends Component {
           <View style={{ paddingVertical: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Text style={{ marginTop: 20, marginBottom: 0 }}>该相册为付费相册，共有<Text style={{ color: '#F6386F' }}>{userInfo?.photos?.length}</Text>张照片解锁后可查看</Text>
           </View>
+        </Modal>
+          
+        <Modal
+          title={null}
+          transparent
+          onClose={() => {
+            this.setState({ lookUnlockPhotosUrlModal: false })
+          }}
+          maskClosable
+          visible={this.state.lookUnlockPhotosUrlModal}
+          closable
+          footer={null}
+          style={{ alignItems: 'center', justifyContent: 'center' }}
+        >
+          <ImageBackground source={{uri: this.state.lookUnlockPhotosUrl}} style={{ width: 300, height: 300 }}></ImageBackground>
         </Modal>
       </View>
     )

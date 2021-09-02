@@ -2,6 +2,7 @@ import { Component } from 'react';
 import Taro from '@tarojs/taro';
 import { View, Text, Image } from '@tarojs/components';
 import { StyleSheet } from 'react-native'
+import moment from 'moment';
 import { WhiteSpace, Button, WingBlank, Card, Flex, Modal, Radio, Toast } from '@ant-design/react-native';
 import wxImg from '../../images/wx.png';
 import zfbImg from '../../images/zfb.png';
@@ -39,7 +40,11 @@ class Pay extends Component {
             unlockUserId: this.props.route.params.userId,
             userId: res.data,
             tradeType: this.state.payStatus === 1 ? 'ali-SWEEPPAY' : 'wx-NATIVE',
-            orderStatus: 2
+            orderStatus: 2,
+            orderSn: Date.now() + '',
+            successTime: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+            totalPrice: 100,
+            transactionId: Date.now() + '',
           }).then(data => {
             if(data.data.status === 200) {
               Toast.remove(key);
@@ -52,19 +57,10 @@ class Pay extends Component {
               })
               if(this.props.route.params.goodsType === '2'){
                 Taro.eventCenter.trigger('payWXStatus', true)
-                setTimeout(() => {
-                  Taro.eventCenter.trigger('payWXStatus', false)
-                }, 10);
               }else if(this.props.route.params.goodsType === '1'){
                 Taro.eventCenter.trigger('payPhotoStatus', true)
-                setTimeout(() => {
-                  Taro.eventCenter.trigger('payPhotoStatus', false)
-                }, 10);
               }else{
                 Taro.eventCenter.trigger('payStatus', true)
-                setTimeout(() => {
-                  Taro.eventCenter.trigger('payStatus', false)
-                }, 10);
               }
             }else{
               Toast.remove(key);
