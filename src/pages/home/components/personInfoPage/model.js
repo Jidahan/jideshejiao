@@ -62,5 +62,15 @@ export default {
     save(state, {payload }) {
       return {...state, ...payload };
     },
+    resetUserData(state, { payload }) {
+      return {
+        ...state,
+        nickName: '',
+        height: '',
+        weight: '',
+        aidou: '',
+        wx: ''
+      };
+    },
   },
 }

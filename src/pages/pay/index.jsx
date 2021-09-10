@@ -10,7 +10,7 @@ import adSumImg from '../../images/adSum.png'
 import './index.less';
 import {
   payCallBack,
-
+  createOrderPayByGoodsId,
 } from './service'
 
 const RadioItem = Radio.RadioItem;
@@ -34,39 +34,50 @@ class Pay extends Component {
       key: 'userId',
       complete: (res) => {
         if (res.errMsg === "getStorage:ok") {
-          payCallBack({
-            goodsType: this.props.route.params.goodsType,
+          createOrderPayByGoodsId({
+            goodsId: this.props.route.params.goodsType || '',
+            goodsType: this.props.route.params.goodsType || '',
             payType: this.state.payStatus,
             unlockUserId: this.props.route.params.userId,
             userId: res.data,
-            tradeType: this.state.payStatus === 1 ? 'ali-SWEEPPAY' : 'wx-NATIVE',
-            orderStatus: 2,
-            orderSn: Date.now() + '',
-            successTime: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
-            totalPrice: 100,
-            transactionId: Date.now() + '',
-          }).then(data => {
-            if(data.data.status === 200) {
-              Toast.remove(key);
-              Toast.success({
-                content: '支付成功！',
-                duration: 1.5,
+          }).then(orderByIdData => {
+            if(orderByIdData.statusCode === 200){
+              const orderByIdDataChild = orderByIdData.data.data
+              payCallBack({
+                orderSn: orderByIdDataChild.orderSn,
+                orderStatus: 2,
+                tradeType: this.state.payStatus === 1 ? 'ali-SWEEPPAY' : 'wx-NATIVE',
+                totalPrice: 100,
+              }).then(data => {
+                if(data.data.status === 200) {
+                  Toast.remove(key);
+                  Toast.success({
+                    content: '支付成功！',
+                    duration: 1.5,
+                  })
+                  Taro.navigateBack({
+                    delta: 1,
+                  })
+                  if(this.props.route.params.goodsType === '2'){
+                    Taro.eventCenter.trigger('payWXStatus', true)
+                  }else if(this.props.route.params.goodsType === '1'){
+                    Taro.eventCenter.trigger('payPhotoStatus', true)
+                  }else{
+                    Taro.eventCenter.trigger('payStatus', true)
+                  }
+                }else{
+                  Toast.remove(key);
+                  Toast.fail({
+                    content: data.data.msg,
+                    duration: 1.5,
+                  })
+                }
               })
-              Taro.navigateBack({
-                delta: 1,
-              })
-              if(this.props.route.params.goodsType === '2'){
-                Taro.eventCenter.trigger('payWXStatus', true)
-              }else if(this.props.route.params.goodsType === '1'){
-                Taro.eventCenter.trigger('payPhotoStatus', true)
-              }else{
-                Taro.eventCenter.trigger('payStatus', true)
-              }
             }else{
-              Toast.remove(key);
+              Toast.remove(key)
               Toast.fail({
-                content: '支付失败！',
-                duration: 1.5,
+                content: orderByIdData.data.msg || '生成订单失败',
+                duration: 1.5
               })
             }
           })

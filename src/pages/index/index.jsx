@@ -42,8 +42,8 @@ class Index extends Component {
   }
 
   componentDidMount () {
-    // this.refreshData()
     // this.getUserLists()
+    // this.refreshData()
     // this.updateCity()
 
     const that = this
@@ -71,14 +71,18 @@ class Index extends Component {
                   content: `当前定位城市为${resCity.data.result.address_component.nation}`,
                   duration: 2
                 })
-                that.setState({city: resCity.data.result.address_component.nation})
+                that.setState({city: resCity.data.result.address_component.nation}, () => {
+                  that.refreshData()
+                  that.getUserLists()
+                  that.updateCity()
+                })
               }else{
                 const city = resCity.data.result.address_component.city.split('市')[0]
                 that.setState({ 
                   city
                 },() => {
-                  that.getUserLists()
                   that.refreshData()
+                  that.getUserLists()
                   that.updateCity()
                 })
               }
@@ -102,12 +106,16 @@ class Index extends Component {
     this.refreshData()
   }
 
+  componentDidCatch(error, info) {
+    console.log('componentDidCatch', error, info);
+  }
+
   updateCity() {
     Taro.eventCenter.on('updateCity',(arg)=>{
       if(arg?.status){
         this.setState({ city: arg?.city, pageNumber: 1 }, () => {
           this.refreshData()
-          this.getUserLists()
+          // this.getUserLists()
         })
       }
     })
@@ -196,17 +204,17 @@ class Index extends Component {
           if (res.errMsg === "getStorage:ok") {
             appUserList({city, pageNumber: page, pageSize, latitude, longitude, range, userId: res.data, searchValue}).then(data => {
               if(data.statusCode === 200){
+                dataArray = this.state.dataArray.concat(data.data.data);
+                this.setState({
+                  dataArray: dataArray,
+                  pageNumber: page
+                });
                 if(data.data.data.length < pageSize){
                   this.setState({
                     allDataHaveStopLoading: true,
                   });
                   return
                 }
-                dataArray = this.state.dataArray.concat(data.data.data);
-                this.setState({
-                  dataArray: dataArray,
-                  pageNumber: page
-                });
               }else{
                 Toast.fail({
                   content: data.data.msg,

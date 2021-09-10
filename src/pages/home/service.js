@@ -34,4 +34,19 @@ export const switchAuthenticationStatus = (data) => {
   });
 };
 
+export const delUserData = (data) => {
+  return Request({
+    url: '/social/app/delUserData',
+    method: 'POST',
+    data,
+  });
+};
+
+export const findShareConfig = () => {
+  return Request({
+    url: '/social/web/findShareConfig',
+    method: 'GET',
+  });
+};
+
 

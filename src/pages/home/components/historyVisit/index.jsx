@@ -71,17 +71,17 @@ class Historyvisit extends PureComponent {
       let dataArray = [];
       findHistoricalVisitors({ pageNumber: page, pageSize, userId }).then(data => {
         if(data.statusCode === 200){
+          dataArray = this.state.dataArray.concat(data.data.data);
+          this.setState({
+            dataArray: dataArray,
+            pageNumber: page
+          });
           if(data.data.data.length < pageSize){
             this.setState({
               allDataHaveStopLoading: true,
             });
             return
           }
-          dataArray = this.state.dataArray.concat(data.data.data);
-          this.setState({
-            dataArray: dataArray,
-            pageNumber: page
-          });
         }else{
           Toast.fail({
             content: data.data.msg,

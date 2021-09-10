@@ -32,7 +32,7 @@ class Login extends Component {
       registered: true,
       tourists: false,
       yqmError: false,
-      time: 3,
+      time: 60,
       btnDisable:false,
       btnContent: '获取验证码',
     }
@@ -74,7 +74,7 @@ class Login extends Component {
         if(res.data.status === 200){
           Toast.remove(key);
           Taro.navigateTo({
-            url: '/pages/login/components/genderPage/index'
+            url: `/pages/login/components/genderPage/index?userId=${res.data.data.userId}&loginType=tourist`
           })
         }else{
           Toast.remove(key);
@@ -252,7 +252,6 @@ class Login extends Component {
                 this.state.registered ?
                 <InputItem
                   clear
-                  type='number'
                   error={this.state.yqmError}
                   value={this.state.yqmValue}
                   onChange={value => {
@@ -270,7 +269,6 @@ class Login extends Component {
                 :
                 <InputItem
                   clear
-                  type='number'
                   error={this.state.yqmError}
                   value={this.state.yqmValue}
                   onChange={value => {

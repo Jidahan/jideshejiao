@@ -1,12 +1,12 @@
 import { Component } from 'react'
 import Taro from '@tarojs/taro'
+import { connect } from 'react-redux'
 import { createThumbnail } from "react-native-create-thumbnail";
-import { ImageBackground } from 'react-native';
+import { ImageBackground, TouchableHighlight, StyleSheet, ActionSheetIOS } from 'react-native';
 import { View, Text, Image, ScrollView, Video } from '@tarojs/components'
 import { Icon, List, Button, WingBlank, Card, Toast, Flex, Modal } from '@ant-design/react-native'
 import RNFS from 'react-native-fs';
 import Clipboard from '@react-native-clipboard/clipboard'
-import ImagePicker from 'react-native-image-picker'
 import zwWomen from '../../images/zwWomen.png'
 import zwMan from '../../images/zwMan.png'
 import personInfoImg from '../../images/personInfo.png'
@@ -19,12 +19,15 @@ import shareImg from '../../images/share.png'
 import adviceImg from '../../images/advice.png'
 import versonImg from '../../images/verson.png'
 import logoutImg from '../../images/logout.png'
+import deleteWhite from '../../images/deleteWhite.png'
 import {
   personalCenter,
   uploadUrl,
   fileUpload,
   faceDetect,
   switchAuthenticationStatus,
+  delUserData,
+  findShareConfig
 } from './service';
 import './index.less'
 
@@ -42,8 +45,9 @@ class Home extends Component {
       logoutVisible: false,
       userInfo: '',
       selectSmallImg: '',
-      pushAll: false,
-      gender: ''
+      gender: '',
+      isDel: false,
+      tipUserGoAuth: false
     },
     this.copyYqm = this.copyYqm.bind(this)
     this.adviceClick = this.adviceClick.bind(this)
@@ -64,7 +68,6 @@ class Home extends Component {
     Taro.eventCenter.on('refershHome',(arg)=>{
       if(arg?.status){
         this.getUserMessage()
-        Taro.eventCenter.trigger('refershHome', {status: false})
       }
     })
     Taro.getStorage({
@@ -104,9 +107,13 @@ class Home extends Component {
   }
 
   personInfoClick() {
-    Taro.navigateTo({
-      url: `/pages/home/components/personInfoPage/index?data=${JSON.stringify(this.state.userInfo)}`
-    })
+    if(this.state.userInfo.personAuthentication !== 1) {
+      this.setState({ tipUserGoAuth: true })
+    }else{
+      Taro.navigateTo({
+        url: `/pages/home/components/personInfoPage/index?data=${JSON.stringify(this.state.userInfo)}`
+      })
+    }
   }
 
   copyYqm() {
@@ -131,6 +138,9 @@ class Home extends Component {
 
   logoutSubmit() {
     const key = Toast.loading('退出登录...');
+    this.props.dispatch({
+      type: 'userInfo/resetUserData',
+    })
     setTimeout(() => {
       Toast.remove(key);
       Toast.success({
@@ -138,7 +148,7 @@ class Home extends Component {
         duration: 0.2,
       })
       Taro.clearStorage()
-      Taro.eventCenter.off();
+      // Taro.eventCenter.off();
       Taro.redirectTo({
         url: '/pages/login/index'
       })
@@ -146,18 +156,42 @@ class Home extends Component {
   }
 
   shareClick() {
-    console.log('点击了分享');
+    findShareConfig().then(data => {
+      if(data.statusCode === 200){
+        const reultData = data.data.data
+        ActionSheetIOS.showShareActionSheetWithOptions({
+          title: reultData.title, 
+          message: reultData.content, 
+          url: reultData.icon, 
+          subject: "Share Link" // for email 
+        },function () {
+          alert("分享失败")
+        },function () {
+          alert("分享成功")
+        });
+      }else{
+        Toast.fail({
+          content: data.data.data.msg,
+          duration: 1.5
+        })
+      }
+    })
   }
 
   addPhoto() {
-    Taro.chooseImage({
-      count: 1,
-      sizeType: ['original', 'compressed'], // 可以指定是原图还是压缩图，默认二者都有
-      sourceType: ['album', 'camera','user','environment'], // 可以指定来源是相册还是相机，默认二者都有，在H5浏览器端支持使用 `user` 和 `environment`分别指定为前后摄像头
-      success: (res) => {
-        this.uploadImage(res.tempFilePaths)
-      }
-    })
+    if(this.state.userInfo.personAuthentication !== 1){
+      this.setState({ tipUserGoAuth: true })
+    }else{
+      Taro.chooseImage({
+        count: 1,
+        sizeType: ['original', 'compressed'], // 可以指定是原图还是压缩图，默认二者都有
+        sourceType: ['album', 'camera','user','environment'], // 可以指定来源是相册还是相机，默认二者都有，在H5浏览器端支持使用 `user` 和 `environment`分别指定为前后摄像头
+        success: (res) => {
+          this.uploadImage(res.tempFilePaths)
+        }
+      })
+    }
+   
   }
 
   addVideo() {
@@ -370,7 +404,26 @@ class Home extends Component {
   }
 
   photo() {
-    this.setState({ pushAll: true })
+    if(this.state.userInfo.personAuthentication !== 1){
+      this.setState({ tipUserGoAuth: true })
+    }else{
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ["取消", "上传照片", "上传视频"],
+          cancelButtonIndex: 0,
+          userInterfaceStyle: 'dark'
+        },
+        buttonIndex => {
+          if (buttonIndex === 0) {
+            return
+          } else if (buttonIndex === 1) {
+            this.addPhoto()
+          } else if (buttonIndex === 2) {
+            this.addVideo()
+          }
+        }
+      );
+    }
   }
 
   historyVisiti() {
@@ -410,7 +463,14 @@ class Home extends Component {
   }
 
   goPersonAuthentication() {
-    console.log('进行真人认证');
+    Taro.eventCenter.on('authUserIsRefresh',(arg)=>{
+      if(arg?.status){
+        this.getUserMessage()
+      }
+    })
+    Taro.navigateTo({
+      url: `/pages/face/index?userId=${this.state.userInfo.id}&pageType=home`
+    })
   }
 
   personAuth() {
@@ -433,16 +493,77 @@ class Home extends Component {
     })
   }
 
+  onLongPress = () => {
+    this.setState({ isDel: !this.state.isDel })
+  }
+
+  goSubmitDel = (id) => {
+    const key = Toast.loading('删除中...')
+    Taro.getStorage({
+      key: 'userId',
+      complete: (storage) => {
+        if (storage.errMsg === "getStorage:ok") {
+          delUserData({
+            meansId: id,
+            userId: storage.data
+          }).then(data => {
+            if(data.statusCode === 200){
+              Toast.remove(key)
+              Toast.success({
+                content: '删除成功',
+                duration: 1,
+              })
+              this.getUserMessage()
+            }else{
+              Toast.fail({
+                content: data.data.msg,
+                duration: 2
+              })
+            }
+          })
+        }
+      }
+    })
+  }
+
   render () {
-    const {imgArray, userInfo, selectSmallImg} = this.state
-    const imgArrayHeight = imgArray.length < 5 ? 90 : imgArray.length < 11 && imgArray.length >= 6 ? 160 : 210 
+    const {imgArray, userInfo, selectSmallImg, isDel, gender} = this.state
+    const imgArrayHeight = imgArray.length < 5 ? 90 : imgArray.length < 11 && imgArray.length >= 5 ? 170 : 220 
     const topHeadBgImg = userInfo.photos&&userInfo.photos?.filter(reward => {
       return reward.url.indexOf('mp4') === -1
     })
-    const sourceUrl = {
-      uri: selectSmallImg.url
-      || 
-      topHeadBgImg&&topHeadBgImg.length > 0 && topHeadBgImg[0].url
+    
+    const oldHeadImg = userInfo?.historyProfilePhotos?.filter(fdata => {
+      return Boolean(fdata.profilePhotoUrl) === true
+    })
+    .map(reward => {
+      return {
+        id: reward.id,
+        url: reward.profilePhotoUrl
+      }
+    })
+
+    const newTopHeadBgImg = topHeadBgImg&&oldHeadImg&&[...oldHeadImg, ...topHeadBgImg]
+    
+    const topScrollViewImg = newTopHeadBgImg?.slice(0, 3)
+
+    let sourceUrl
+    if(topScrollViewImg&&topScrollViewImg.length > 0){
+      sourceUrl = {
+        uri: selectSmallImg.url
+        || 
+        topScrollViewImg&&topScrollViewImg.length > 0 && topScrollViewImg[0].url
+      }
+    }else{
+      if(userInfo.photo !== ''){
+        sourceUrl = {uri: userInfo.photo}
+      }else{
+        if(gender === 1) {
+          sourceUrl = zwMan
+        }else{
+          sourceUrl = zwWomen
+        }
+      }
     }
     return (
       <View>
@@ -453,7 +574,7 @@ class Home extends Component {
           showsVerticalScrollIndicator={false}
         >
           <View className='container'>
-            <ImageBackground className='img' source={sourceUrl || this.state.gender === 2 ? zwWomen : zwMan}>
+            <ImageBackground className='img' source={sourceUrl}>
               <View className='rightTopImgAdd' onClick={this.addPhoto}>
                 <Icon name='plus' size='md' style={{ color: 'white', fontSize: 30 }} />
               </View>
@@ -463,19 +584,17 @@ class Home extends Component {
                 <ScrollView
                   scrollX
                 >
-                  {userInfo?.photos?.map((reward) => {
-                    if(reward.url.indexOf('mp4') === -1){
-                      return (
-                        <View style={{width: 50, height: 50, marginLeft: 10}} className={reward === this.state.selectSmallImg ? 'selectImgArrayOneImg' : ''} key={reward.id} onClick={() => this.selectSmallImg(reward)}>
-                          <ImageBackground 
-                            source={{uri: reward?reward.url:null}}
-                            style={{width: '100%', height: '100%'}}
-                            imageStyle={{ borderRadius: 10 }}
-                          >
-                          </ImageBackground>
-                        </View>
-                      )
-                    }
+                  {topScrollViewImg?.map((reward) => {
+                    return (
+                      <View style={{width: 50, height: 50, marginLeft: 10}} className={reward === this.state.selectSmallImg ? 'selectImgArrayOneImg' : ''} key={reward.id} onClick={() => this.selectSmallImg(reward)}>
+                        <ImageBackground 
+                          source={{uri: reward?reward.url:null}}
+                          style={{width: '100%', height: '100%'}}
+                          imageStyle={{ borderRadius: 10 }}
+                        >
+                        </ImageBackground>
+                      </View>
+                    )
                   })}
                 </ScrollView>
               </View>
@@ -511,7 +630,7 @@ class Home extends Component {
               thumb={
                 <Image src={realPersonImg} className='iconSizeStyle' />
               }
-              onPress={this.goPersonAuthentication}
+              onPress={userInfo.personAuthentication === 1 ? null : this.goPersonAuthentication}
               extra={userInfo.personAuthentication === 1 ? '已认证' : '点击进行认证'}
               arrow='empty'
               disabled={userInfo.personAuthentication === 1}
@@ -537,64 +656,81 @@ class Home extends Component {
                 <Card.Body style={{ height: imgArrayHeight, overflow: 'hidden' }}>
                   <WingBlank >
                     <Flex direction='row' justify='between' wrap='wrap'>
-                    {userInfo?.photos?.map(reward => {
-                      if(reward.type === 1){
-                        if(userInfo?.photos.length === 8&&userInfo?.photos[userInfo?.photos.length - 1].id === reward.id){
-                          return (
-                            <View key={reward.id} onClick={() => this.goPhotosPage(userInfo.id)}>
-                              <ImageBackground 
-                                source={{uri: reward.url}}
-                                style={{width: 70, height: 70, marginLeft: 5, marginBottom: 10, alignItems: 'center', justifyContent: 'center' }}
-                                imageStyle={{ borderRadius: 5 }}
-                                key={reward.id}
-                              >
-                                <Text style={{ color: 'white', fontSize: 20 }}>更多</Text>
-                              </ImageBackground>
-                            </View>
-                          )
+                      {userInfo?.photos?.map(reward => {
+                        if(reward.type === 1){
+                          if(userInfo?.photos.length === 8&&userInfo?.photos[userInfo?.photos.length - 1].id === reward.id){
+                            return (
+                              <TouchableHighlight key={reward.id} onPress={() => this.goPhotosPage(userInfo.id)} onLongPress={this.onLongPress} underlayColor='white'>
+                                <ImageBackground 
+                                  source={{uri: reward.url}}
+                                  style={{width: 70, height: 70, marginLeft: 5, marginBottom: 10, alignItems: 'center', justifyContent: 'center' }}
+                                  imageStyle={{ borderRadius: 5 }}
+                                  key={reward.id}
+                                >
+                                  <Text style={{ color: 'white', fontSize: 20 }}>更多</Text>
+                                </ImageBackground>
+                              </TouchableHighlight>
+                            )
+                          }else{
+                            return (
+                              <TouchableHighlight key={reward.id} onPress={() => this.myPhotosClick(reward.url)} onLongPress={this.onLongPress} underlayColor='white'>
+                                <ImageBackground 
+                                  source={{uri: reward.url}}
+                                  style={{width: 70, height: 70, marginLeft: 5, marginBottom: 10 }}
+                                  imageStyle={{ borderRadius: 5 }}
+                                >
+                                  {
+                                    isDel?
+                                    <View style={{width: 20, height: 20, position: 'absolute', right: 5, bottom: 10, zIndex: 2 }} onClick={() => this.goSubmitDel(reward.id)}>
+                                      <Image src={deleteWhite} style={{ width: '100%', height: '100%'}} />
+                                    </View>
+                                    :
+                                    null
+                                  }
+                                </ImageBackground>
+                              </TouchableHighlight>
+                            )
+                          }
                         }else{
                           return (
-                            <View key={reward.id} onClick={() => this.myPhotosClick(reward.url)}>
-                              <ImageBackground 
-                                source={{uri: reward.url}}
-                                style={{width: 70, height: 70, marginLeft: 5, marginBottom: 10 }}
-                                imageStyle={{ borderRadius: 5 }}
-                                key={reward.id}
-                              >
-                              </ImageBackground>
-                            </View>
+                            <TouchableHighlight key={reward.id} onPress={() => this.myVideoClick(`videocc${reward.id}`)} onLongPress={this.onLongPress} underlayColor='white'>
+                              <View>
+                                <Video
+                                  style={{width: 70, height: 70, marginLeft: 5, borderRadius: 5, marginBottom: 10 }}
+                                  src={reward.url}
+                                  key={reward.id}
+                                  autoplay={false}
+                                  loop={false}
+                                  poster={reward.videoUrl}
+                                  showCenterPlayBtn={false}
+                                  id={`videocc${reward.id}`}
+                                  controls={false}
+                                />
+                                  {
+                                    isDel?
+                                    <View style={{width: 20, height: 20, position: 'absolute', right: 5, bottom: 16, zIndex: 2 }} onClick={() => this.goSubmitDel(reward.id)}>
+                                      <Image src={deleteWhite} style={{ width: '100%', height: '100%'}} />
+                                    </View>
+                                    :
+                                    null
+                                  }
+                              </View>
+                            </TouchableHighlight>
                           )
                         }
-                        
-                      }else{
-                        return (
-                          <View key={reward.id} onClick={() => this.myVideoClick(`videocc${reward.id}`)}>
-                            <Video
-                              style={{width: 60, height: 60, marginLeft: 5, borderRadius: 5, marginBottom: 10 }}
-                              src={reward.url}
-                              key={reward.id}
-                              autoplay={false}
-                              loop={false}
-                              poster={reward.videoUrl}
-                              showCenterPlayBtn={false}
-                              id={`videocc${reward.id}`}
-                            />
-                          </View>
-                        )
-                      }
-                    })}
-                    {
-                      userInfo?.photos?.length % 2 === 0 ?
-                      <>
-                        <View style={{width: 70, height: 70, marginLeft: 5, marginBottom: 10 }}></View>
-                        <View style={{width: 70, height: 70, marginLeft: 5, marginBottom: 10 }}></View>
-                      </>
-                      :
-                      <>
-                        <View style={{width: 70, height: 70, marginLeft: 5, marginBottom: 10 }}></View>
-                        <View style={{width: 70, height: 70, marginLeft: 5, marginBottom: 10 }}></View>
-                      </>
-                    }          
+                      })}
+                      {
+                        userInfo?.photos?.length % 2 === 0 ?
+                        <>
+                          <View style={{width: 70, height: 70, marginLeft: 5, marginBottom: 10 }}></View>
+                          <View style={{width: 70, height: 70, marginLeft: 5, marginBottom: 10 }}></View>
+                        </>
+                        :
+                        <>
+                          <View style={{width: 70, height: 70, marginLeft: 5, marginBottom: 10 }}></View>
+                          <View style={{width: 70, height: 70, marginLeft: 5, marginBottom: 10 }}></View>
+                        </>
+                      }    
                     </Flex>
                   </WingBlank>
                 </Card.Body>
@@ -682,17 +818,17 @@ class Home extends Component {
           </View>
         </Modal>
         <Modal
-          popup
-          closable
+          title='进行该操作需进行真人认证，是否进行认证？'
+          transparent
+          onClose={() => this.setState({ tipUserGoAuth: false })}
           maskClosable
-          visible={this.state.pushAll}
-          animationType='slide-up'
-          onClose={() => this.setState({ pushAll: false })}
+          visible={this.state.tipUserGoAuth}
+          closable
+          footer={[
+            { text: '取消认证', onPress: () => this.setState({ tipUserGoAuth: false }) },
+            { text: '立即认证', onPress: this.goPersonAuthentication },
+          ]}
         >
-          <View className='popupView'>
-            <Text style={{ padding: 36, textAlign: 'center' }} className='popupModal' onClick={this.addPhoto}>上传照片</Text>
-            <Text style={{ padding: 36 }} onClick={this.addVideo}>上传视频</Text>
-          </View>
         </Modal>
       </View>
 
@@ -700,4 +836,28 @@ class Home extends Component {
   }
 }
 
-export default Home
+export default connect(
+  ({
+    userInfo
+  }) => ({
+    userInfo
+  }),
+)(Home);
+
+const styles = StyleSheet.create({
+  container: {
+    paddingTop: 60,
+    alignItems: 'center'
+  },
+  button: {
+    marginBottom: 30,
+    width: 260,
+    alignItems: 'center',
+    backgroundColor: '#2196F3'
+  },
+  buttonText: {
+    textAlign: 'center',
+    padding: 20,
+    color: 'white'
+  }
+})

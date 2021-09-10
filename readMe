@@ -73,4 +73,14 @@ solution: end==============
 
 
 真机构建
-taro build --type rn --platform ios  打包代码/编译代码
+taro build --type rn --platform ios  打包代码/编译代码 // taro官网
+
+｜|
+1. 首先在空壳项目（taro-native-shell）下面的 ios 目录新建 bundle 文件夹
+2. 执行 react-native bundle --entry-file index.js --bundle-output ./ios/bundle/index.jsbundle --platform ios --assets-dest ./ios/bundle --dev false
+3. bundle内assets可能会有缺失，自己根据情况进行替换
+4. 打开xcode工程，把assest以及index.jsbundle拉到项目内
+5. 更改AppDelegate.m内sourceURLForBridge的路径
+6. 进行打包
+
+

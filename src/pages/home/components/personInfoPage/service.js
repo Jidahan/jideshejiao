@@ -26,3 +26,11 @@ export const faceDetect = (data) => {
     data
   });
 };
+
+export const personalCenter = (id) => {
+  return Request({
+    url: `/social/app/personalCenter?userId=${id}`,
+    method: 'GET',
+  });
+};
+

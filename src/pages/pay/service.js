@@ -7,3 +7,11 @@ export const payCallBack = (data) => {
     data
   });
 };
+
+export const createOrderPayByGoodsId = (data) => {
+  return Request({
+    url: `/social/app/createOrderPayByGoodsId`,
+    method: 'POST',
+    data
+  });
+};

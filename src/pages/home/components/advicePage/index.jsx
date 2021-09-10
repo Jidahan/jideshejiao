@@ -1,8 +1,13 @@
 import Taro from '@tarojs/taro'
 import { Component } from 'react';
-import { View } from '@tarojs/components';
-import { Button, WingBlank, WhiteSpace, TextareaItem, Toast } from '@ant-design/react-native';
+import { View, Textarea } from '@tarojs/components';
+import { Platform, TextInput } from 'react-native'
+
+import { Button, WingBlank, WhiteSpace, Toast, TextareaItem } from '@ant-design/react-native';
 import { feedback } from './service';
+
+
+
 import './index.less';
 
 class Advicepage extends Component {
@@ -40,12 +45,19 @@ class Advicepage extends Component {
           feedback({content: this.state.inputValue+'', userId: res.data}).then(data => {
             if(data.data.status === 200){
               Toast.remove(key)
-              Toast.success(`提交成功`)
+              Toast.success({
+                content: `提交成功`,
+                duration: 1
+              })
               this.setState({ inputValue: '' })
               this.refs.textareaItem.setState({inputCount: 0})
+              this.refs.textareaItem.textAreaRef.clear()
             }else{
               Toast.remove(key)
-              Toast.fail(data.data.msg)
+              Toast.fail({
+                content: data.data.msg,
+                duration: 1
+              })
             }
           })
         } else {
@@ -56,14 +68,18 @@ class Advicepage extends Component {
     
   }
 
+  shouldComponentUpdate(nextProps, nextState) {
+    if (Platform.OS === 'ios') {
+      if (this.state.inputValue!== nextState.inputValue) {
+        return false;
+      }
+    }
+    return true;
+  };
+
   render() {
     return (
       <View>
-        <WhiteSpace size='xl' />
-        <WhiteSpace size='xl' />
-        <WhiteSpace size='xl' />
-        <WhiteSpace size='xl' />
-        <WhiteSpace size='xl' />
         <WhiteSpace size='xl' />
           <WingBlank>
             <TextareaItem 
@@ -73,10 +89,8 @@ class Advicepage extends Component {
               clear
               onChange={(text) => this.inputOnChange(text)}
               error={this.state.error}
-              value={this.state.inputValue}
               ref='textareaItem'
             />
-            <WhiteSpace size='xl' />
             <WhiteSpace size='xl' />
             <WhiteSpace size='xl' />
             <Button type='primary' onPress={this.onSubmit}>提交</Button>

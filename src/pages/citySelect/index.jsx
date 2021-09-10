@@ -2,7 +2,7 @@ import React, {Component} from "react"
 import Taro from '@tarojs/taro';
 import { connect } from 'react-redux'
 import { Modal, Toast } from '@ant-design/react-native';
-import {Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View, TouchableHighlight} from 'react-native';
 import cityDatas from "./cityIndex";
 
 const {width, height} = Dimensions.get('window');
@@ -63,7 +63,10 @@ class cityList extends Component {
                   currentCity: city
                 })
               }else{
-                Toast.fail('定位失败')
+                Toast.fail({
+                  content: '定位失败',
+                  duration: 1
+                })
                 that.setState({ 
                   currentCity: '定位失败，重新定位'
                 })
@@ -93,7 +96,7 @@ class cityList extends Component {
     })
   }
 
-    // 获取每个字母区域的高度
+  // 获取每个字母区域的高度
   _gotTotalHeightArray() {
     let totalArray = []
     for (let i = 0; i < cityDatas.length; i++) {
@@ -146,7 +149,10 @@ class cityList extends Component {
                       currentCity: city,
                     })
                   }else{
-                    Toast.fail('定位失败')
+                    Toast.fail({
+                      content: '定位失败',
+                      duration: 1
+                    })
                     that.setState({
                       currentCity: '定位失败，重新定位'
                     })
@@ -194,9 +200,11 @@ class cityList extends Component {
     });
 
     return (
-      <View style={styles.rightSlideArea}>
-        {sectionItem}
-      </View>
+      <TouchableHighlight underlayColor='black' style={styles.rightSlideAreaTouchableHighlight}>
+        <View style={styles.rightSlideArea}>
+          {sectionItem}
+        </View>
+      </TouchableHighlight>
     );
   }
 
@@ -289,7 +297,6 @@ class cityList extends Component {
           >
             {this._renderCityList()}
           </ScrollView>
-
           {this._renderSideSectionView()}
         </View>
       )
@@ -339,30 +346,33 @@ const styles = StyleSheet.create({
         paddingBottom: 20,
         marginBottom: 15,
     },
+    rightSlideAreaTouchableHighlight: {
+      position: 'absolute',
+      top: 0,
+      right: 5,
+      marginTop: sectionTopBottomHeight,
+      marginBottom: sectionTopBottomHeight,
+    },
     rightSlideArea: {
-        position: 'absolute',
-        width: sectionWidth,
-        height: height - sectionTopBottomHeight * 2, right: 5,
-        top: 0,
-        marginTop: sectionTopBottomHeight,
-        marginBottom: sectionTopBottomHeight,
+      width: sectionWidth,
+      height: height - sectionTopBottomHeight * 2,
     },
     rightSideText: {
-        textAlign: 'center',
-        alignItems: 'center',
-        height: sectionItemHeight,
-        lineHeight: sectionItemHeight,
-        color: '#C49225'
+      textAlign: 'center',
+      alignItems: 'center',
+      height: sectionItemHeight,
+      lineHeight: sectionItemHeight,
+      color: '#C49225'
     },
     cityLetterBox: {
-        height: ROW_HEIGHT,
-        backgroundColor: '#F4F4F4',
-        justifyContent: 'center',
+      height: ROW_HEIGHT,
+      backgroundColor: '#F4F4F4',
+      justifyContent: 'center',
     },
     cityLetterText: {
-        color: "#999",
-        fontSize: 17,
-        marginLeft: 20,
+      color: "#999",
+      fontSize: 17,
+      marginLeft: 20,
     },
     cityTextBox: {
         height: ROW_HEIGHT,

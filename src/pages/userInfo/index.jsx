@@ -1,8 +1,8 @@
 import { Component } from 'react';
 import Taro from '@tarojs/taro';
-import { View, Text, CoverView, CoverImage, ScrollView, Image, Video } from '@tarojs/components'
-import { Icon, List, Button, WingBlank, Card, Flex, Modal, Radio, Toast } from '@ant-design/react-native'
-import { ImageBackground } from 'react-native';
+import { View, Text, CoverView, ScrollView, Image, Video } from '@tarojs/components'
+import { Icon, List, WingBlank, Card, Flex, Modal, Radio, Toast } from '@ant-design/react-native'
+import { ImageBackground, TouchableHighlight } from 'react-native';
 import { BlurView } from "@react-native-community/blur";
 import Clipboard from '@react-native-clipboard/clipboard'
 import manImg from '../../images/man.png'
@@ -39,7 +39,6 @@ class Userinfo extends Component {
       photoImgsModal: false,
       userId: '',
       userInfo: '',
-      selectSmallImg: '',
       lookUnlockPhotosUrlModal: false
     }
     this.goBack = this.goBack.bind(this)
@@ -50,7 +49,6 @@ class Userinfo extends Component {
     this.goLikeFunction = this.goLikeFunction.bind(this)
     this.handOkEvalSubmit = this.handOkEvalSubmit.bind(this)
     this.handOkPayPhotos = this.handOkPayPhotos.bind(this)
-    this.selectSmallImg = this.selectSmallImg.bind(this)
     this.copyWx = this.copyWx.bind(this)
   }
 
@@ -170,11 +168,6 @@ class Userinfo extends Component {
     })
   }
 
-  selectSmallImg(reward) {
-    console.log(reward);
-    this.setState({ selectSmallImg: reward })
-  }
-
   unlock() {
     console.log('解锁');
     Taro.navigateTo({
@@ -229,33 +222,54 @@ class Userinfo extends Component {
   }
 
   imageClick(url) {
-    if (this.state.userInfo.unlockPhotos === 2) {
-      this.setState({ lookUnlockPhotosUrlModal:true, lookUnlockPhotosUrl: url })
-      // Taro.previewImage({
-      //   urls: [url],
-      //   current: url
-      // })
-      setTimeout(() => {
-        this.setState({ lookUnlockPhotosUrlModal:false, lookUnlockPhotosUrl: '' })
-      }, 2000);
-      return
+    const { userInfo:{unlockPhotos, photos} } = this.state
+    if(unlockPhotos === 1) {
+      const userInfoPhotos = this.state.userInfo.photos.filter((item) => {
+        return item.type === 1
+      })
+      const i1=userInfoPhotos.findIndex((value)=>value.url===url);
+      let imgAry = userInfoPhotos.map(reward => {
+        return reward.url
+      })
+      Taro.previewImage({
+        urls: imgAry,
+        current: imgAry[i1]
+      })
+    }else{
+      if(!photos) {
+        Toast.info({
+          content: '该用户暂未上传照片/视频',
+          duration: 2
+        })
+        return
+      }else{
+        this.setState({ photoImgsModal: true })
+      }
     }
-    const userInfoPhotos = this.state.userInfo.photos.filter((item) => {
-      return item.type === 1
-    })
-    const i1=userInfoPhotos.findIndex((value)=>value.url===url);
-    let imgAry = userInfoPhotos.map(reward => {
-      return reward.url
-    })
-    Taro.previewImage({
-      urls: imgAry,
-      current: imgAry[i1]
-    })
   }
 
   myVideoClick(id) {
+    const { userInfo:{unlockPhotos, photos} } = this.state
+    if(unlockPhotos === 1) {
+      let videoContext = Taro.createVideoContext(id)
+      videoContext.requestFullScreen()
+    }else{
+      if(!photos) {
+        Toast.info({
+          content: '该用户暂未上传照片/视频',
+          duration: 2
+        })
+        return
+      }else{
+        this.setState({ photoImgsModal: true })
+      }
+    }
+  }
+
+  onLongPressVideo = (id) => {
     let videoContext = Taro.createVideoContext(id)
     videoContext.requestFullScreen()
+    videoContext.play()
     if (this.state.userInfo.unlockPhotos === 2) {
       setTimeout(() => {
         videoContext.exitFullScreen()
@@ -263,11 +277,19 @@ class Userinfo extends Component {
     }
   }
 
+  onLongPress = (data) => {
+    this.setState({ lookUnlockPhotosUrl: data.url}, () => {
+      this.setState({ lookUnlockPhotosUrlModal: true })
+    })
+    if (this.state.userInfo.unlockPhotos === 2) {
+      setTimeout(() => {
+        this.setState({ lookUnlockPhotosUrlModal:false, lookUnlockPhotosUrl: '' })
+      }, 2000);
+    }
+  }
+
   render() {
-    const images = [{
-      url: this.state.lookUnlockPhotosUrl,
-    }]
-    const { evaluationModal, photoImgsModal, userInfo, selectSmallImg } = this.state
+    const { evaluationModal, photoImgsModal, userInfo } = this.state
     const imgArrayHeight = userInfo?.photos?.length <= 4 ? 110 : userInfo?.photos?.length > 4 ? 170 : 60
     const headPhoto = userInfo?.photos?.filter((item) => {
       return item.type === 1
@@ -283,15 +305,15 @@ class Userinfo extends Component {
         >
           <View className='container'>
             <CoverView className='controls'>
-              <ImageBackground source={{uri: headPhoto&&headPhoto[0].url}} className='img'>
-              <View className='img' style={{ backgroundColor: '#000000', position: 'absolute', opacity: 0.6  }}></View>
+              <ImageBackground source={{uri: userInfo.photo}} className='img'>
+                <View className='img' style={{ backgroundColor: '#000000', position: 'absolute', opacity: 0.6  }}></View>
                 <View className='rightTopImgAdd' onClick={this.goBack}>
                   <Icon name='left' size='md' className='leftIconGoBack' />
                 </View>
                 <View className='imgArray'>
                   <View style={{width: 100, height: 100, marginLeft: 10}}>
                     <ImageBackground
-                      source={{uri: headPhoto&&headPhoto[0].url}}
+                      source={{uri: userInfo.photo}}
                       style={{width: '100%', height: '100%', borderRadius: 10}}
                       imageStyle={{ borderRadius: 10 }}
                       className='selectImgArrayOneImg'
@@ -394,55 +416,68 @@ class Userinfo extends Component {
                   {userInfo?.photos?.map(reward => {
                     if(reward.type === 1){
                       return (
-                        <View key={reward.id} onClick={() => this.imageClick(reward.url)}>
-                          <ImageBackground
-                            style={{width: 70, height: 70, marginLeft: 10, marginBottom: 10}}
-                            source={{ uri: reward.url }}
-                            key={reward.id}
-                            className='filterImg'
-                            imageStyle={{ borderRadius: 5 }}
-                          >
-
-                          </ImageBackground>
-                          {userInfo.unlockPhotos === 2?
-                            <BlurView
-                              className='absoluteBlurView'
-                              blurType='light'
-                              blurAmount={8}
-                              reducedTransparencyFallbackColor='white'
-                              onClick={() => this.imageClick(reward)}
-                            />
-                          :
-                            null
-                          }
-                        </View>
+                        <TouchableHighlight key={reward.id} onPress={() => this.imageClick(reward.url)} onLongPress={() => this.onLongPress(reward)} underlayColor='white'>
+                          <View>
+                            <ImageBackground
+                              style={{width: 70, height: 70, marginLeft: 10, marginBottom: 10}}
+                              source={{ uri: reward.url }}
+                              className='filterImg'
+                              imageStyle={{ borderRadius: 5 }}
+                              // blurRadius={userInfo.unlockPhotos === 2 ? 10 : 0}
+                            >
+                            </ImageBackground>
+                            {userInfo.unlockPhotos === 2?
+                              <BlurView
+                                className='absoluteBlurView'
+                                blurType='light'
+                                blurAmount={8}
+                                reducedTransparencyFallbackColor='white'
+                              />
+                            :
+                              null
+                            }
+                          </View>
+                        </TouchableHighlight>
                       )
                     }else{
                       return (
-                        <View key={reward.id} onClick={() => this.myVideoClick(`videocc${reward.id}`)}>
-                          <Video
-                            style={{width: 70, height: 70, marginLeft: 10, borderRadius: 5, marginBottom: 10 }}
-                            src={reward.url}
-                            key={reward.id}
-                            autoplay={false}
-                            loop={false}
-                            poster={reward.videoUrl}
-                            id={`videocc${reward.id}`}
-                          />
-                          {userInfo.unlockPhotos === 2?
-                            <BlurView
-                              className='absoluteBlurView'
-                              blurType='light'
-                              blurAmount={8}
-                              reducedTransparencyFallbackColor='white'
+                        <TouchableHighlight key={reward.id} onPress={() => this.myVideoClick(`videocc${reward.id}`)} onLongPress={() => this.onLongPressVideo(`videocc${reward.id}`)} underlayColor='white'>
+                          <View>
+                            <Video
+                              style={{width: 70, height: 70, marginLeft: 10, borderRadius: 5, marginBottom: 10 }}
+                              src={reward.url}
+                              autoplay={false}
+                              loop={false}
+                              poster={reward.videoUrl}
+                              id={`videocc${reward.id}`}
                             />
-                          :
-                            null
-                          }
-                        </View>
+                            {userInfo.unlockPhotos === 2?
+                              <BlurView
+                                className='absoluteBlurView'
+                                blurType='light'
+                                blurAmount={8}
+                                reducedTransparencyFallbackColor='white'
+                              />
+                            :
+                              null
+                            }
+                          </View>
+                        </TouchableHighlight>
                       )
                     }
                   })}
+                  {
+                    userInfo?.photos?.length % 2 === 0 ?
+                    <>
+                      <View style={{width: 70, height: 70, marginLeft: 5, marginBottom: 10 }}></View>
+                      <View style={{width: 70, height: 70, marginLeft: 5, marginBottom: 10 }}></View>
+                    </>
+                    :
+                    <>
+                      <View style={{width: 70, height: 70, marginLeft: 5, marginBottom: 10 }}></View>
+                      <View style={{width: 70, height: 70, marginLeft: 5, marginBottom: 10 }}></View>
+                    </>
+                  }  
                   </Flex>
                 </WingBlank>
               </Card.Body>
@@ -569,7 +604,7 @@ class Userinfo extends Component {
           ]}
         >
           <View style={{ paddingVertical: 20, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ marginTop: 20, marginBottom: 0 }}>该相册为付费相册，共有<Text style={{ color: '#F6386F' }}>{userInfo?.photos?.length}</Text>张照片解锁后可查看</Text>
+            <Text style={{ marginTop: 20, marginBottom: 0 }}>该相册为付费相册，共有<Text style={{ color: '#F6386F' }}>{userInfo?.photos?.length}</Text>张照片/视频解锁后可查看</Text>
           </View>
         </Modal>
           

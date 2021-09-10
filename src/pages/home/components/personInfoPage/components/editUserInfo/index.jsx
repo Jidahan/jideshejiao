@@ -14,35 +14,41 @@ class Edituserinfo extends Component {
     this.state = {
       title: '',
       value: '',
-      error: false
+      error: false,
+      type: ''
     }
     this.formSubmit = this.formSubmit.bind(this)
   }
 
   componentDidMount() {
-    console.log(this.props);
     const key = this.props.route.params.key
-    let title = ''
+    let title
+    let type
     switch (key) {
       case 'nickName':
         title = '昵称'
+        type = 'text'
         break;
       case 'height':
         title = '身高'
+        type = 'number'
         break;
       case 'weight':
         title = '体重'
+        type = 'number'
         break;
       case 'aidou':
         title = '个人价值'
+        type = 'number'
         break;
       case 'wx':
         title = '微信'
+        type = 'text'
         break;
       default:
         break;
     }
-    this.setState({ title })
+    this.setState({ title, type })
     Taro.setNavigationBarTitle({
       title
     })
@@ -51,7 +57,6 @@ class Edituserinfo extends Component {
   formSubmit() {
     if(!this.state.value){
       this.setState({ error: true })
-      return
     }else{
       const { title } = this.state
       if(title === '昵称'){
@@ -74,7 +79,6 @@ class Edituserinfo extends Component {
             }
           }
         })
-        
       }else if(title === '身高'){
         this.props.dispatch({
           type: 'userInfo/editPersonHeight',
@@ -160,7 +164,7 @@ class Edituserinfo extends Component {
   }
 
   render() {
-    const { title } = this.state
+    const { title, type } = this.state
     return (
       <View className='editUserInfo-page'>
         <InputItem
@@ -173,6 +177,7 @@ class Edituserinfo extends Component {
               value,
             });
           }}
+          type={type}
           extra={title === '昵称' ? '' : title === '身高' ? 'cm' : title === '体重' ? 'kg' : title === '爱豆' ? '颗' : ''}
           placeholder={title === '微信' ? '虚假账号有被封号风险，请认真填写' : `请输入${title}`}
           style={{ backgroundColor: '#E5E5E5'}}

@@ -37,9 +37,21 @@ class Genderpage extends Component {
       key: "gender",
       data: this.state.genderValue
     }).then(() => {
-      Taro.navigateTo({
-        url: `/pages/beforeFace/index?userId=${this.props.route.params.userId}`
-      })
+      if(this.props.route.params.loginType === 'tourist'){
+        Taro.setStorage({
+          key: "userId",
+          data: this.props.route.params.userId,
+          success: () => {
+            Taro.switchTab({
+              url: '/pages/index/index'
+            })
+          }
+        })
+      }else{
+        Taro.navigateTo({
+          url: `/pages/beforeFace/index?userId=${this.props.route.params.userId}`
+        })
+      }
     })
   }
 

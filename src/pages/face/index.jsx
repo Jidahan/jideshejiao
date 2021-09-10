@@ -156,7 +156,7 @@ class face extends Component {
       Taro.chooseVideo({
         camera: 'front',
         sourceType: ['camera'],
-        maxDuration: 8,
+        maxDuration: 6,
         success: function (res) {
           const key = Toast.loading('认证中...');
           const formData = new FormData()
@@ -184,29 +184,32 @@ class face extends Component {
                     userId: that.state.userId,
                     gender: that.state.gender,
                     base: pic,
-                  }).then(data => {
-                    if(data.data.status === 200){
+                  }).then(datas => {
+                    if(datas.data.status === 200){
                       Toast.remove(key)
                       Toast.success({
                         content: '认证成功，即将跳转...',
                         duration: 1
                       })
-                      setTimeout(() => {
-                        clearInterval(that.setInterval)
-                        Taro.setStorage({
-                          key: "userId",
-                          data: that.state.userId,
-                          success: () => {
-                            Taro.switchTab({
-                              url: '/pages/index/index'
-                            })
-                          }
-                        })
-                      }, 1000);
+                      clearInterval(that.setInterval)
+                      if(that.props.route.params.pageType === 'home'){
+                        setTimeout(() => {
+                          Taro.navigateBack({
+                            delta: 1
+                          })
+                          Taro.eventCenter.trigger('authUserIsRefresh', {status: true})
+                        }, 1000);
+                      }else{
+                        setTimeout(() => {
+                          Taro.navigateTo({
+                            url: `/pages/home/components/personInfoPage/index?type=signUser&userId=${that.state.userId}`
+                          })
+                        }, 1000);
+                      }
                     }else{
                       Toast.remove(key)
                       Toast.fail({
-                        content: data.data.msg,
+                        content: datas.data.msg,
                         duration: 2
                       })
                     }
