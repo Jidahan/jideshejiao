@@ -115,7 +115,7 @@ class Index extends Component {
       if(arg?.status){
         this.setState({ city: arg?.city, pageNumber: 1 }, () => {
           this.refreshData()
-          // this.getUserLists()
+          this.getUserLists()
         })
       }
     })
