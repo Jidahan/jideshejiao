@@ -200,7 +200,11 @@ class cityList extends Component {
     });
 
     return (
-      <TouchableHighlight underlayColor='black' style={styles.rightSlideAreaTouchableHighlight}>
+      <TouchableHighlight   
+        // activeOpacity={0.6}
+        underlayColor='red' 
+        style={styles.rightSlideAreaTouchableHighlight}
+      >
         <View style={styles.rightSlideArea}>
           {sectionItem}
         </View>
@@ -348,6 +352,8 @@ const styles = StyleSheet.create({
     },
     rightSlideAreaTouchableHighlight: {
       position: 'absolute',
+      // borderWidth: 2,
+      // borderColor: 'red',
       top: 0,
       right: 5,
       marginTop: sectionTopBottomHeight,
@@ -355,7 +361,6 @@ const styles = StyleSheet.create({
     },
     rightSlideArea: {
       width: sectionWidth,
-      height: height - sectionTopBottomHeight * 2,
     },
     rightSideText: {
       textAlign: 'center',

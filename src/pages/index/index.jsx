@@ -1,4 +1,4 @@
-import { PureComponent, Component } from 'react'
+import { Component } from 'react'
 import Taro from '@tarojs/taro'
 import { View, Text, Image } from '@tarojs/components'
 import { Icon, SearchBar, Toast } from '@ant-design/react-native'
@@ -28,6 +28,7 @@ class Index extends Component {
       longitude: '108.939621',
       range: 10,
       allDataHaveStopLoading: false,
+      nowSearch: false
     },
     this.searchOnChange = this.searchOnChange.bind(this)
     this.searchOnCancelChange = this.searchOnCancelChange.bind(this)
@@ -42,64 +43,64 @@ class Index extends Component {
   }
 
   componentDidMount () {
-    // this.getUserLists()
-    // this.refreshData()
-    // this.updateCity()
+    this.getUserLists()
+    this.refreshData()
+    this.updateCity()
 
-    const that = this
-    Taro.getLocation({
-      type: 'wgs84',
-      success: function (res) {
-        const latitude = res.latitude
-        const longitude = res.longitude
-        that.setState({
-          latitude,
-          longitude,
-        })
-        Taro.request({
-          url: `https://apis.map.qq.com/ws/geocoder/v1/?location=${latitude},${longitude}&key=XKYBZ-36R6D-DP74D-PFWPH-PICQ5-RHFJS`,
-          header: {
-            'Content-Type': 'application/json',
-          },
-          method: 'GET',
-          complete: (resCity) => {
-            console.log(resCity);
-            if (resCity.statusCode === 200) {
-              if(!resCity.data.result.address_component.city){
-                that.setState({ isLoading: false, allDataHaveStopLoading: true })
-                Toast.info({
-                  content: `当前定位城市为${resCity.data.result.address_component.nation}`,
-                  duration: 2
-                })
-                that.setState({city: resCity.data.result.address_component.nation}, () => {
-                  that.refreshData()
-                  that.getUserLists()
-                  that.updateCity()
-                })
-              }else{
-                const city = resCity.data.result.address_component.city.split('市')[0]
-                that.setState({ 
-                  city
-                },() => {
-                  that.refreshData()
-                  that.getUserLists()
-                  that.updateCity()
-                })
-              }
-            }else{
-              Toast.fail({
-                content: '定位失败',
-                dur: 2
-              })
-              that.setState({ isLoading: false, allDataHaveStopLoading: true })
-            }
-          },
-        })
-      },
-      error: function(error) {
-        console.log(error);
-      }
-    })
+    // const that = this
+    // Taro.getLocation({
+    //   type: 'wgs84',
+    //   success: function (res) {
+    //     const latitude = res.latitude
+    //     const longitude = res.longitude
+    //     that.setState({
+    //       latitude,
+    //       longitude,
+    //     })
+    //     Taro.request({
+    //       url: `https://apis.map.qq.com/ws/geocoder/v1/?location=${latitude},${longitude}&key=XKYBZ-36R6D-DP74D-PFWPH-PICQ5-RHFJS`,
+    //       header: {
+    //         'Content-Type': 'application/json',
+    //       },
+    //       method: 'GET',
+    //       complete: (resCity) => {
+    //         console.log(resCity);
+    //         if (resCity.statusCode === 200) {
+    //           if(!resCity.data.result.address_component.city){
+    //             that.setState({ isLoading: false, allDataHaveStopLoading: true })
+    //             Toast.info({
+    //               content: `当前定位城市为${resCity.data.result.address_component.nation}`,
+    //               duration: 2
+    //             })
+    //             that.setState({city: resCity.data.result.address_component.nation}, () => {
+    //               that.refreshData()
+    //               that.getUserLists()
+    //               that.updateCity()
+    //             })
+    //           }else{
+    //             const city = resCity.data.result.address_component.city.split('市')[0]
+    //             that.setState({ 
+    //               city
+    //             },() => {
+    //               that.refreshData()
+    //               that.getUserLists()
+    //               that.updateCity()
+    //             })
+    //           }
+    //         }else{
+    //           Toast.fail({
+    //             content: '定位失败',
+    //             dur: 2
+    //           })
+    //           that.setState({ isLoading: false, allDataHaveStopLoading: true })
+    //         }
+    //       },
+    //     })
+    //   },
+    //   error: function(error) {
+    //     console.log(error);
+    //   }
+    // })
   }
 
   componentDidShow() {
@@ -145,7 +146,7 @@ class Index extends Component {
       key: 'userId',
       complete: (res) => {
         if (res.errMsg === "getStorage:ok") {
-          appUserList({city, pageNumber, pageSize, latitude, longitude, range, userId: res.data, searchValue}).then(data => {
+          appUserList({city, pageNumber, pageSize, latitude, longitude, range, userId: res.data, userName: searchValue}).then(data => {
             if(data.statusCode === 200){
               this.setState({ dataArray: data.data.data })
             }else{
@@ -176,15 +177,26 @@ class Index extends Component {
   }
 
   searchOnChange(val) {
-    this.setState({ searchValue: val, pageNumber: 1 }, () => {
+    console.log(val);
+    if(!val){
+      this.setState({ searchValue: val, pageNumber: 1, nowSearch: false }, () => {
+        this.refreshData()
+        this.getUserLists()
+      })
+    }else{
+      this.setState({ searchValue: val, pageNumber: 1, nowSearch: true }, () => {
+        this.refreshData()
+        this.getUserLists()
+      })
+    }
+  }
+
+  searchOnCancelChange() {
+    Taro.hideKeyboard()
+    this.setState({ searchValue: '', pageNumber: 1, nowSearch: false }, () => {
       this.refreshData()
       this.getUserLists()
     })
-  }
-
-  searchOnCancelChange(val) {
-    Taro.hideKeyboard()
-    this.setState({ searchValue: '' })
   }
 
   _renderItem(data) {
@@ -202,7 +214,7 @@ class Index extends Component {
         key: 'userId',
         complete: (res) => {
           if (res.errMsg === "getStorage:ok") {
-            appUserList({city, pageNumber: page, pageSize, latitude, longitude, range, userId: res.data, searchValue}).then(data => {
+            appUserList({city, pageNumber: page, pageSize, latitude, longitude, range, userId: res.data, userName: searchValue}).then(data => {
               if(data.statusCode === 200){
                 dataArray = this.state.dataArray.concat(data.data.data);
                 this.setState({
@@ -235,7 +247,7 @@ class Index extends Component {
           key: 'userId',
           complete: (res) => {
             if (res.errMsg === "getStorage:ok") {
-              appUserList({city, pageNumber, pageSize, latitude, longitude, range, userId: res.data, searchValue}).then(data => {
+              appUserList({city, pageNumber, pageSize, latitude, longitude, range, userId: res.data, userName: searchValue}).then(data => {
                 if(data.statusCode === 200){
                   this.setState({ dataArray: data.data.data, isLoading: false })
                 }else{
@@ -288,12 +300,13 @@ class Index extends Component {
             <SearchBar 
               placeholder='输入昵称搜索' 
               style={{ position: 'absolute', top: -18, bottom: 0, left: -10, height: '80%', width: '110%', borderRadius: 20, backgroundColor: '#E8E8E8' }} 
-              onChange={this.searchOnChange} 
+              onSubmit={this.searchOnChange} 
               onCancel={this.searchOnCancelChange} 
-              value={this.state.searchValue}
+              // value={this.state.searchValue}
               styles={{
                 wrapper: {backgroundColor: 'white'}
               }}
+              returnKeyType='search'
             />
           </View>
           <View onClick={this.goCitySelect} style={styles.position}>
@@ -309,7 +322,7 @@ class Index extends Component {
         </View>
         <View style={{ marginBottom: 50, height: '63%' }}>
           <FlatList
-            keyxtractor={this._keyxtractor}
+            keyExtractor={this._keyxtractor}
             data={this.state.dataArray}
             renderItem={(data => this._renderItem(data))}
             // 下拉刷新
@@ -324,9 +337,10 @@ class Index extends Component {
             }
             ListFooterComponent={() => this.genIndicator()}
             onEndReached={() => {
-              this.loadData(true)
+              this.state.nowSearch ? null : this.loadData(true)
             }}
             style={{ height: '100%' }}
+            onEndReachedThreshold={0.1}
           />
 
         </View>

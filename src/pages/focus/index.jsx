@@ -189,6 +189,7 @@ class Focus extends PureComponent {
             this.loadData(true)
           }}
           style={{ marginBottom: 200, height: '90%' }}
+          onEndReachedThreshold={0.1}
         />
       </View>
     )

@@ -155,6 +155,7 @@ class Historyvisit extends PureComponent {
           onEndReached={() => {
             this.loadData(true)
           }}
+          onEndReachedThreshold={0.1}
           style={{ marginBottom: 200, height: '100%' }}
         />
       </View>
