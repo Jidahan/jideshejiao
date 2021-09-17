@@ -43,64 +43,64 @@ class Index extends Component {
   }
 
   componentDidMount () {
-    this.getUserLists()
-    this.refreshData()
-    this.updateCity()
+    // this.getUserLists()
+    // this.refreshData()
+    // this.updateCity()
 
-    // const that = this
-    // Taro.getLocation({
-    //   type: 'wgs84',
-    //   success: function (res) {
-    //     const latitude = res.latitude
-    //     const longitude = res.longitude
-    //     that.setState({
-    //       latitude,
-    //       longitude,
-    //     })
-    //     Taro.request({
-    //       url: `https://apis.map.qq.com/ws/geocoder/v1/?location=${latitude},${longitude}&key=XKYBZ-36R6D-DP74D-PFWPH-PICQ5-RHFJS`,
-    //       header: {
-    //         'Content-Type': 'application/json',
-    //       },
-    //       method: 'GET',
-    //       complete: (resCity) => {
-    //         console.log(resCity);
-    //         if (resCity.statusCode === 200) {
-    //           if(!resCity.data.result.address_component.city){
-    //             that.setState({ isLoading: false, allDataHaveStopLoading: true })
-    //             Toast.info({
-    //               content: `当前定位城市为${resCity.data.result.address_component.nation}`,
-    //               duration: 2
-    //             })
-    //             that.setState({city: resCity.data.result.address_component.nation}, () => {
-    //               that.refreshData()
-    //               that.getUserLists()
-    //               that.updateCity()
-    //             })
-    //           }else{
-    //             const city = resCity.data.result.address_component.city.split('市')[0]
-    //             that.setState({ 
-    //               city
-    //             },() => {
-    //               that.refreshData()
-    //               that.getUserLists()
-    //               that.updateCity()
-    //             })
-    //           }
-    //         }else{
-    //           Toast.fail({
-    //             content: '定位失败',
-    //             dur: 2
-    //           })
-    //           that.setState({ isLoading: false, allDataHaveStopLoading: true })
-    //         }
-    //       },
-    //     })
-    //   },
-    //   error: function(error) {
-    //     console.log(error);
-    //   }
-    // })
+    const that = this
+    Taro.getLocation({
+      type: 'wgs84',
+      success: function (res) {
+        const latitude = res.latitude
+        const longitude = res.longitude
+        that.setState({
+          latitude,
+          longitude,
+        })
+        Taro.request({
+          url: `https://apis.map.qq.com/ws/geocoder/v1/?location=${latitude},${longitude}&key=XKYBZ-36R6D-DP74D-PFWPH-PICQ5-RHFJS`,
+          header: {
+            'Content-Type': 'application/json',
+          },
+          method: 'GET',
+          complete: (resCity) => {
+            console.log(resCity);
+            if (resCity.statusCode === 200) {
+              if(!resCity.data.result.address_component.city){
+                that.setState({ isLoading: false, allDataHaveStopLoading: true })
+                Toast.info({
+                  content: `当前定位城市为${resCity.data.result.address_component.nation}`,
+                  duration: 2
+                })
+                that.setState({city: resCity.data.result.address_component.nation}, () => {
+                  that.refreshData()
+                  that.getUserLists()
+                  that.updateCity()
+                })
+              }else{
+                const city = resCity.data.result.address_component.city.split('市')[0]
+                that.setState({ 
+                  city
+                },() => {
+                  that.refreshData()
+                  that.getUserLists()
+                  that.updateCity()
+                })
+              }
+            }else{
+              Toast.fail({
+                content: '定位失败',
+                dur: 2
+              })
+              that.setState({ isLoading: false, allDataHaveStopLoading: true })
+            }
+          },
+        })
+      },
+      error: function(error) {
+        console.log(error);
+      }
+    })
   }
 
   componentDidShow() {
