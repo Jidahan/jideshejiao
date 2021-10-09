@@ -72,6 +72,12 @@ class Pay extends Component {
                     duration: 1.5,
                   })
                 }
+              }).catch(error => {
+                Toast.remove(key)
+                Toast.fail({
+                  content: `遇到了错误${error}`,
+                  duration: 2
+                })
               })
             }else{
               Toast.remove(key)
@@ -80,6 +86,12 @@ class Pay extends Component {
                 duration: 1.5
               })
             }
+          }).catch(error => {
+            Toast.remove(key)
+            Toast.fail({
+              content: `遇到了错误${error}`,
+              duration: 2
+            })
           })
         }
       }

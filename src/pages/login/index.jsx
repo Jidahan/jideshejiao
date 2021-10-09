@@ -84,6 +84,7 @@ class Login extends Component {
           })
         }
       }).catch(error => {
+        Toast.remove(key);
         Toast.fail({
           content: `遇到了错误${error}`,
           duration: 2
@@ -122,6 +123,7 @@ class Login extends Component {
           })
         }
       }).catch(error => {
+        Toast.remove(key);
         Toast.fail({
           content: `遇到了错误${error}`,
           duration: 2
@@ -192,6 +194,8 @@ class Login extends Component {
           })
         }
       }).catch(error => {
+        console.log('error', error);
+        Toast.remove(key);
         Toast.fail({
           content: `遇到了错误${error}`,
           duration: 2

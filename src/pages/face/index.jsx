@@ -267,7 +267,12 @@ class face extends Component {
                 }
               }
             })
-            .catch((error)=>{console.error('error',error)});
+            .catch(error => {
+              Toast.fail({
+                content: `遇到了错误${error}`,
+                duration: 2
+              })
+            })
         }
       })
     }

@@ -50,6 +50,12 @@ const IndexLists = (props) => {
                 duration: 2
               })
             }
+          }).catch(error => {
+            Toast.remove(key)
+            Toast.fail({
+              content: `遇到了错误${error}`,
+              duration: 2
+            })
           })
         } else {
           console.log('获取存储数据失败');

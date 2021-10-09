@@ -59,6 +59,12 @@ class Advicepage extends Component {
                 duration: 1
               })
             }
+          }).catch(error => {
+            Toast.remove(key)
+            Toast.fail({
+              content: `遇到了错误${error}`,
+              duration: 2
+            })
           })
         } else {
           console.log('获取存储数据失败');

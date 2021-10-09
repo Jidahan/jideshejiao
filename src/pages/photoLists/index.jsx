@@ -42,6 +42,11 @@ class Photolists extends Component {
           duration: 2
         })
       }
+    }).catch(error => {
+      Toast.fail({
+        content: `遇到了错误${error}`,
+        duration: 2
+      })
     })
     
   }
@@ -108,6 +113,12 @@ class Photolists extends Component {
                 duration: 2
               })
             }
+          }).catch(error => {
+            Toast.remove(key)
+            Toast.fail({
+              content: `遇到了错误${error}`,
+              duration: 2
+            })
           })
         }
       }

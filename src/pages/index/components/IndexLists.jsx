@@ -46,6 +46,12 @@ const IndexLists = (props) => {
                 duration: 2
               })
             }
+          }).catch(error => {
+            Toast.remove(key)
+            Toast.fail({
+              content: `遇到了错误${error}`,
+              duration: 2
+            })
           })
         } else {
           Toast.fail({

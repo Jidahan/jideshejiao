@@ -100,6 +100,12 @@ class Home extends Component {
                 duration: 2
               })
             }
+          }).catch(error => {
+            Toast.remove(key)
+            Toast.fail({
+              content: `遇到了错误${error}`,
+              duration: 2
+            })
           })
         }
       }
@@ -162,12 +168,13 @@ class Home extends Component {
         ActionSheetIOS.showShareActionSheetWithOptions({
           title: reultData.title, 
           message: reultData.content, 
-          url: reultData.icon, 
+          // url: reultData.icon, 
+          url: 'http://share.remember.dlztc.com/#/yq',
           subject: "Share Link" // for email 
         },function () {
-          alert("分享失败")
+          // alert("分享失败")
         },function () {
-          alert("分享成功")
+          // alert("分享成功")
         });
       }else{
         Toast.fail({
@@ -311,10 +318,28 @@ class Home extends Component {
                           })
                         })
                       })
+                    }).catch(error => {
+                      Toast.remove(key)
+                      Toast.fail({
+                        content: `遇到了错误${error}`,
+                        duration: 2
+                      })
+                    })
+                  }).catch(error => {
+                    Toast.remove(key)
+                    Toast.fail({
+                      content: `遇到了错误${error}`,
+                      duration: 2
                     })
                   })
                 })
-                .catch(err => console.log({ err }));
+                .catch(error => {
+                  Toast.remove(key)
+                  Toast.fail({
+                    content: `遇到了错误${error}`,
+                    duration: 2
+                  })
+                })
             }
           }
         })
@@ -375,10 +400,22 @@ class Home extends Component {
                             duration: 2
                           })
                         }
+                      }).catch(error => {
+                        Toast.remove(key)
+                        Toast.fail({
+                          content: `遇到了错误${error}`,
+                          duration: 2
+                        })
                       })
                     }
                   })
-                  .catch((error)=>{console.error('error',error)});
+                  .catch(error => {
+                    Toast.remove(key)
+                    Toast.fail({
+                      content: `遇到了错误${error}`,
+                      duration: 2
+                    })
+                  })
               }else{
                 Toast.remove(key)
                 Toast.fail({
@@ -389,7 +426,7 @@ class Home extends Component {
             }).catch(error => {
               Toast.remove(key)
               Toast.fail({
-                content: '上传失败，请重试',
+                content: `遇到了错误${error}`,
                 duration: 2
               })
             })
@@ -490,6 +527,11 @@ class Home extends Component {
           duration: 2
         })
       }
+    }).catch(error => {
+      Toast.fail({
+        content: `遇到了错误${error}`,
+        duration: 2
+      })
     })
   }
 
@@ -520,6 +562,12 @@ class Home extends Component {
                 duration: 2
               })
             }
+          }).catch(error => {
+            Toast.remove(key)
+            Toast.fail({
+              content: `遇到了错误${error}`,
+              duration: 2
+            })
           })
         }
       }

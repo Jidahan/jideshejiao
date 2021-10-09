@@ -22,6 +22,11 @@ const AdLists = (props) => {
           duration: 2
         })
       }
+    }).catch(error => {
+      Toast.fail({
+        content: `遇到了错误${error}`,
+        duration: 2
+      })
     })
   }, [])
 
