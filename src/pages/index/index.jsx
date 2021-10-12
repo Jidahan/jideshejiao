@@ -114,7 +114,7 @@ class Index extends Component {
   updateCity() {
     Taro.eventCenter.on('updateCity',(arg)=>{
       if(arg?.status){
-        this.setState({ city: arg?.city, pageNumber: 1 }, () => {
+        this.setState({ city: arg?.city === '附近' ? '' : arg?.city, pageNumber: 1 }, () => {
           this.refreshData()
           this.getUserLists()
         })

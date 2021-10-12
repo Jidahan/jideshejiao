@@ -553,8 +553,8 @@ class Userinfo extends Component {
             </View>
           </ImageBackground>
           <ImageBackground source={unlockRightImg} className='cc' style={{ height: 50, alignItems: 'center', justifyContent: 'center', marginLeft: '-10%' }}>
-            <View onClick={userInfo.unlockPhotos === 1 && userInfo.unlockWeChat === 1 ? null : this.unlock} style={{ width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={{ fontSize: 18, color: '#FFFFFF' }}>{userInfo.unlockPhotos === 1 && userInfo.unlockWeChat === 1 ? '已解锁' : '解锁'}</Text>
+            <View onClick={userInfo.unlockPhotos === 1 ? null : this.handOkPayPhotos} style={{ width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontSize: 18, color: '#FFFFFF' }}>{userInfo.unlockPhotos === 1 ? '已解锁' : '解锁'}</Text>
             </View>
           </ImageBackground>
         </View>      

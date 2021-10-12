@@ -40,9 +40,17 @@ class cityList extends Component {
     currentCity: "正在定位...",
   };
 
+  UNSAFE_componentWillMount() {
+    this.gotCurrentLocation();
+    this.requestHotCityList();
+  }
+
   //总的处理选择城市事件
   selectEndResultCity(cityName) {
     const { home:{isPersonPageGo} } = this.props
+    if(isPersonPageGo){
+      if(cityName === '附近') return
+    }
     if(cityName === '正在定位...' || cityName === '定位失败，重新定位'){
       const that = this
       Taro.getLocation({
@@ -114,11 +122,6 @@ class cityList extends Component {
       LettersArray.push(element.title)
     }
     return LettersArray
-  }
-
-  UNSAFE_componentWillMount() {
-    this.gotCurrentLocation();
-    this.requestHotCityList();
   }
 
   async gotCurrentLocation() {
@@ -280,6 +283,15 @@ class cityList extends Component {
                   <Text style={{color: "#C49225", fontSize: 14,}}>{this.state.currentCity}</Text>
                 </View>
               </TouchableOpacity>
+              <TouchableOpacity onPress={() => {
+                this.currentCityAction('附近')
+              }}
+                style={{width: 100,}}
+              >
+                <View style={[styles.textView, {marginLeft: 5, width: 100,}]}>
+                  <Text style={{color: "#C49225", fontSize: 14,}}>附近</Text>
+                </View>
+              </TouchableOpacity>
             </View>
 
             <Text style={styles.titleText}>热门城市</Text>
@@ -327,7 +339,9 @@ const styles = StyleSheet.create({
     },
     currentView: {
         marginTop: 10,
-        paddingBottom: 20
+        paddingBottom: 20,
+        display: 'flex',
+        flexDirection: 'row'
     },
     textView: {
         minWidth: 40,
