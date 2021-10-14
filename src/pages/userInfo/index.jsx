@@ -466,6 +466,8 @@ class Userinfo extends Component {
                               src={reward.url}
                               autoplay={false}
                               loop={false}
+                              showCenterPlayBtn={false}
+                              controls={false}
                               poster={reward.videoUrl}
                               id={`videocc${reward.id}`}
                             />

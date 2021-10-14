@@ -168,13 +168,23 @@ class Home extends Component {
         ActionSheetIOS.showShareActionSheetWithOptions({
           title: reultData.title, 
           message: reultData.content, 
-          // url: reultData.icon, 
-          url: 'http://share.remember.dlztc.com/#/yq',
+          url: `http://share.remember.dlztc.com/#/yq?userId=${this.state.userInfo.id}`,
           subject: "Share Link" // for email 
-        },function () {
-          // alert("分享失败")
-        },function () {
-          // alert("分享成功")
+        },function (error) {
+          console.log('error', error);
+        },function (e) {
+          if(e){
+            Toast.success({
+              content: '分享成功',
+              duration: 1
+            })
+          }else{
+            Toast.fail({
+              content: '分享失败',
+              duration: 1.5
+            })
+          }
+          console.log('errorerror', e);
         });
       }else{
         Toast.fail({

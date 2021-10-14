@@ -90,7 +90,7 @@ class Index extends Component {
             }else{
               Toast.fail({
                 content: '定位失败',
-                dur: 2
+                duration: 2
               })
               that.setState({ isLoading: false, allDataHaveStopLoading: true })
             }

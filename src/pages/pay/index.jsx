@@ -31,7 +31,8 @@ class Pay extends Component {
 
   goPay() {
     const key = Toast.loading('支付中...');
-    WeChat.isWXAppInstalled()
+    if(this.state.payStatus === 2) {
+      WeChat.isWXAppInstalled()
       .then((isInstalled) => {
         console.log('wxIsInstall', isInstalled);
         if (isInstalled) {
@@ -134,8 +135,13 @@ class Pay extends Component {
           })
         }
       });
-
-    
+    }else{
+      Toast.remove(key)
+      Toast.fail({
+        content: '目前仅支持微信支付，请选用微信支付！',
+        duration: 1.5
+      })
+    }
   }
 
   render() {

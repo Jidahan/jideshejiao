@@ -179,6 +179,7 @@ class Photolists extends Component {
                           poster={reward.videoUrl}
                           showCenterPlayBtn={false}
                           id={`videocc${reward.id}`}
+                          controls={false}
                         />
                         {isDel?
                           <View style={{width: 20, height: 20, position: 'absolute', right: 10, bottom: 10, zIndex: 2 }} onClick={() => this.goSubmitDel(reward.id)}>
