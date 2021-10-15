@@ -95,6 +95,7 @@ class Home extends Component {
               Toast.remove(key)
               this.setState({ userInfo: data.data.data, imgArray: data.data.data.photos  })
             }else{
+              Toast.remove(key)
               Toast.fail({
                 content: data.data.msg,
                 duration: 2
