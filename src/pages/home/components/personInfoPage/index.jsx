@@ -148,7 +148,7 @@ class Personinfopage extends Component {
       return
     }
     const key = Toast.loading('保存中...');
-    userSetting({
+    const personData = {
       birthday: birthdayName,
       city: cityName,
       height,
@@ -158,8 +158,23 @@ class Personinfopage extends Component {
       wxAccount: wxName,
       id: userId,
       gender: this.state.gender,
-      photo: this.state.newPhoto
-    }).then(data => {
+    }
+    if (this.state.newPhoto) personData.photo = this.state.newPhoto
+    userSetting(
+      personData
+    //   {
+    //   birthday: birthdayName,
+    //   city: cityName,
+    //   height,
+    //   weight,
+    //   individualValues: aidou,
+    //   nickName,
+    //   wxAccount: wxName,
+    //   id: userId,
+    //   gender: this.state.gender,
+    //   photo: this.state.newPhoto
+    // }
+    ).then(data => {
       console.log(data.data.status);
       if(data.data.status === 200){
         Toast.remove(key);
