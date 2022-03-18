@@ -1,4 +1,4 @@
-import Request from "../../utils/request";
+import Request from "../../../../utils/request";
 
 export const getPhoneSendCode = (data) => {
   return Request({
@@ -7,9 +7,9 @@ export const getPhoneSendCode = (data) => {
   });
 };
 
-export const appLogin = (data) => {
+export const updatePassword = (data) => {
   return Request({
-    url: `/social/app/login`,
+    url: `/social/app/updatePassword`,
     method: "POST",
     data,
   });

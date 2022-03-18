@@ -1,25 +1,24 @@
 module.exports = {
   env: {
-    NODE_ENV: '"development"'
+    NODE_ENV: '"development"',
   },
-  defineConstants: {
-  },
+  defineConstants: {},
   mini: {},
   h5: {},
-  baseUrl: 'http://remember.dlztc.com',
+  baseUrl: "https://jd.darling1314.com",
   rn: {
-    publicPath: '/',
+    publicPath: "/",
     devServer: {
       // host: 'localhost',
       // port: 10086,
       proxy: [
         {
           context: "['']",
-          target: "http://remember.dlztc.com",
+          target: "https://jd.darling1314.com",
           changeOrigin: true,
-          secure: false
-        }
-      ]
-    }
-  }
-}
+          secure: false,
+        },
+      ],
+    },
+  },
+};
