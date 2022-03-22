@@ -108,6 +108,7 @@ class Index extends Component {
               Taro.getStorage({
                 key: "userId",
                 complete: (useridRes) => {
+                  console.log("当前用户数据", useridRes);
                   if (useridRes.errMsg !== "getStorage:ok") {
                     Taro.redirectTo({
                       url: `pages/login/index`,

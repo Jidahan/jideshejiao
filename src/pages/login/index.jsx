@@ -76,10 +76,26 @@ class Login extends Component {
       })
         .then((res) => {
           if (res.data.status === 200) {
-            Toast.remove(key);
-            Taro.navigateTo({
-              url: `/pages/login/components/genderPage/index?userId=${res.data.data.userId}`,
+            Taro.setStorage({
+              key: "userIdentity",
+              data: res.data.data.userIdentity,
             });
+            Toast.remove(key);
+            if (res.data.data.newUser === 1) {
+              Taro.navigateTo({
+                url: `/pages/login/components/genderPage/index?userId=${res.data.data.userId}`,
+              });
+            } else {
+              Taro.setStorage({
+                key: "userId",
+                data: res.data.data.userId,
+                success: () => {
+                  Taro.switchTab({
+                    url: "/pages/index/index",
+                  });
+                },
+              });
+            }
           } else {
             Toast.remove(key);
             Toast.fail({
@@ -128,10 +144,26 @@ class Login extends Component {
         })
           .then((res) => {
             if (res.data.status === 200) {
-              Toast.remove(key);
-              Taro.navigateTo({
-                url: `/pages/login/components/genderPage/index?userId=${res.data.data.userId}&loginType=tourist`,
+              Taro.setStorage({
+                key: "userIdentity",
+                data: res.data.data.userIdentity,
               });
+              Toast.remove(key);
+              if (res.data.data.newUser === 1) {
+                Taro.navigateTo({
+                  url: `/pages/login/components/genderPage/index?userId=${res.data.data.userId}&loginType=tourist`,
+                });
+              } else {
+                Taro.setStorage({
+                  key: "userId",
+                  data: res.data.data.userId,
+                  success: () => {
+                    Taro.switchTab({
+                      url: "/pages/index/index",
+                    });
+                  },
+                });
+              }
             } else {
               Toast.remove(key);
               Toast.fail({
@@ -157,6 +189,10 @@ class Login extends Component {
           .then((res) => {
             console.log(res);
             if (res.data.status === 200) {
+              Taro.setStorage({
+                key: "userIdentity",
+                data: res.data.data.userIdentity,
+              });
               Toast.remove(key);
               Taro.setStorage({
                 key: "token",

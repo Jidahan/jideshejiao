@@ -29,7 +29,7 @@ Taro.setTabBarStyle({
 const store = dvaApp.getStore();
 class App extends Component {
   componentDidMount() {
-    WeChat.registerApp("wx1376daf6f0ab577d", "https://remember.aizhixin.com/");
+    WeChat.registerApp("wx1376daf6f0ab577d", "https://jd.darling1314.com/");
     console.log(WeChat);
   }
 

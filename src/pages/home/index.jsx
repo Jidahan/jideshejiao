@@ -19,6 +19,8 @@ import {
   Flex,
   Modal,
 } from "@ant-design/react-native";
+import FastImage from "react-native-fast-image";
+import ImagePicker from "react-native-image-crop-picker";
 import RNFS from "react-native-fs";
 import Clipboard from "@react-native-clipboard/clipboard";
 import zwWomen from "../../images/zwWomen.png";
@@ -34,6 +36,8 @@ import adviceImg from "../../images/advice.png";
 import versonImg from "../../images/verson.png";
 import logoutImg from "../../images/logout.png";
 import deleteWhite from "../../images/deleteWhite.png";
+import dkImg from "../../images/home_dk.png";
+
 import {
   personalCenter,
   uploadUrl,
@@ -64,6 +68,8 @@ class Home extends Component {
       identity: "",
       tel: "",
       username: "",
+      loading: false,
+      userIdentity: "",
     }),
       (this.copyYqm = this.copyYqm.bind(this));
     this.adviceClick = this.adviceClick.bind(this);
@@ -78,6 +84,8 @@ class Home extends Component {
     this.goPersonAuthentication = this.goPersonAuthentication.bind(this);
     this.personAuth = this.personAuth.bind(this);
     this.editPassword = this.editPassword.bind(this);
+    this.fetchRefresh = this.fetchRefresh.bind(this);
+    this.promoters = this.promoters.bind(this);
   }
 
   componentDidMount() {
@@ -87,22 +95,34 @@ class Home extends Component {
         this.getUserMessage();
       }
     });
+    // Taro.getStorage({
+    //   key: "gender",
+    //   complete: (res) => {
+    //     console.log(res);
+    //     if (res.errMsg === "getStorage:ok") {
+    //       this.setState({ gender: res.data });
+    //     }
+    //   },
+    // });
     Taro.getStorage({
-      key: "gender",
+      key: "userIdentity",
       complete: (res) => {
+        console.log(res);
         if (res.errMsg === "getStorage:ok") {
-          this.setState({ gender: res.data });
+          this.setState({ userIdentity: res.data });
         }
       },
     });
   }
 
-  componentDidShow() {
+  fetchRefresh() {
+    console.log("9999999");
     this.getUserMessage();
   }
 
   getUserMessage() {
     const key = Toast.loading("加载中...");
+    this.setState({ loading: true });
     Taro.getStorage({
       key: "userId",
       complete: (res) => {
@@ -111,12 +131,15 @@ class Home extends Component {
             .then((data) => {
               if (data.data.status === 200) {
                 Toast.remove(key);
+
                 this.setState({
                   userInfo: data.data.data,
                   imgArray: data.data.data.photos,
                   identity: data.data.data.identity,
                   tel: data.data.data.tel,
                   username: data.data.data.username,
+                  gender: data.data.data.gender,
+                  loading: false,
                 });
               } else {
                 Toast.remove(key);
@@ -124,6 +147,7 @@ class Home extends Component {
                   content: data.data.msg,
                   duration: 2,
                 });
+                this.setState({ loading: false });
               }
             })
             .catch((error) => {
@@ -132,6 +156,7 @@ class Home extends Component {
                 content: `遇到了错误${error}`,
                 duration: 2,
               });
+              this.setState({ loading: false });
             });
         }
       },
@@ -145,7 +170,7 @@ class Home extends Component {
       Taro.navigateTo({
         url: `/pages/home/components/personInfoPage/index?data=${JSON.stringify(
           this.state.userInfo
-        )}`,
+        )}&identity=${this.state.identity}`,
       });
     }
   }
@@ -231,23 +256,32 @@ class Home extends Component {
     if (this.state.userInfo.personAuthentication !== 1) {
       this.setState({ tipUserGoAuth: true });
     } else {
-      Taro.chooseImage({
-        count: 1,
-        sizeType: ["original", "compressed"], // 可以指定是原图还是压缩图，默认二者都有
-        sourceType: ["camera"], // 可以指定来源是相册还是相机，默认二者都有，在H5浏览器端支持使用 `user` 和 `environment`分别指定为前后摄像头
-        success: (res) => {
-          this.uploadImage(res.tempFilePaths);
-        },
-      });
+      const sourceType =
+        this.state.identity == 1 ? ["camera", "album"] : ["camera"];
+      if (this.state.userInfo.personAuthentication !== 1) {
+        this.setState({ tipUserGoAuth: true });
+      } else {
+        Taro.chooseImage({
+          count: 1,
+          sizeType: ["compressed"], // 可以指定是原图还是压缩图，默认二者都有
+          sourceType, // 可以指定来源是相册还是相机，默认二者都有，在H5浏览器端支持使用 `user` 和 `environment`分别指定为前后摄像头
+          success: (res) => {
+            this.uploadImage(res.tempFilePaths);
+          },
+        });
+      }
     }
   }
 
   addVideo() {
+    const sourceType =
+      this.state.identity == 1 ? ["camera", "album"] : ["camera"];
     const that = this;
     Taro.chooseVideo({
-      sourceType: ["camera"],
+      sourceType,
       maxDuration: 60,
-      camera: "back",
+      compressed: true,
+      camera: "front",
       success: function (res) {
         const { duration } = res; //视频时间毫秒数
         const key = Toast.loading("上传/认证中...");
@@ -264,7 +298,7 @@ class Home extends Component {
                 //截取第1秒照片
                 url: res.tempFilePath,
                 timeStamp: 1000,
-                format: "png",
+                format: "jpeg",
               })
                 .then((response) => {
                   //得到第1秒的照片
@@ -272,7 +306,7 @@ class Home extends Component {
                     //开始截取中间照片
                     url: res.tempFilePath,
                     timeStamp: parseInt(parseInt(duration / 1000) / 2) * 1000,
-                    format: "png",
+                    format: "jpeg",
                   })
                     .then((videoCenterImg) => {
                       //得到中间的照片
@@ -280,7 +314,7 @@ class Home extends Component {
                         //截取结尾照片
                         url: res.tempFilePath,
                         timeStamp: parseInt(duration),
-                        format: "png",
+                        format: "jpeg",
                       })
                         .then((videoEndImg) => {
                           //得到结尾的照片
@@ -292,123 +326,118 @@ class Home extends Component {
                                     videoEndImg.path,
                                     "base64"
                                   ).then((threeImgBase) => {
-                                    faceDetect({
-                                      //进行人脸对比
-                                      type: 2,
-                                      userId: storage.data,
-                                      imgUrl: "",
-                                      base: twoImgBase,
-                                      baseList: [
-                                        oneImgBase,
-                                        twoImgBase,
-                                        threeImgBase,
-                                      ],
-                                    }).then((personTrueFalsedata) => {
-                                      if (
-                                        personTrueFalsedata.data.status === 200
-                                      ) {
-                                        //人脸对比成功
-                                        const formData = new FormData();
-                                        let file = {
-                                          uri: res.tempFilePath,
-                                          type: "multipart/form-data",
-                                          name: "file.mp4",
-                                        }; //这里的key(uri和type和name)不能改变,
-                                        formData.append("file", file);
-                                        formData.append(
-                                          "tenantId",
-                                          storage.data
-                                        );
-                                        fetch(uploadUrl, {
-                                          method: "POST",
-                                          headers: {
-                                            "Content-Type":
-                                              "multipart/form-data",
-                                          },
-                                          body: formData,
-                                        })
-                                          .then((upresponsedata) => {
-                                            return upresponsedata.json();
+                                    const formData = new FormData();
+                                    let file = {
+                                      uri: res.tempFilePath,
+                                      type: "multipart/form-data",
+                                      name: "file.mp4",
+                                    }; //这里的key(uri和type和name)不能改变,
+                                    formData.append("file", file);
+                                    formData.append("tenantId", "4");
+                                    fetch(uploadUrl, {
+                                      method: "POST",
+                                      headers: {
+                                        "Content-Type": "multipart/form-data",
+                                      },
+                                      body: formData,
+                                    })
+                                      .then((upresponsedata) => {
+                                        return upresponsedata.json();
+                                      })
+                                      .then((responseData) => {
+                                        if (responseData.status === 200) {
+                                          const headImgData = new FormData();
+                                          let headFile = {
+                                            uri: response.path,
+                                            type: "multipart/form-data",
+                                            name: "headfile.jpeg",
+                                          };
+                                          headImgData.append("file", headFile);
+                                          fetch(uploadUrl, {
+                                            //上传第1秒照片
+                                            method: "POST",
+                                            headers: {
+                                              "Content-Type":
+                                                "multipart/form-data",
+                                            },
+                                            body: headImgData,
                                           })
-                                          .then((responseData) => {
-                                            if (responseData.status === 200) {
-                                              const headImgData =
-                                                new FormData();
-                                              let headFile = {
-                                                uri: response.path,
-                                                type: "multipart/form-data",
-                                                name: "headfile.png",
-                                              };
-                                              headImgData.append(
-                                                "file",
-                                                headFile
-                                              );
-                                              fetch(uploadUrl, {
-                                                //上传第1秒照片
-                                                method: "POST",
-                                                headers: {
-                                                  "Content-Type":
-                                                    "multipart/form-data",
-                                                },
-                                                body: headImgData,
-                                              })
-                                                .then((headResponse) => {
-                                                  return headResponse.json();
-                                                })
-                                                .then((headResponseData) => {
+                                            .then((headResponse) => {
+                                              return headResponse.json();
+                                            })
+                                            .then((headResponseData) => {
+                                              if (
+                                                headResponseData.status === 200
+                                              ) {
+                                                fileUpload({
+                                                  type: 2,
+                                                  url: [
+                                                    `${
+                                                      responseData.data.domain +
+                                                      responseData.data.path
+                                                    }`,
+                                                  ],
+                                                  userId: storage.data,
+                                                  videoUrl:
+                                                    headResponseData.data
+                                                      .domain +
+                                                    headResponseData.data.path,
+                                                  base: twoImgBase,
+                                                  baseList: [
+                                                    oneImgBase,
+                                                    twoImgBase,
+                                                    threeImgBase,
+                                                  ],
+                                                }).then((data) => {
                                                   if (
-                                                    headResponseData.status ===
-                                                    200
+                                                    data.data.status === 200
                                                   ) {
-                                                    fileUpload({
-                                                      type: 2,
-                                                      url: [
-                                                        `${
-                                                          responseData.data
-                                                            .domain +
-                                                          responseData.data.path
-                                                        }`,
-                                                      ],
-                                                      userId: storage.data,
-                                                      videoUrl:
-                                                        headResponseData.data
-                                                          .domain +
-                                                        headResponseData.data
-                                                          .path,
-                                                    }).then((data) => {
-                                                      if (
-                                                        data.data.status === 200
-                                                      ) {
-                                                        Toast.remove(key);
-                                                        Toast.success({
-                                                          content: "上传成功",
-                                                          duration: 1,
-                                                        });
-                                                        that.getUserMessage();
-                                                      } else {
-                                                        Toast.remove(key);
-                                                        Toast.fail({
-                                                          content:
-                                                            data.data.msg,
-                                                          duration: 2,
-                                                        });
-                                                      }
+                                                    Toast.remove(key);
+                                                    Toast.success({
+                                                      content: "上传成功",
+                                                      duration: 1,
+                                                    });
+                                                    that.getUserMessage();
+                                                  } else {
+                                                    Toast.remove(key);
+                                                    Toast.fail({
+                                                      content: data.data.msg,
+                                                      duration: 2,
                                                     });
                                                   }
                                                 });
-                                            }
-                                          })
-                                          .catch((error) => {
-                                            console.error("error", error);
-                                          });
-                                      } else {
-                                        Toast.remove(key);
-                                        Toast.fail({
-                                          content: personTrueFalsedata.data.msg,
-                                          duration: 2,
-                                        });
-                                      }
-                                    });
+                                              }
+                                            });
+                                        }
+                                      })
+                                      .catch((error) => {
+                                        console.error("error", error);
+                                      });
+                                    // faceDetect({
+                                    //   //进行人脸对比
+                                    //   type: 2,
+                                    //   userId: storage.data,
+                                    //   imgUrl: "",
+                                    //   base: twoImgBase,
+                                    //   baseList: [
+                                    //     oneImgBase,
+                                    //     twoImgBase,
+                                    //     threeImgBase,
+                                    //   ],
+                                    // }).then((personTrueFalsedata) => {
+                                    //   if (
+                                    //     personTrueFalsedata.data.status === 200
+                                    //   ) {
+                                    //     //人脸对比成功
+
+                                    //   } else {
+                                    //     Toast.remove(key);
+                                    //     Toast.fail({
+                                    //       content: personTrueFalsedata.data.msg,
+                                    //       duration: 2,
+                                    //     });
+                                    //   }
+                                    // });
                                   });
                                 }
                               );
@@ -452,98 +481,85 @@ class Home extends Component {
       key: "userId",
       complete: (storage) => {
         if (storage.errMsg === "getStorage:ok") {
-          const formData = new FormData();
-          let file = {
-            uri: tempFilePaths[0],
-            type: "multipart/form-data",
-            name: "image.png",
-          }; //这里的key(uri和type和name)不能改变,
-          formData.append("file", file);
-          formData.append("tenantId", storage.data);
-          RNFS.readFile(tempFilePaths[0], "base64")
-            .then((content) => {
-              // content 为base64数据
-              faceDetect({
-                imgUrl: "",
-                type: 2,
-                userId: storage.data,
-                base: content,
-              })
-                .then((personTrueFalsedata) => {
-                  if (personTrueFalsedata.data.status === 200) {
-                    fetch(uploadUrl, {
-                      method: "POST",
-                      headers: {
-                        "Content-Type": "multipart/form-data",
-                      },
-                      body: formData,
+          ImagePicker.openCropper({
+            path: tempFilePaths[0],
+            width: 400,
+            height: 400,
+          })
+            .then((image) => {
+              const formData = new FormData();
+              let file = {
+                uri: image.path,
+                type: "multipart/form-data",
+                name: "image.jpeg",
+              }; //这里的key(uri和type和name)不能改变,
+              formData.append("file", file);
+              formData.append("tenantId", "4");
+              RNFS.readFile(image.path, "base64")
+                .then((content) => {
+                  // content 为base64数据
+                  fetch(uploadUrl, {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "multipart/form-data",
+                    },
+                    body: formData,
+                  })
+                    .then((response) => {
+                      return response.json();
                     })
-                      .then((response) => {
-                        return response.json();
-                      })
-                      .then((responseData) => {
-                        console.log("responseData", responseData);
-                        if (responseData.status === 200) {
-                          fileUpload({
-                            type: 1,
-                            url: [
-                              `${
-                                responseData.data.domain +
-                                responseData.data.path
-                              }`,
-                            ],
-                            userId: storage.data,
-                          })
-                            .then((data) => {
-                              if (data.data.status === 200) {
-                                Toast.remove(key);
-                                Toast.success({
-                                  content: "上传成功",
-                                  duration: 1,
-                                });
-                                this.getUserMessage();
-                              } else {
-                                Toast.remove(key);
-                                Toast.fail({
-                                  content: data.data.msg,
-                                  duration: 2,
-                                });
-                              }
-                            })
-                            .catch((error) => {
+                    .then((responseData) => {
+                      console.log("responseData", responseData);
+                      if (responseData.status === 200) {
+                        fileUpload({
+                          type: 1,
+                          url: [
+                            `${
+                              responseData.data.domain + responseData.data.path
+                            }`,
+                          ],
+                          userId: storage.data,
+                          base: content,
+                        })
+                          .then((data) => {
+                            if (data.data.status === 200) {
+                              Toast.remove(key);
+                              Toast.success({
+                                content: "上传成功",
+                                duration: 1,
+                              });
+                              this.getUserMessage();
+                            } else {
                               Toast.remove(key);
                               Toast.fail({
-                                content: `遇到了错误${error}`,
+                                content: data.data.msg,
                                 duration: 2,
                               });
+                            }
+                          })
+                          .catch((error) => {
+                            Toast.remove(key);
+                            Toast.fail({
+                              content: `遇到了错误${error}`,
+                              duration: 2,
                             });
-                        }
-                      })
-                      .catch((error) => {
-                        Toast.remove(key);
-                        Toast.fail({
-                          content: `遇到了错误${error}`,
-                          duration: 2,
-                        });
+                          });
+                      }
+                    })
+                    .catch((error) => {
+                      Toast.remove(key);
+                      Toast.fail({
+                        content: `遇到了错误${error}`,
+                        duration: 2,
                       });
-                  } else {
-                    Toast.remove(key);
-                    Toast.fail({
-                      content: personTrueFalsedata.data.msg,
-                      duration: 2,
                     });
-                  }
                 })
-                .catch((error) => {
-                  Toast.remove(key);
-                  Toast.fail({
-                    content: `遇到了错误${error}`,
-                    duration: 2,
-                  });
+                .catch((err) => {
+                  console.log("reading error: " + err);
                 });
             })
-            .catch((err) => {
-              console.log("reading error: " + err);
+            .catch(() => {
+              Toast.remove(key);
             });
         }
       },
@@ -623,6 +639,12 @@ class Home extends Component {
   editPassword() {
     Taro.navigateTo({
       url: `/pages/home/components/resetPassword/index?identity=${this.state.identity}&tel=${this.state.tel}&username=${this.state.username}`,
+    });
+  }
+
+  promoters() {
+    Taro.navigateTo({
+      url: `/pages/home/components/promoters/index?userId=${this.state.userInfo.id}&nickName=${this.state.userInfo.nickName}&tel=${this.state.userInfo.tel}`,
     });
   }
 
@@ -732,10 +754,14 @@ class Home extends Component {
           (topScrollViewImg &&
             topScrollViewImg.length > 0 &&
             topScrollViewImg[0].url),
+        priority: FastImage.priority.normal,
       };
     } else {
       if (userInfo.photo !== "") {
-        sourceUrl = { uri: userInfo.photo };
+        sourceUrl = {
+          uri: userInfo.photo,
+          priority: FastImage.priority.normal,
+        };
       } else {
         if (gender === 1) {
           sourceUrl = zwMan;
@@ -745,241 +771,240 @@ class Home extends Component {
       }
     }
     return (
-      <View>
-        <ScrollView
-          style={{ flex: 1, backgroundColor: "#f5f5f9", marginBottom: 100 }}
-          automaticallyAdjustContentInsets={false}
-          showsHorizontalScrollIndicator={false}
-          showsVerticalScrollIndicator={false}
-        >
-          <View className="container">
-            <ImageBackground className="img" source={sourceUrl}>
-              <View className="rightTopImgAdd" onClick={this.addPhoto}>
-                <Icon
-                  name="plus"
-                  size="md"
-                  style={{ color: "white", fontSize: 30 }}
-                />
-              </View>
-              <Text className="imgOnText">{userInfo.nickName}</Text>
-              <Text className="imgOnTwoText">
-                {userInfo.city} {userInfo.age}岁
+      <ScrollView
+        style={{
+          // flex: 1,
+          backgroundColor: "#f5f5f9",
+          marginBottom: 95,
+          height: 1,
+        }}
+        refresherEnabled
+        refresherTriggered={this.state.loading}
+        enhanced
+        onScrollToUpper={this.fetchRefresh}
+        onRefresherPulling={this.fetchRefresh}
+        onRefresherRefresh={this.fetchRefresh}
+        scrollY
+        refresherThreshold={100}
+      >
+        <View className="container">
+          <FastImage
+            className="img"
+            source={sourceUrl}
+            resizeMode={FastImage.resizeMode.cover}
+          >
+            <View className="rightTopImgAdd" onClick={this.addPhoto}>
+              <Icon
+                name="plus"
+                size="md"
+                style={{ color: "white", fontSize: 30 }}
+              />
+            </View>
+            <Text className="imgOnText">{userInfo.nickName}</Text>
+            <Text className="imgOnTwoText">
+              {userInfo.city} {userInfo.age}岁
+            </Text>
+            <View className="imgArray">
+              <ScrollView scrollX>
+                {topScrollViewImg?.map((reward) => {
+                  return (
+                    <View
+                      style={{ width: 50, height: 50, marginLeft: 10 }}
+                      className={
+                        reward === this.state.selectSmallImg
+                          ? "selectImgArrayOneImg"
+                          : ""
+                      }
+                      key={reward.id}
+                      onClick={() => this.selectSmallImg(reward)}
+                    >
+                      <FastImage
+                        source={{
+                          uri: reward ? `${reward.url}` : null,
+                          priority: FastImage.priority.normal,
+                        }}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          borderRadius: 10,
+                        }}
+                        resizeMode={FastImage.resizeMode.cover}
+                      ></FastImage>
+                    </View>
+                  );
+                })}
+              </ScrollView>
+            </View>
+            <View className="bottomText">
+              <Icon name="alert" size="md" color="#efb336" />
+              <Text style={{ color: "white", fontWeight: "bold" }}>
+                全身照越多(至少一张正面俩张侧面),才能被评为
+                {this.state.gender == 2 ? "女神" : "男神"}！
               </Text>
-              <View className="imgArray">
-                <ScrollView scrollX>
-                  {topScrollViewImg?.map((reward) => {
-                    return (
-                      <View
-                        style={{ width: 50, height: 50, marginLeft: 10 }}
-                        className={
-                          reward === this.state.selectSmallImg
-                            ? "selectImgArrayOneImg"
-                            : ""
-                        }
-                        key={reward.id}
-                        onClick={() => this.selectSmallImg(reward)}
-                      >
-                        <ImageBackground
-                          source={{ uri: reward ? reward.url : null }}
-                          style={{ width: "100%", height: "100%" }}
-                          imageStyle={{ borderRadius: 10 }}
-                        ></ImageBackground>
-                      </View>
-                    );
-                  })}
-                </ScrollView>
-              </View>
-              <View className="bottomText">
-                <Icon name="alert" size="md" color="#efb336" />
-                <Text style={{ color: "white", fontWeight: "bold" }}>
-                  全身照越多(至少一张正面俩张侧面),才能被评为
-                  {this.state.gender === 2 ? "女神" : "男神"}！
-                </Text>
-              </View>
-            </ImageBackground>
-          </View>
-          <List style={{ marginTop: 10 }}>
-            <Item
-              arrow="horizontal"
-              thumb={<Image src={personInfoImg} className="iconSizeStyle" />}
-              onPress={this.personInfoClick}
-            >
-              个人资料
-            </Item>
-            <Item
-              arrow="horizontal"
-              thumb={
-                this.state.gender === 2 ? (
-                  <Image
-                    src={manImg}
-                    className="iconSizeStyle"
-                    style={{ width: 30, height: 30 }}
-                  />
-                ) : (
-                  <Image
-                    src={manImg}
-                    className="iconSizeStyle"
-                    style={{ width: 30, height: 30 }}
-                  />
-                )
-              }
-              onPress={
-                userInfo.certificationLevel !== 1 ? null : this.personAuth
-              }
-              extra={
-                userInfo.certificationLevel === 1
-                  ? "普通用户"
-                  : userInfo.certificationLevel === 2
-                  ? "待审核"
-                  : userInfo.certificationLevel === 3
-                  ? "男神"
-                  : userInfo.certificationLevel === 4
-                  ? "女神"
-                  : ""
-              }
-            >
-              {this.state.gender === 2 ? "女神认证" : "男神认证"}
-            </Item>
-            <Item
-              thumb={<Image src={realPersonImg} className="iconSizeStyle" />}
-              onPress={
-                userInfo.personAuthentication === 1
-                  ? null
-                  : this.goPersonAuthentication
-              }
-              extra={
-                userInfo.personAuthentication === 1 ? "已认证" : "点击进行认证"
-              }
-              arrow="empty"
-              disabled={userInfo.personAuthentication === 1}
-            >
-              真人认证
-            </Item>
-            <WingBlank size="lg">
-              <Card>
-                <Card.Header
-                  title="我的相册"
-                  thumbStyle={{ width: 30, height: 30 }}
-                  thumb={<Image src={photoImg} className="iconSizeStyle" />}
-                  extra={
-                    <Item arrow="horizontal" onPress={this.photo.bind(this)}>
-                      <Text style={{ marginLeft: 10 }}>上传照片/视频</Text>
-                    </Item>
-                  }
+            </View>
+          </FastImage>
+        </View>
+        <List style={{ marginTop: 10 }}>
+          <Item
+            arrow="horizontal"
+            thumb={<Image src={personInfoImg} className="iconSizeStyle" />}
+            onPress={this.personInfoClick}
+          >
+            个人资料
+          </Item>
+          <Item
+            arrow="horizontal"
+            thumb={
+              this.state.gender == 2 ? (
+                <Image
+                  src={manImg}
+                  className="iconSizeStyle"
+                  style={{ width: 30, height: 30 }}
                 />
-                <Card.Body
-                  style={{ height: imgArrayHeight, overflow: "hidden" }}
-                >
-                  <WingBlank>
-                    <Flex direction="row" justify="between" wrap="wrap">
-                      {userInfo?.photos?.map((reward) => {
-                        if (reward.type === 1) {
-                          if (
-                            userInfo?.photos.length === 8 &&
-                            userInfo?.photos[userInfo?.photos.length - 1].id ===
-                              reward.id
-                          ) {
-                            return (
-                              <TouchableHighlight
+              ) : (
+                <Image
+                  src={manImg}
+                  className="iconSizeStyle"
+                  style={{ width: 30, height: 30 }}
+                />
+              )
+            }
+            onPress={userInfo.certificationLevel !== 1 ? null : this.personAuth}
+            extra={
+              userInfo.certificationLevel == 1
+                ? "普通用户"
+                : userInfo.certificationLevel == 2
+                ? "待审核"
+                : userInfo.certificationLevel == 3
+                ? "男神"
+                : userInfo.certificationLevel == 4
+                ? "女神"
+                : ""
+            }
+          >
+            {this.state.gender == 2 ? "女神认证" : "男神认证"}
+          </Item>
+          <Item
+            thumb={<Image src={realPersonImg} className="iconSizeStyle" />}
+            onPress={
+              userInfo.personAuthentication === 1
+                ? null
+                : this.goPersonAuthentication
+            }
+            extra={
+              userInfo.personAuthentication === 1 ? "已认证" : "点击进行认证"
+            }
+            arrow="empty"
+            disabled={userInfo.personAuthentication === 1}
+          >
+            真人认证
+          </Item>
+          <WingBlank size="lg">
+            <Card>
+              <Card.Header
+                title="我的相册"
+                thumbStyle={{ width: 30, height: 30 }}
+                thumb={<Image src={photoImg} className="iconSizeStyle" />}
+                extra={
+                  <Item arrow="horizontal" onPress={this.photo.bind(this)}>
+                    <Text style={{ marginLeft: 10 }}>上传照片/视频</Text>
+                  </Item>
+                }
+              />
+              <Card.Body style={{ height: imgArrayHeight, overflow: "hidden" }}>
+                <WingBlank>
+                  <Flex direction="row" justify="between" wrap="wrap">
+                    {userInfo?.photos?.map((reward) => {
+                      if (reward.type === 1) {
+                        if (
+                          userInfo?.photos.length === 8 &&
+                          userInfo?.photos[userInfo?.photos.length - 1].id ===
+                            reward.id
+                        ) {
+                          return (
+                            <TouchableHighlight
+                              key={reward.id}
+                              onPress={() => this.goPhotosPage(userInfo.id)}
+                              onLongPress={this.onLongPress}
+                              underlayColor="white"
+                            >
+                              <FastImage
+                                source={{
+                                  uri: `${reward.url}?width=50&height=0`,
+                                  priority: FastImage.priority.normal,
+                                }}
+                                resizeMode={FastImage.resizeMode.cover}
+                                style={{
+                                  width: 70,
+                                  height: 70,
+                                  marginLeft: 5,
+                                  marginBottom: 10,
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  borderRadius: 5,
+                                }}
                                 key={reward.id}
-                                onPress={() => this.goPhotosPage(userInfo.id)}
-                                onLongPress={this.onLongPress}
-                                underlayColor="white"
                               >
-                                <ImageBackground
-                                  source={{ uri: reward.url }}
-                                  style={{
-                                    width: 70,
-                                    height: 70,
-                                    marginLeft: 5,
-                                    marginBottom: 10,
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                  }}
-                                  imageStyle={{ borderRadius: 5 }}
-                                  key={reward.id}
-                                >
-                                  <Text
-                                    style={{ color: "white", fontSize: 20 }}
-                                  >
-                                    更多
-                                  </Text>
-                                </ImageBackground>
-                              </TouchableHighlight>
-                            );
-                          } else {
-                            return (
-                              <TouchableHighlight
-                                key={reward.id}
-                                onPress={() => this.myPhotosClick(reward.url)}
-                                onLongPress={this.onLongPress}
-                                underlayColor="white"
-                              >
-                                <ImageBackground
-                                  source={{ uri: reward.url }}
-                                  style={{
-                                    width: 70,
-                                    height: 70,
-                                    marginLeft: 5,
-                                    marginBottom: 10,
-                                  }}
-                                  imageStyle={{ borderRadius: 5 }}
-                                >
-                                  {isDel ? (
-                                    <View
-                                      style={{
-                                        width: 20,
-                                        height: 20,
-                                        position: "absolute",
-                                        right: 5,
-                                        bottom: 10,
-                                        zIndex: 2,
-                                      }}
-                                      onClick={() =>
-                                        this.goSubmitDel(reward.id)
-                                      }
-                                    >
-                                      <Image
-                                        src={deleteWhite}
-                                        style={{
-                                          width: "100%",
-                                          height: "100%",
-                                        }}
-                                      />
-                                    </View>
-                                  ) : null}
-                                </ImageBackground>
-                              </TouchableHighlight>
-                            );
-                          }
+                                <Text style={{ color: "white", fontSize: 20 }}>
+                                  更多
+                                </Text>
+                              </FastImage>
+                            </TouchableHighlight>
+                          );
                         } else {
                           return (
                             <TouchableHighlight
                               key={reward.id}
-                              onPress={() =>
-                                this.myVideoClick(`videocc${reward.id}`)
-                              }
+                              onPress={() => this.myPhotosClick(reward.url)}
                               onLongPress={this.onLongPress}
                               underlayColor="white"
                             >
-                              <View>
-                                <Video
-                                  style={{
-                                    width: 70,
-                                    height: 70,
-                                    marginLeft: 5,
-                                    borderRadius: 5,
-                                    marginBottom: 10,
-                                  }}
-                                  src={reward.url}
-                                  key={reward.id}
-                                  autoplay={false}
-                                  loop={false}
-                                  poster={reward.videoUrl}
-                                  showCenterPlayBtn={false}
-                                  id={`videocc${reward.id}`}
-                                  controls={false}
-                                />
+                              <FastImage
+                                source={{
+                                  uri: reward.url,
+                                  priority: FastImage.priority.normal,
+                                }}
+                                resizeMode={FastImage.resizeMode.cover}
+                                style={{
+                                  width: 70,
+                                  height: 70,
+                                  marginLeft: 5,
+                                  marginBottom: 10,
+                                  borderRadius: 5,
+                                }}
+                              >
+                                {reward.stateType == 0 ? (
+                                  <View
+                                    style={{
+                                      width: "100%",
+                                      height: 20,
+                                      position: "absolute",
+                                      bottom: 0,
+                                      zIndex: 2,
+                                      textAlign: "center",
+                                      color: "white",
+                                      backgroundColor: "black",
+                                    }}
+                                  >
+                                    审核中
+                                  </View>
+                                ) : reward.stateType == 1 ? (
+                                  <View
+                                    style={{
+                                      width: "100%",
+                                      height: 20,
+                                      position: "absolute",
+                                      bottom: 0,
+                                      zIndex: 2,
+                                      textAlign: "center",
+                                      color: "white",
+                                      backgroundColor: "red",
+                                    }}
+                                  >
+                                    审核不通过
+                                  </View>
+                                ) : null}
+
                                 {isDel ? (
                                   <View
                                     style={{
@@ -987,134 +1012,231 @@ class Home extends Component {
                                       height: 20,
                                       position: "absolute",
                                       right: 5,
-                                      bottom: 16,
+                                      bottom: 10,
                                       zIndex: 2,
                                     }}
                                     onClick={() => this.goSubmitDel(reward.id)}
                                   >
                                     <Image
                                       src={deleteWhite}
-                                      style={{ width: "100%", height: "100%" }}
+                                      style={{
+                                        width: "100%",
+                                        height: "100%",
+                                      }}
                                     />
                                   </View>
                                 ) : null}
-                              </View>
+                              </FastImage>
                             </TouchableHighlight>
                           );
                         }
-                      })}
-                      {userInfo?.photos?.length % 2 === 0 ? (
-                        <>
-                          <View
-                            style={{
-                              width: 70,
-                              height: 70,
-                              marginLeft: 5,
-                              marginBottom: 10,
-                            }}
-                          ></View>
-                          <View
-                            style={{
-                              width: 70,
-                              height: 70,
-                              marginLeft: 5,
-                              marginBottom: 10,
-                            }}
-                          ></View>
-                        </>
-                      ) : (
-                        <>
-                          <View
-                            style={{
-                              width: 70,
-                              height: 70,
-                              marginLeft: 5,
-                              marginBottom: 10,
-                            }}
-                          ></View>
-                          <View
-                            style={{
-                              width: 70,
-                              height: 70,
-                              marginLeft: 5,
-                              marginBottom: 10,
-                            }}
-                          ></View>
-                        </>
-                      )}
-                    </Flex>
-                  </WingBlank>
-                </Card.Body>
-                <Card.Footer content="上传更多照片，才能吸引异性～" />
-              </Card>
-            </WingBlank>
+                      } else {
+                        return (
+                          <TouchableHighlight
+                            key={reward.id}
+                            onPress={() =>
+                              this.myVideoClick(`videocc${reward.id}`)
+                            }
+                            onLongPress={this.onLongPress}
+                            underlayColor="white"
+                          >
+                            <View>
+                              <Video
+                                style={{
+                                  width: 70,
+                                  height: 70,
+                                  marginLeft: 5,
+                                  borderRadius: 5,
+                                  marginBottom: 10,
+                                }}
+                                src={reward.url}
+                                key={reward.id}
+                                autoplay={false}
+                                loop={false}
+                                poster={reward.videoUrl}
+                                showCenterPlayBtn={false}
+                                id={`videocc${reward.id}`}
+                                controls={false}
+                              />
+                              {reward.stateType == 0 ? (
+                                <View
+                                  style={{
+                                    width: 70,
+                                    height: 20,
+                                    position: "absolute",
+                                    bottom: 9,
+                                    zIndex: 2,
+                                    textAlign: "center",
+                                    color: "white",
+                                    backgroundColor: "black",
+                                    marginLeft: 5,
+                                    borderRadius: 5,
+                                  }}
+                                >
+                                  审核中
+                                </View>
+                              ) : reward.stateType == 1 ? (
+                                <View
+                                  style={{
+                                    width: 70,
+                                    height: 20,
+                                    position: "absolute",
+                                    bottom: 9,
+                                    zIndex: 2,
+                                    textAlign: "center",
+                                    color: "white",
+                                    backgroundColor: "red",
+                                    marginLeft: 5,
+                                    borderRadius: 5,
+                                  }}
+                                >
+                                  审核不通过
+                                </View>
+                              ) : null}
+                              {isDel ? (
+                                <View
+                                  style={{
+                                    width: 20,
+                                    height: 20,
+                                    position: "absolute",
+                                    right: 5,
+                                    bottom: 16,
+                                    zIndex: 2,
+                                  }}
+                                  onClick={() => this.goSubmitDel(reward.id)}
+                                >
+                                  <Image
+                                    src={deleteWhite}
+                                    style={{ width: "100%", height: "100%" }}
+                                  />
+                                </View>
+                              ) : null}
+                            </View>
+                          </TouchableHighlight>
+                        );
+                      }
+                    })}
+                    {userInfo?.photos?.length % 2 === 0 ? (
+                      <>
+                        <View
+                          style={{
+                            width: 70,
+                            height: 70,
+                            marginLeft: 5,
+                            marginBottom: 10,
+                          }}
+                        ></View>
+                        <View
+                          style={{
+                            width: 70,
+                            height: 70,
+                            marginLeft: 5,
+                            marginBottom: 10,
+                          }}
+                        ></View>
+                      </>
+                    ) : (
+                      <>
+                        <View
+                          style={{
+                            width: 70,
+                            height: 70,
+                            marginLeft: 5,
+                            marginBottom: 10,
+                          }}
+                        ></View>
+                        <View
+                          style={{
+                            width: 70,
+                            height: 70,
+                            marginLeft: 5,
+                            marginBottom: 10,
+                          }}
+                        ></View>
+                      </>
+                    )}
+                  </Flex>
+                </WingBlank>
+              </Card.Body>
+              <Card.Footer content="上传更多照片，才能吸引异性～" />
+            </Card>
+          </WingBlank>
+          <Item
+            arrow="horizontal"
+            thumb={
+              <Image src={historyCallPersonImg} className="iconSizeStyle" />
+            }
+            onPress={this.historyVisiti}
+            extra={`有${userInfo.historicalVisitorsNums}个人看过你`}
+          >
+            历史访客
+          </Item>
+          <Item
+            thumb={<Image src={invitecodeImg} className="iconSizeStyle" />}
+            disabled
+            extra={
+              <View className="copyExtra" style={{ position: "relative" }}>
+                <Text style={{ position: "absolute", bottom: -8, left: 30 }}>
+                  {userInfo.invitationCode}
+                </Text>
+                <Button
+                  style={{ position: "absolute", right: 15, bottom: -16 }}
+                  type="primary"
+                  className="copyButton"
+                  onPress={this.copyYqm}
+                >
+                  复制
+                </Button>
+              </View>
+            }
+          >
+            邀请码
+          </Item>
+          <Item
+            arrow="horizontal"
+            thumb={<Image src={shareImg} className="iconSizeStyle" />}
+            onPress={this.shareClick}
+          >
+            分享给好友
+          </Item>
+          <Item
+            arrow="horizontal"
+            thumb={<Image src={adviceImg} className="iconSizeStyle" />}
+            onPress={this.adviceClick}
+          >
+            意见反馈
+          </Item>
+          <Item
+            arrow="horizontal"
+            thumb={<Image src={adviceImg} className="iconSizeStyle" />}
+            onPress={this.editPassword}
+          >
+            修改密码
+          </Item>
+          {this.state.userIdentity == 1 ? (
             <Item
               arrow="horizontal"
-              thumb={
-                <Image src={historyCallPersonImg} className="iconSizeStyle" />
-              }
-              onPress={this.historyVisiti}
-              extra={`有${userInfo.historicalVisitorsNums}个人看过你`}
+              thumb={<Image src={dkImg} className="iconSizeStyle" />}
+              onPress={this.promoters}
             >
-              历史访客
+              推广员
             </Item>
-            <Item
-              thumb={<Image src={invitecodeImg} className="iconSizeStyle" />}
-              disabled
-              extra={
-                <View className="copyExtra" style={{ position: "relative" }}>
-                  <Text style={{ position: "absolute", bottom: -8, left: 30 }}>
-                    {userInfo.invitationCode}
-                  </Text>
-                  <Button
-                    style={{ position: "absolute", right: 15, bottom: -16 }}
-                    type="primary"
-                    className="copyButton"
-                    onPress={this.copyYqm}
-                  >
-                    复制
-                  </Button>
-                </View>
-              }
-            >
-              邀请码
-            </Item>
-            <Item
-              arrow="horizontal"
-              thumb={<Image src={shareImg} className="iconSizeStyle" />}
-              onPress={this.shareClick}
-            >
-              分享给好友
-            </Item>
-            <Item
-              arrow="horizontal"
-              thumb={<Image src={adviceImg} className="iconSizeStyle" />}
-              onPress={this.adviceClick}
-            >
-              意见反馈
-            </Item>
-            <Item
-              arrow="horizontal"
-              thumb={<Image src={adviceImg} className="iconSizeStyle" />}
-              onPress={this.editPassword}
-            >
-              修改密码
-            </Item>
-            <Item
-              thumb={<Image src={versonImg} className="iconSizeStyle" />}
-              extra={<Text>V1.0.1</Text>}
-            >
-              当前版本
-            </Item>
-            <Item
-              thumb={<Image src={logoutImg} className="iconSizeStyle" />}
-              extra={null}
-              onPress={this.logoutClick}
-            >
-              退出账号
-            </Item>
-          </List>
-        </ScrollView>
+          ) : null}
+
+          <Item
+            thumb={<Image src={versonImg} className="iconSizeStyle" />}
+            extra={<Text>V1.0.1</Text>}
+          >
+            当前版本
+          </Item>
+          <Item
+            thumb={<Image src={logoutImg} className="iconSizeStyle" />}
+            extra={null}
+            onPress={this.logoutClick}
+          >
+            退出账号
+          </Item>
+        </List>
         <Modal
           title={null}
           transparent
@@ -1150,7 +1272,7 @@ class Home extends Component {
             { text: "立即认证", onPress: this.goPersonAuthentication },
           ]}
         ></Modal>
-      </View>
+      </ScrollView>
     );
   }
 }

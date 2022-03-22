@@ -8,6 +8,8 @@ export default {
     "pages/home/components/historyVisit/index",
     "pages/home/components/personInfoPage/components/editUserInfo",
     "pages/home/components/resetPassword/index",
+    "pages/home/components/promoters/index",
+    "pages/home/components/promotersDk/index",
     "pages/userInfo/index",
     "pages/photoLists/index",
     "pages/pay/index",

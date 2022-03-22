@@ -3,6 +3,8 @@ import Taro from "@tarojs/taro";
 import { connect } from "react-redux";
 import RNFS from "react-native-fs";
 import { View, Text, Image } from "@tarojs/components";
+import ImagePicker from "react-native-image-crop-picker";
+
 import { List, DatePicker, Toast } from "@ant-design/react-native";
 import { ImageBackground, TextInput } from "react-native";
 import headImg from "../../../../images/zwWomen.png";
@@ -54,14 +56,6 @@ class Personinfopage extends Component {
         this.setState({ cityName: arg?.city });
       }
     });
-    Taro.getStorage({
-      key: "gender",
-      complete: (res) => {
-        if (res.errMsg === "getStorage:ok") {
-          this.setState({ gender: res.data });
-        }
-      },
-    });
     if (!userId) {
       Taro.getStorage({
         key: "userId",
@@ -80,17 +74,25 @@ class Personinfopage extends Component {
         .then((userInfoData) => {
           if (userInfoData.statusCode === 200) {
             const userData = userInfoData.data.data;
-            this.setState({
-              nickName: !userData.nickName ? "" : userData.nickName,
-              wxName: !userData.wxAccount ? "" : userData.wxAccount,
-              height: !userData.height ? "" : userData.height + "",
-              weight: !userData.weight ? "" : userData.weight + "",
-              aidou: !userData.individualValues
-                ? ""
-                : userData.individualValues + "",
-              cityName: !userData.city ? "" : userData.city,
-              birthdayName: !userData.birthday ? "" : userData.birthday,
-              photos: !userData.photo ? "" : userData.photo,
+            Taro.getStorage({
+              key: "gender",
+              complete: (res) => {
+                if (res.errMsg === "getStorage:ok") {
+                  this.setState({
+                    nickName: !userData.nickName ? "" : userData.nickName,
+                    wxName: !userData.wxAccount ? "" : userData.wxAccount,
+                    height: !userData.height ? "" : userData.height + "",
+                    weight: !userData.weight ? "" : userData.weight + "",
+                    aidou: !userData.individualValues
+                      ? ""
+                      : userData.individualValues + "",
+                    cityName: !userData.city ? "" : userData.city,
+                    birthdayName: !userData.birthday ? "" : userData.birthday,
+                    photos: !userData.photo ? "" : userData.photo,
+                    gender: !userData.gender ? res.data : userData.gender,
+                  });
+                }
+              },
             });
           } else {
             Toast.fail({
@@ -231,7 +233,7 @@ class Personinfopage extends Component {
   updateHeadImg() {
     Taro.chooseImage({
       count: 1,
-      sizeType: ["original", "compressed"], // 可以指定是原图还是压缩图，默认二者都有
+      sizeType: ["compressed"], // 可以指定是原图还是压缩图，默认二者都有
       sourceType: ["camera"], // 可以指定来源是相册还是相机，默认二者都有，在H5浏览器端支持使用 `user` 和 `environment`分别指定为前后摄像头
       success: (res) => {
         this.uploadImage(res.tempFilePaths);
@@ -258,25 +260,28 @@ class Personinfopage extends Component {
 
   // 上传图片
   uploadImage(tempFilePaths) {
+    const identity = this.props.route.params.identity;
+    console.log(identity);
+
     const key = Toast.loading("上传/认证中...");
-    const formData = new FormData();
-    let file = {
-      uri: tempFilePaths[0],
-      type: "multipart/form-data",
-      name: "image.png",
-    }; //这里的key(uri和type和name)不能改变,
-    formData.append("file", file);
-    formData.append("tenantId", this.state.userId);
-    RNFS.readFile(tempFilePaths[0], "base64").then((content) => {
-      // content 为base64数据
-      faceDetect({
-        imgUrl: "",
-        type: 2,
-        userId: this.state.userId,
-        base: content,
-      })
-        .then((personTrueFalsedata) => {
-          if (personTrueFalsedata.data.status === 200) {
+    ImagePicker.openCropper({
+      path: tempFilePaths[0],
+      width: 400,
+      height: 400,
+    })
+      .then((image) => {
+        console.log(image);
+        const formData = new FormData();
+        let file = {
+          uri: image.path,
+          type: "multipart/form-data",
+          name: "image.jpeg",
+        }; //这里的key(uri和type和name)不能改变,
+        formData.append("file", file);
+        formData.append("tenantId", "4");
+        RNFS.readFile(image.path, "base64").then((content) => {
+          console.log("content", content);
+          if (identity == 1) {
             fetch(uploadUrl, {
               method: "POST",
               headers: {
@@ -304,21 +309,63 @@ class Personinfopage extends Component {
                 console.error("error", error);
               });
           } else {
-            Toast.remove(key);
-            Toast.fail({
-              content: personTrueFalsedata.data.msg,
-              duration: 2,
-            });
+            fetch(uploadUrl, {
+              method: "POST",
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+              body: formData,
+            })
+              .then((response) => {
+                return response.json();
+              })
+              .then((responseData) => {
+                console.log("responseData", responseData);
+                if (responseData.status === 200) {
+                  faceDetect({
+                    imgUrl: "",
+                    type: 2,
+                    userId: this.state.userId,
+                    base: this.state.goPageType === "signUser" ? content : "",
+                    pictureUrl:
+                      this.state.goPageType === "signUser"
+                        ? ""
+                        : responseData.data.domain + responseData.data.path,
+                    gender: this.state.gender,
+                  })
+                    .then((personTrueFalsedata) => {
+                      if (personTrueFalsedata.data.status === 200) {
+                        Toast.remove(key);
+                        Toast.success({
+                          content: "认证成功",
+                          duration: 1,
+                        });
+                        this.setState({
+                          newPhoto:
+                            responseData.data.domain + responseData.data.path,
+                        });
+                      } else {
+                        Toast.remove(key);
+                        Toast.fail({
+                          content: personTrueFalsedata.data.msg,
+                          duration: 2,
+                        });
+                      }
+                    })
+                    .catch((error) => {
+                      console.error("error", error);
+                    });
+                }
+              })
+              .catch((error) => {
+                console.error("error", error);
+              });
           }
-        })
-        .catch((error) => {
-          Toast.remove(key);
-          Toast.fail({
-            content: `遇到了错误${error}`,
-            duration: 2,
-          });
         });
-    });
+      })
+      .catch(() => {
+        Toast.remove(key);
+      });
   }
 
   birthdayOnChange(value) {
@@ -332,13 +379,23 @@ class Personinfopage extends Component {
   // }
 
   render() {
-    const initHeadImg = this.state.gender === 1 ? headImgMan : headImg;
+    const initHeadImg =
+      this.state.gender === 1
+        ? "http://file.hh.darling1314.com/group1/default/20220304/10/03/6/422e8a36b47094acdb65c58c67684476.png"
+        : "http://file.hh.darling1314.com/group1/default/20220304/10/04/6/287a6bdf673120f03aa1fa4735c80043.png";
     let sourceUrl;
-    if (this.state.newPhoto || this.state.photos) {
-      sourceUrl = { uri: this.state.newPhoto || this.state.photos };
+    if (this.state.newPhoto) {
+      sourceUrl = {
+        uri: `${this.state.newPhoto}`,
+      };
+    } else if (this.state.photos) {
+      sourceUrl = {
+        uri: `${this.state.photos}`,
+      };
     } else {
       sourceUrl = initHeadImg;
     }
+    console.log(sourceUrl);
     return (
       <View
         style={{
@@ -354,7 +411,7 @@ class Personinfopage extends Component {
             extra={
               <View className="imgOutView">
                 <ImageBackground
-                  source={sourceUrl || headImg}
+                  source={sourceUrl}
                   style={{ width: 100, height: 100 }}
                   imageStyle={{ borderRadius: 100 }}
                 >

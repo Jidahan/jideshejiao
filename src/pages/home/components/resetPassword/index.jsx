@@ -30,6 +30,7 @@ class Resetpassword extends Component {
       btnContent: "获取验证码",
       identity: "",
       username: "",
+      loading: false,
     };
     this.onSubmit = this.onSubmit.bind(this);
   }
@@ -43,6 +44,7 @@ class Resetpassword extends Component {
   }
 
   onSubmit() {
+    this.setState({ loading: true });
     const {
       identity,
       phoneValue,
@@ -56,33 +58,33 @@ class Resetpassword extends Component {
     if (identity == 1) {
       //特殊用户
       if (!oldPassWordValue) {
-        this.setState({ oldPassWordError: true });
+        this.setState({ oldPassWordError: true, loading: false });
         return;
       }
       if (!oneNewPassWordValue) {
-        this.setState({ oneNewPassWordError: true });
+        this.setState({ oneNewPassWordError: true, loading: false });
         return;
       }
       if (!twoNewPassWordValue) {
-        this.setState({ twoNewPassWordError: true });
+        this.setState({ twoNewPassWordError: true, loading: false });
         return;
       }
     } else {
       //普通用户
       if (!phoneValue) {
-        this.setState({ phoneError: true });
+        this.setState({ phoneError: true, loading: false });
         return;
       }
       if (!yzmValue) {
-        this.setState({ yzmError: true });
+        this.setState({ yzmError: true, loading: false });
         return;
       }
       if (!oneNewPassWordValue) {
-        this.setState({ oneNewPassWordError: true });
+        this.setState({ oneNewPassWordError: true, loading: false });
         return;
       }
       if (!twoNewPassWordValue) {
-        this.setState({ twoNewPassWordError: true });
+        this.setState({ twoNewPassWordError: true, loading: false });
         return;
       }
     }
@@ -90,6 +92,7 @@ class Resetpassword extends Component {
       this.setState({
         twoNewPassWordError: true,
         oneNewPassWordError: true,
+        loading: false,
       });
       Toast.fail({
         content: `俩次输入的密码不一致！`,
@@ -110,11 +113,13 @@ class Resetpassword extends Component {
           content: "修改密码成功！",
           duration: 2,
         });
+        this.setState({ loading: false });
       } else {
         Toast.fail({
           content: data.data.msg,
           duration: 2,
         });
+        this.setState({ loading: false });
       }
     });
   }
@@ -362,10 +367,15 @@ class Resetpassword extends Component {
       <View className={styles["styles"]}>
         <WhiteSpace size="xl" />
         <WingBlank>
-          {this.state.identity === 1 ? notNormalUserJSX : normalUserJSX}
+          {this.state.identity == 1 ? notNormalUserJSX : normalUserJSX}
 
           <WhiteSpace size="xl" />
-          <Button type="primary" onPress={this.onSubmit}>
+          <Button
+            type="primary"
+            onPress={this.onSubmit}
+            loading={this.state.loading}
+            disabled={this.state.loading}
+          >
             提交
           </Button>
         </WingBlank>

@@ -173,6 +173,7 @@ class face extends Component {
   goPersonVideo = () => {
     const that = this;
     Taro.chooseVideo({
+      compressed: true,
       camera: "front",
       sourceType: ["camera"],
       maxDuration: 6,
