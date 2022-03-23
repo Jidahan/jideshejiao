@@ -74,11 +74,15 @@ class Index extends Component {
                   allDataHaveStopLoading: true,
                 });
                 Toast.info({
-                  content: `当前定位城市为${resCity.data.result.address_component.nation}`,
+                  content: `当前定位城市为${resCity.data.result.address_component.nation}，默认查取西安用户数据！`,
                   duration: 2,
                 });
                 that.setState(
-                  { city: resCity.data.result.address_component.nation },
+                  {
+                    city: "西安",
+                    latitude: "34.343147",
+                    longitude: "108.939621",
+                  },
                   () => {
                     that.refreshData();
                     that.getUserLists();
@@ -86,11 +90,11 @@ class Index extends Component {
                   }
                 );
               } else {
-                const city =
-                  resCity.data.result.address_component.city.split("市")[0];
+                // const city =
+                //   resCity.data.result.address_component.city.split("市")[0];
                 that.setState(
                   {
-                    city,
+                    city: "附近",
                   },
                   () => {
                     that.refreshData();
@@ -101,7 +105,7 @@ class Index extends Component {
               }
             } else {
               Toast.fail({
-                content: "定位失败",
+                content: "定位失败，请刷新当前页面或退出App重新进入！",
                 duration: 2,
               });
               that.setState({ isLoading: false, allDataHaveStopLoading: true });
@@ -186,7 +190,7 @@ class Index extends Component {
       complete: (res) => {
         if (res.errMsg === "getStorage:ok") {
           appUserList({
-            city,
+            city: city == "附近" ? "" : city,
             pageNumber,
             pageSize,
             latitude,

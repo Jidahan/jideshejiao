@@ -35,7 +35,10 @@ class Advicepage extends Component {
   onSubmit() {
     if (!this.state.inputValue) {
       this.setState({ error: true });
-      Toast.fail("输入有误！");
+      Toast.fail({
+        content: "输入有误！",
+        duration: 1,
+      });
       return;
     }
     Taro.getStorage({

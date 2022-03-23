@@ -86,6 +86,7 @@ class Home extends Component {
     this.editPassword = this.editPassword.bind(this);
     this.fetchRefresh = this.fetchRefresh.bind(this);
     this.promoters = this.promoters.bind(this);
+    this.addTopRightPhoto = this.addTopRightPhoto.bind(this);
   }
 
   componentDidMount() {
@@ -252,6 +253,127 @@ class Home extends Component {
     });
   }
 
+  addTopRightPhoto() {
+    if (this.state.userInfo.personAuthentication !== 1) {
+      this.setState({ tipUserGoAuth: true });
+    } else {
+      const sourceType =
+        this.state.identity == 1 ? ["camera", "album"] : ["camera"];
+      if (this.state.userInfo.personAuthentication !== 1) {
+        this.setState({ tipUserGoAuth: true });
+      } else {
+        Taro.chooseImage({
+          count: 1,
+          sizeType: ["compressed"], // 可以指定是原图还是压缩图，默认二者都有
+          sourceType, // 可以指定来源是相册还是相机，默认二者都有，在H5浏览器端支持使用 `user` 和 `environment`分别指定为前后摄像头
+          success: (res) => {
+            this.uploadHeadImage(res.tempFilePaths);
+          },
+        });
+      }
+    }
+  }
+
+  // 上传图片
+  uploadHeadImage(tempFilePaths) {
+    const identity = this.state.identity;
+    const that = this;
+    const key = Toast.loading("上传/认证中...");
+    ImagePicker.openCropper({
+      path: tempFilePaths[0],
+      width: 400,
+      height: 400,
+    })
+      .then((image) => {
+        const formData = new FormData();
+        let file = {
+          uri: image.path,
+          type: "multipart/form-data",
+          name: "image.jpeg",
+        }; //这里的key(uri和type和name)不能改变,
+        formData.append("file", file);
+        formData.append("tenantId", "4");
+        RNFS.readFile(image.path, "base64").then((content) => {
+          console.log("content", content);
+          if (identity == 1) {
+            fetch(uploadUrl, {
+              method: "POST",
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+              body: formData,
+            })
+              .then((response) => {
+                return response.json();
+              })
+              .then((responseData) => {
+                if (responseData.status === 200) {
+                  Toast.remove(key);
+                  Toast.success({
+                    content: "认证成功",
+                    duration: 1,
+                  });
+                  that.getUserMessage();
+                }
+              })
+              .catch((error) => {
+                console.error("error", error);
+              });
+          } else {
+            fetch(uploadUrl, {
+              method: "POST",
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+              body: formData,
+            })
+              .then((response) => {
+                return response.json();
+              })
+              .then((responseData) => {
+                console.log("responseData", responseData);
+                if (responseData.status === 200) {
+                  faceDetect({
+                    imgUrl: "",
+                    type: 2,
+                    userId: that.state.userInfo.id,
+                    base: "",
+                    pictureUrl:
+                      responseData.data.domain + responseData.data.path,
+                    gender: that.state.userInfo.id.gender,
+                  })
+                    .then((personTrueFalsedata) => {
+                      if (personTrueFalsedata.data.status === 200) {
+                        Toast.remove(key);
+                        Toast.success({
+                          content: "认证成功",
+                          duration: 1,
+                        });
+                        that.getUserMessage();
+                      } else {
+                        Toast.remove(key);
+                        Toast.fail({
+                          content: personTrueFalsedata.data.msg,
+                          duration: 2,
+                        });
+                      }
+                    })
+                    .catch((error) => {
+                      console.error("error", error);
+                    });
+                }
+              })
+              .catch((error) => {
+                console.error("error", error);
+              });
+          }
+        });
+      })
+      .catch(() => {
+        Toast.remove(key);
+      });
+  }
+
   addPhoto() {
     if (this.state.userInfo.personAuthentication !== 1) {
       this.setState({ tipUserGoAuth: true });
@@ -279,7 +401,7 @@ class Home extends Component {
     const that = this;
     Taro.chooseVideo({
       sourceType,
-      maxDuration: 60,
+      maxDuration: 10,
       compressed: true,
       camera: "front",
       success: function (res) {
@@ -413,31 +535,6 @@ class Home extends Component {
                                       .catch((error) => {
                                         console.error("error", error);
                                       });
-                                    // faceDetect({
-                                    //   //进行人脸对比
-                                    //   type: 2,
-                                    //   userId: storage.data,
-                                    //   imgUrl: "",
-                                    //   base: twoImgBase,
-                                    //   baseList: [
-                                    //     oneImgBase,
-                                    //     twoImgBase,
-                                    //     threeImgBase,
-                                    //   ],
-                                    // }).then((personTrueFalsedata) => {
-                                    //   if (
-                                    //     personTrueFalsedata.data.status === 200
-                                    //   ) {
-                                    //     //人脸对比成功
-
-                                    //   } else {
-                                    //     Toast.remove(key);
-                                    //     Toast.fail({
-                                    //       content: personTrueFalsedata.data.msg,
-                                    //       duration: 2,
-                                    //     });
-                                    //   }
-                                    // });
                                   });
                                 }
                               );
@@ -793,7 +890,7 @@ class Home extends Component {
             source={sourceUrl}
             resizeMode={FastImage.resizeMode.cover}
           >
-            <View className="rightTopImgAdd" onClick={this.addPhoto}>
+            <View className="rightTopImgAdd" onClick={this.addTopRightPhoto}>
               <Icon
                 name="plus"
                 size="md"

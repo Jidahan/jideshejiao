@@ -39,6 +39,7 @@ class Photolists extends Component {
       pageNumber: 1,
       pageSize: 500,
       userId,
+      isOneself: parent === "home" ? 1 : 0,
     })
       .then((data) => {
         if (data.statusCode === 200) {

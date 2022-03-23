@@ -188,6 +188,8 @@ class face extends Component {
         formData.append("file", file);
         formData.append("accessToken", that.state.access_token);
         formData.append("sessionId", that.state.sessionId);
+        formData.append("userId", that.state.userId);
+        formData.append("gender", that.state.gender);
         console.log("formDataformData=====", formData);
         fetch(uploadUrl, {
           method: "POST",
@@ -200,103 +202,29 @@ class face extends Component {
             return response.json();
           })
           .then((responseData) => {
+            console.log("responseData", responseData);
             if (responseData.status === 200) {
-              const data = JSON.parse(responseData.data);
-              const {
-                result: {
-                  best_image: { pic },
-                },
-                err_no,
-                error_msg,
-              } = data;
-              if (data.err_no === 0) {
-                faceDetect({
-                  type: 1,
-                  userId: that.state.userId,
-                  gender: that.state.gender,
-                  base: pic,
-                }).then((datas) => {
-                  if (datas.data.status === 200) {
-                    Toast.remove(key);
-                    Toast.success({
-                      content: "认证成功，即将跳转...",
-                      duration: 1,
-                    });
-                    clearInterval(that.setInterval);
-                    if (that.props.route.params.pageType === "home") {
-                      setTimeout(() => {
-                        Taro.navigateBack({
-                          delta: 1,
-                        });
-                        Taro.eventCenter.trigger("authUserIsRefresh", {
-                          status: true,
-                        });
-                      }, 1000);
-                    } else {
-                      setTimeout(() => {
-                        Taro.navigateTo({
-                          url: `/pages/home/components/personInfoPage/index?type=signUser&userId=${that.state.userId}`,
-                        });
-                      }, 1000);
-                    }
-                  } else {
-                    Toast.remove(key);
-                    Toast.fail({
-                      content: datas.data.msg,
-                      duration: 2,
-                    });
-                  }
-                });
+              Toast.remove(key);
+              Toast.success({
+                content: "认证成功，即将跳转...",
+                duration: 1,
+              });
+              clearInterval(that.setInterval);
+              if (that.props.route.params.pageType === "home") {
+                setTimeout(() => {
+                  Taro.navigateBack({
+                    delta: 1,
+                  });
+                  Taro.eventCenter.trigger("authUserIsRefresh", {
+                    status: true,
+                  });
+                }, 1000);
               } else {
-                Toast.remove(key);
-                switch (err_no) {
-                  case 216430:
-                  case 216431:
-                  case 216432:
-                  case 216433:
-                  case 216434:
-                    Toast.fail({
-                      content: "请重新尝试",
-                      duration: 2,
-                    });
-                    break;
-                  case 216500:
-                    Toast.fail({
-                      content: "验证码错误",
-                      duration: 2,
-                    });
-                    break;
-                  case 216501:
-                    Toast.fail({
-                      content: "没有找到人脸",
-                      duration: 2,
-                    });
-                    break;
-                  case 216502:
-                    Toast.fail({
-                      content: "当前会话已失效,请重新进入页面",
-                      duration: 2,
-                    });
-                    break;
-                  case 216507:
-                    Toast.fail({
-                      content: "视频中有多张人脸，请重新录制",
-                      duration: 2,
-                    });
-                    break;
-                  case 216908:
-                    Toast.fail({
-                      content: "视频中人脸质量过低，请重新录制视频",
-                      duration: 2,
-                    });
-                    break;
-                  default:
-                    Toast.fail({
-                      content: error_msg,
-                      duration: 2,
-                    });
-                    break;
-                }
+                setTimeout(() => {
+                  Taro.navigateTo({
+                    url: `/pages/home/components/personInfoPage/index?type=signUser&userId=${that.state.userId}`,
+                  });
+                }, 1000);
               }
             }
           })
