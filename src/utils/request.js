@@ -41,6 +41,10 @@ export default (options = { method: "GET", data: {} }) => {
         }
         return data;
       } else {
+        Taro.clearStorage();
+        Taro.redirectTo({
+          url: "/pages/login/index",
+        });
         throw new Error(
           errMsg === "request:fail timeout"
             ? "网络请求超时，请检查网络情况后重试"

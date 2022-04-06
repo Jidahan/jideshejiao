@@ -1,15 +1,17 @@
 import { Component } from "react";
 import Taro from "@tarojs/taro";
 import { View, Text, Image } from "@tarojs/components";
-import { Icon, SearchBar, Toast } from "@ant-design/react-native";
+import { Icon, SearchBar, Toast, Modal } from "@ant-design/react-native";
 import {
   FlatList,
   ActivityIndicator,
   RefreshControl,
   StyleSheet,
+  Linking,
 } from "react-native";
 import IndexLists from "./components/IndexLists";
-import { appUserList } from "./service";
+import { appVersion, appNumberVersion } from "../../utils/version";
+import { appUserList, versionApi } from "./service";
 import PositionImg from "../../images/position.png";
 import AdLists from "./components/AdLists";
 import "./index.less";
@@ -31,10 +33,14 @@ class Index extends Component {
       range: 10,
       allDataHaveStopLoading: false,
       nowSearch: false,
+      haveNewVersionContent: "",
+      tipsVersionModal: false,
+      isOneBeginApp: true,
     }),
       (this.searchOnChange = this.searchOnChange.bind(this));
     this.searchOnCancelChange = this.searchOnCancelChange.bind(this);
     this.goCitySelect = this.goCitySelect.bind(this);
+    this.goVersionTestFilght = this.goVersionTestFilght.bind(this);
   }
 
   onTabItemTap() {
@@ -104,11 +110,27 @@ class Index extends Component {
                 );
               }
             } else {
+              that.setState({
+                isLoading: false,
+                allDataHaveStopLoading: true,
+              });
               Toast.fail({
-                content: "定位失败，请刷新当前页面或退出App重新进入！",
+                content:
+                  "定位失败，系统将默认查取西安用户数据。如需定位，请检查是否开启该APP定位权限！",
                 duration: 2,
               });
-              that.setState({ isLoading: false, allDataHaveStopLoading: true });
+              that.setState(
+                {
+                  city: "西安",
+                  latitude: "34.343147",
+                  longitude: "108.939621",
+                },
+                () => {
+                  that.refreshData();
+                  that.getUserLists();
+                  that.updateCity();
+                }
+              );
               Taro.getStorage({
                 key: "userId",
                 complete: (useridRes) => {
@@ -129,10 +151,17 @@ class Index extends Component {
           },
         });
       },
+
       error: function (error) {
         console.log(error);
       },
     });
+  }
+
+  goVersionTestFilght() {
+    this.setState({ tipsVersionModal: false });
+    let url = "https://testflight.apple.com/join/UCRgIvYz";
+    Linking.openURL(url);
   }
 
   componentDidShow() {
@@ -200,13 +229,47 @@ class Index extends Component {
             userName: searchValue,
           })
             .then((data) => {
-              if (data.statusCode === 200) {
+              if (this.state.isOneBeginApp) {
+                versionApi().then((versionData) => {
+                  if (versionData.data.status == 200) {
+                    const newVersion =
+                      versionData.data.data.records[0]?.versionNumber;
+                    console.log("newVersion", newVersion);
+                    if (Number(appNumberVersion) < Number(newVersion)) {
+                      this.setState({
+                        haveNewVersionContent:
+                          versionData.data.data.records[0]?.updateContent,
+                        tipsVersionModal: true,
+                        isOneBeginApp: false,
+                      });
+                    }
+                  } else {
+                    Toast.fail({
+                      content: versionData.data.msg,
+                      duration: 1,
+                    });
+                  }
+                });
+              }
+
+              if (data.data.status === 200) {
                 this.setState({ dataArray: data.data.data });
               } else {
-                Toast.fail({
-                  content: data.data.msg,
-                  duration: 2,
-                });
+                if (data.data.msg == "参数错误") {
+                  Toast.fail({
+                    content: data.data.msg,
+                    duration: 2,
+                  });
+                  Taro.clearStorage();
+                  Taro.redirectTo({
+                    url: "/pages/login/index",
+                  });
+                } else {
+                  Toast.fail({
+                    content: data.data.msg,
+                    duration: 2,
+                  });
+                }
               }
             })
             .catch((error) => {
@@ -413,6 +476,21 @@ class Index extends Component {
 
     return (
       <View className="bodyOut">
+        <Modal
+          title={`检测到新版本，更新内容为「${this.state.haveNewVersionContent}」，是否立即更新？`}
+          transparent
+          onClose={() => this.setState({ tipsVersionModal: false })}
+          maskClosable
+          visible={this.state.tipsVersionModal}
+          // closable
+          footer={[
+            {
+              text: "取消",
+              onPress: () => this.setState({ tipsVersionModal: false }),
+            },
+            { text: "立即更新", onPress: this.goVersionTestFilght },
+          ]}
+        ></Modal>
         <View className="topSearch" style={{ height: "13%" }}>
           <View style={{ width: "70%", position: "relative" }}>
             <SearchBar

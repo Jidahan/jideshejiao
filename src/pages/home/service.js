@@ -48,3 +48,18 @@ export const findShareConfig = () => {
     method: "GET",
   });
 };
+
+export const userSetting = (data) => {
+  return Request({
+    url: `/social/app/userSetting`,
+    method: "POST",
+    data,
+  });
+};
+
+export const versionApi = () => {
+  return Request({
+    url: "/social/version/findAllByPage?PageNumber=1&PageSize=1&type=2",
+    method: "GET",
+  });
+};

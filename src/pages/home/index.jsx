@@ -7,6 +7,7 @@ import {
   TouchableHighlight,
   StyleSheet,
   ActionSheetIOS,
+  Linking,
 } from "react-native";
 import { View, Text, Image, ScrollView, Video } from "@tarojs/components";
 import {
@@ -19,6 +20,7 @@ import {
   Flex,
   Modal,
 } from "@ant-design/react-native";
+
 import FastImage from "react-native-fast-image";
 import ImagePicker from "react-native-image-crop-picker";
 import RNFS from "react-native-fs";
@@ -37,6 +39,7 @@ import versonImg from "../../images/verson.png";
 import logoutImg from "../../images/logout.png";
 import deleteWhite from "../../images/deleteWhite.png";
 import dkImg from "../../images/home_dk.png";
+import { appVersion, appNumberVersion } from "../../utils/version";
 
 import {
   personalCenter,
@@ -46,6 +49,8 @@ import {
   switchAuthenticationStatus,
   delUserData,
   findShareConfig,
+  userSetting,
+  versionApi,
 } from "./service";
 import "./index.less";
 
@@ -70,6 +75,9 @@ class Home extends Component {
       username: "",
       loading: false,
       userIdentity: "",
+      haveNewVersion: false,
+      tipsVersionModal: false,
+      haveNewVersionContent: "",
     }),
       (this.copyYqm = this.copyYqm.bind(this));
     this.adviceClick = this.adviceClick.bind(this);
@@ -87,9 +95,29 @@ class Home extends Component {
     this.fetchRefresh = this.fetchRefresh.bind(this);
     this.promoters = this.promoters.bind(this);
     this.addTopRightPhoto = this.addTopRightPhoto.bind(this);
+    this.goTextFlight = this.goTextFlight.bind(this);
+    this.goVersionTestFilght = this.goVersionTestFilght.bind(this);
   }
 
   componentDidMount() {
+    versionApi().then((data) => {
+      if (data.data.status == 200) {
+        const newVersion = data.data.data.records[0]?.versionNumber;
+        console.log("newVersion", newVersion);
+        if (Number(appNumberVersion) < Number(newVersion)) {
+          this.setState({
+            haveNewVersion: true,
+            haveNewVersionContent: data.data.data.records[0]?.updateContent,
+          });
+        }
+      } else {
+        Toast.fail({
+          content: data.data.msg,
+          duration: 1,
+        });
+      }
+    });
+
     this.getUserMessage();
     Taro.eventCenter.on("refershHome", (arg) => {
       if (arg?.status) {
@@ -143,12 +171,25 @@ class Home extends Component {
                   loading: false,
                 });
               } else {
-                Toast.remove(key);
-                Toast.fail({
-                  content: data.data.msg,
-                  duration: 2,
-                });
-                this.setState({ loading: false });
+                if (data.data.msg == "参数错误") {
+                  Toast.remove(key);
+                  Toast.fail({
+                    content: data.data.msg,
+                    duration: 1,
+                  });
+                  this.setState({ loading: false });
+                  Taro.clearStorage();
+                  Taro.redirectTo({
+                    url: "/pages/login/index",
+                  });
+                } else {
+                  Toast.remove(key);
+                  Toast.fail({
+                    content: data.data.msg,
+                    duration: 2,
+                  });
+                  this.setState({ loading: false });
+                }
               }
             })
             .catch((error) => {
@@ -274,6 +315,18 @@ class Home extends Component {
     }
   }
 
+  goVersionTestFilght() {
+    this.setState({ tipsVersionModal: false });
+    let url = "https://testflight.apple.com/join/UCRgIvYz";
+    Linking.openURL(url);
+  }
+
+  goTextFlight() {
+    if (this.state.haveNewVersion) {
+      this.setState({ tipsVersionModal: true });
+    }
+  }
+
   // 上传图片
   uploadHeadImage(tempFilePaths) {
     const identity = this.state.identity;
@@ -308,16 +361,68 @@ class Home extends Component {
               })
               .then((responseData) => {
                 if (responseData.status === 200) {
+                  const {
+                    birthday,
+                    city,
+                    weight,
+                    height,
+                    individualValues,
+                    nickName,
+                    wxAccount,
+                    id,
+                    gender,
+                  } = that.state.userInfo;
+                  const personData = {
+                    birthday,
+                    city,
+                    height,
+                    weight,
+                    individualValues,
+                    nickName,
+                    wxAccount,
+                    id,
+                    gender,
+                    photo: responseData.data.domain + responseData.data.path,
+                  };
+                  userSetting(personData)
+                    .then((data) => {
+                      if (data.data.status === 200) {
+                        Toast.remove(key);
+                        Toast.success({
+                          content: "认证成功",
+                          duration: 1,
+                        });
+                        that.getUserMessage();
+                      } else {
+                        Toast.remove(key);
+                        Toast.fail({
+                          content: "上传认证失败！",
+                          duration: 1,
+                        });
+                      }
+                    })
+                    .catch((error) => {
+                      Toast.remove(key);
+                      Toast.fail({
+                        content: "上传认证失败！",
+                        duration: 1,
+                      });
+                    });
+                } else {
                   Toast.remove(key);
-                  Toast.success({
-                    content: "认证成功",
+                  Toast.fail({
+                    content: responseData.data.msg,
                     duration: 1,
                   });
-                  that.getUserMessage();
                 }
               })
               .catch((error) => {
                 console.error("error", error);
+                Toast.remove(key);
+                Toast.fail({
+                  content: "上传认证失败！",
+                  duration: 1,
+                });
               });
           } else {
             fetch(uploadUrl, {
@@ -344,26 +449,70 @@ class Home extends Component {
                   })
                     .then((personTrueFalsedata) => {
                       if (personTrueFalsedata.data.status === 200) {
-                        Toast.remove(key);
-                        Toast.success({
-                          content: "认证成功",
-                          duration: 1,
-                        });
-                        that.getUserMessage();
+                        const {
+                          birthday,
+                          city,
+                          weight,
+                          height,
+                          individualValues,
+                          nickName,
+                          wxAccount,
+                          id,
+                          gender,
+                        } = that.state.userInfo;
+                        const personData = {
+                          birthday,
+                          city,
+                          height,
+                          weight,
+                          individualValues,
+                          nickName,
+                          wxAccount,
+                          id,
+                          gender,
+                          photo:
+                            responseData.data.domain + responseData.data.path,
+                        };
+                        userSetting(personData)
+                          .then((data) => {
+                            if (data.data.status === 200) {
+                              Toast.remove(key);
+                              Toast.success({
+                                content: "认证成功",
+                                duration: 1,
+                              });
+                              that.getUserMessage();
+                            } else {
+                              Toast.remove(key);
+                              Toast.fail({
+                                content: "上传认证失败！",
+                                duration: 1,
+                              });
+                            }
+                          })
+                          .catch((error) => {
+                            Toast.remove(key);
+                            Toast.fail({
+                              content: "上传认证失败！",
+                              duration: 1,
+                            });
+                          });
                       } else {
                         Toast.remove(key);
                         Toast.fail({
                           content: personTrueFalsedata.data.msg,
-                          duration: 2,
+                          duration: 1,
                         });
                       }
                     })
                     .catch((error) => {
+                      Toast.remove(key);
                       console.error("error", error);
                     });
                 }
               })
               .catch((error) => {
+                Toast.remove(key);
                 console.error("error", error);
               });
           }
@@ -872,7 +1021,7 @@ class Home extends Component {
         style={{
           // flex: 1,
           backgroundColor: "#f5f5f9",
-          marginBottom: 95,
+          marginBottom: 90,
           height: 1,
         }}
         refresherEnabled
@@ -1322,7 +1471,23 @@ class Home extends Component {
 
           <Item
             thumb={<Image src={versonImg} className="iconSizeStyle" />}
-            extra={<Text>V1.0.1</Text>}
+            extra={
+              <View className="versionView" style={{ position: "relative" }}>
+                {this.state.haveNewVersion ? (
+                  <View
+                    className="newVersion"
+                    style={{ position: "absolute", bottom: -8, right: 60 }}
+                  >
+                    new
+                  </View>
+                ) : null}
+
+                <Text style={{ position: "absolute", right: 15, bottom: -8 }}>
+                  V{appVersion}
+                </Text>
+              </View>
+            }
+            onPress={this.goTextFlight}
           >
             当前版本
           </Item>
@@ -1369,6 +1534,21 @@ class Home extends Component {
             { text: "立即认证", onPress: this.goPersonAuthentication },
           ]}
         ></Modal>
+        <Modal
+          title={`新版本更新内容为「${this.state.haveNewVersionContent}」，是否立即更新？`}
+          transparent
+          onClose={() => this.setState({ tipsVersionModal: false })}
+          maskClosable
+          visible={this.state.tipsVersionModal}
+          // closable
+          footer={[
+            {
+              text: "取消",
+              onPress: () => this.setState({ tipsVersionModal: false }),
+            },
+            { text: "立即更新", onPress: this.goVersionTestFilght },
+          ]}
+        ></Modal>
       </ScrollView>
     );
   }
@@ -1377,21 +1557,3 @@ class Home extends Component {
 export default connect(({ userInfo }) => ({
   userInfo,
 }))(Home);
-
-const styles = StyleSheet.create({
-  container: {
-    paddingTop: 60,
-    alignItems: "center",
-  },
-  button: {
-    marginBottom: 30,
-    width: 260,
-    alignItems: "center",
-    backgroundColor: "#2196F3",
-  },
-  buttonText: {
-    textAlign: "center",
-    padding: 20,
-    color: "white",
-  },
-});

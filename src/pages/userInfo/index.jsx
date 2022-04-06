@@ -52,6 +52,7 @@ class Userinfo extends Component {
       userId: "",
       userInfo: "",
       lookUnlockPhotosUrlModal: false,
+      adminUserId: "",
     };
     this.goBack = this.goBack.bind(this);
     this.goMaPhoto = this.goMaPhoto.bind(this);
@@ -67,6 +68,14 @@ class Userinfo extends Component {
   componentDidMount() {
     this.setState({ userId: this.props.route.params.id });
     this.getUserInfo();
+    Taro.getStorage({
+      key: "adminUserId",
+      complete: (res) => {
+        if (res.errMsg === "getStorage:ok") {
+          this.setState({ adminUserId: res.data });
+        }
+      },
+    });
   }
 
   getUserInfo() {
@@ -115,8 +124,9 @@ class Userinfo extends Component {
   goMaPhoto() {
     const {
       userInfo: { unlockPhotos, photos, id },
+      adminUserId,
     } = this.state;
-    if (unlockPhotos === 1) {
+    if (unlockPhotos === 1 || adminUserId == "336") {
       // 跳转详情
       Taro.navigateTo({
         url: `/pages/photoLists/index?userId=${id}`,
@@ -581,7 +591,8 @@ class Userinfo extends Component {
                                 resizeMode={FastImage.resizeMode.cover}
                                 // blurRadius={userInfo.unlockPhotos === 2 ? 10 : 0}
                               ></FastImage>
-                              {userInfo.unlockPhotos === 2 ? (
+                              {userInfo.unlockPhotos === 2 &&
+                              this.state.adminUserId !== "336" ? (
                                 <BlurView
                                   className="absoluteBlurView"
                                   blurType="light"
@@ -697,7 +708,8 @@ class Userinfo extends Component {
               <Item
                 thumb={null}
                 extra={
-                  userInfo.unlockWeChat === 2 ? (
+                  userInfo.unlockWeChat === 2 &&
+                  this.state.adminUserId !== "336" ? (
                     <Text
                       style={{ color: "#592DFF" }}
                       onClick={this.spenMoneyLook}
@@ -738,32 +750,56 @@ class Userinfo extends Component {
               </Text>
             </View>
           </ImageBackground>
-          <ImageBackground
-            source={unlockRightImg}
-            className="cc"
-            style={{
-              height: 50,
-              alignItems: "center",
-              justifyContent: "center",
-              marginLeft: "-10%",
-            }}
-          >
-            <View
-              onClick={
-                userInfo.unlockPhotos === 1 ? null : this.handOkPayPhotos
-              }
+          {this.state.adminUserId == "336" ? (
+            <ImageBackground
+              source={unlockRightImg}
+              className="cc"
               style={{
-                width: "100%",
-                height: "100%",
+                height: 50,
                 alignItems: "center",
                 justifyContent: "center",
+                marginLeft: "-10%",
               }}
             >
-              <Text style={{ fontSize: 18, color: "#FFFFFF" }}>
-                {userInfo.unlockPhotos === 1 ? "已解锁" : "解锁"}
-              </Text>
-            </View>
-          </ImageBackground>
+              <View
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Text style={{ fontSize: 18, color: "#FFFFFF" }}>已认证</Text>
+              </View>
+            </ImageBackground>
+          ) : (
+            <ImageBackground
+              source={unlockRightImg}
+              className="cc"
+              style={{
+                height: 50,
+                alignItems: "center",
+                justifyContent: "center",
+                marginLeft: "-10%",
+              }}
+            >
+              <View
+                onClick={
+                  userInfo.unlockPhotos === 1 ? null : this.handOkPayPhotos
+                }
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Text style={{ fontSize: 18, color: "#FFFFFF" }}>
+                  {userInfo.unlockPhotos === 1 ? "已解锁" : "解锁"}
+                </Text>
+              </View>
+            </ImageBackground>
+          )}
         </View>
 
         <Modal

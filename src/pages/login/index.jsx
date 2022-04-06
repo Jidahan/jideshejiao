@@ -80,6 +80,10 @@ class Login extends Component {
               key: "userIdentity",
               data: res.data.data.userIdentity,
             });
+            Taro.setStorage({
+              key: "adminUserId",
+              data: res.data.data.userId,
+            });
             Toast.remove(key);
             if (res.data.data.newUser === 1) {
               Taro.navigateTo({
@@ -148,6 +152,10 @@ class Login extends Component {
                 key: "userIdentity",
                 data: res.data.data.userIdentity,
               });
+              Taro.setStorage({
+                key: "adminUserId",
+                data: res.data.data.userId,
+              });
               Toast.remove(key);
               if (res.data.data.newUser === 1) {
                 Taro.navigateTo({
@@ -192,6 +200,10 @@ class Login extends Component {
               Taro.setStorage({
                 key: "userIdentity",
                 data: res.data.data.userIdentity,
+              });
+              Taro.setStorage({
+                key: "adminUserId",
+                data: res.data.data.userId,
               });
               Toast.remove(key);
               Taro.setStorage({
