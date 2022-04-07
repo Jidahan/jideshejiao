@@ -3,6 +3,8 @@ export default {
     "pages/index/index",
     "pages/focus/index",
     "pages/home/index",
+    "pages/matchPerson/index",
+    "pages/matchMessage/index",
     "pages/home/components/advicePage/index",
     "pages/home/components/personInfoPage/index",
     "pages/home/components/historyVisit/index",

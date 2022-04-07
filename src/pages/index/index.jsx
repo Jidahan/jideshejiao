@@ -14,6 +14,7 @@ import { appVersion, appNumberVersion } from "../../utils/version";
 import { appUserList, versionApi } from "./service";
 import PositionImg from "../../images/position.png";
 import AdLists from "./components/AdLists";
+import Matching from "./testfilght/testfilght";
 import "./index.less";
 
 class Index extends Component {
@@ -36,6 +37,7 @@ class Index extends Component {
       haveNewVersionContent: "",
       tipsVersionModal: false,
       isOneBeginApp: true,
+      adminUserId: "",
     }),
       (this.searchOnChange = this.searchOnChange.bind(this));
     this.searchOnCancelChange = this.searchOnCancelChange.bind(this);
@@ -54,7 +56,6 @@ class Index extends Component {
     // this.getUserLists();
     // this.refreshData();
     // this.updateCity();
-
     const that = this;
     Taro.getLocation({
       type: "wgs84",
@@ -154,6 +155,14 @@ class Index extends Component {
 
       error: function (error) {
         console.log(error);
+      },
+    });
+    Taro.getStorage({
+      key: "adminUserId",
+      complete: (res) => {
+        if (res.errMsg === "getStorage:ok") {
+          this.setState({ adminUserId: res.data });
+        }
       },
     });
   }
@@ -474,7 +483,7 @@ class Index extends Component {
   render() {
     console.log("this.stata.dataArray", this.state.dataArray);
 
-    return (
+    const listView = (
       <View className="bodyOut">
         <Modal
           title={`检测到新版本，更新内容为「${this.state.haveNewVersionContent}」，是否立即更新？`}
@@ -549,6 +558,10 @@ class Index extends Component {
         </View>
       </View>
     );
+
+    const testfilghtView = <Matching />;
+    console.log("this.state.adminUserId ", this.state.adminUserId);
+    return this.state.adminUserId == "336" ? testfilghtView : listView;
   }
 }
 
