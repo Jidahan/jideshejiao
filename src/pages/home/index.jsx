@@ -150,8 +150,8 @@ class Home extends Component {
   }
 
   getUserMessage() {
-    const key = Toast.loading("加载中...");
-    this.setState({ loading: true });
+    // const key = Toast.loading("加载中...");
+    // this.setState({ loading: true });
     Taro.getStorage({
       key: "userId",
       complete: (res) => {
@@ -159,7 +159,7 @@ class Home extends Component {
           personalCenter(res.data)
             .then((data) => {
               if (data.data.status === 200) {
-                Toast.remove(key);
+                // Toast.remove(key);
 
                 this.setState({
                   userInfo: data.data.data,
@@ -168,37 +168,37 @@ class Home extends Component {
                   tel: data.data.data.tel,
                   username: data.data.data.username,
                   gender: data.data.data.gender,
-                  loading: false,
+                  // loading: false,
                 });
               } else {
                 if (data.data.msg == "参数错误") {
-                  Toast.remove(key);
+                  // Toast.remove(key);
                   Toast.fail({
                     content: data.data.msg,
                     duration: 1,
                   });
-                  this.setState({ loading: false });
+                  // this.setState({ loading: false });
                   Taro.clearStorage();
                   Taro.redirectTo({
                     url: "/pages/login/index",
                   });
                 } else {
-                  Toast.remove(key);
+                  // Toast.remove(key);
                   Toast.fail({
                     content: data.data.msg,
                     duration: 2,
                   });
-                  this.setState({ loading: false });
+                  // this.setState({ loading: false });
                 }
               }
             })
             .catch((error) => {
-              Toast.remove(key);
+              // Toast.remove(key);
               Toast.fail({
                 content: `遇到了错误${error}`,
                 duration: 2,
               });
-              this.setState({ loading: false });
+              // this.setState({ loading: false });
             });
         }
       },

@@ -2,7 +2,12 @@ import { Component } from "react";
 import Taro from "@tarojs/taro";
 import { View, Text, Image } from "@tarojs/components";
 import { Button, WingBlank, InputItem, Toast } from "@ant-design/react-native";
-import { ImageBackground, StyleSheet } from "react-native";
+import {
+  ImageBackground,
+  StyleSheet,
+  Dimensions,
+  Keyboard,
+} from "react-native";
 import { getPhoneSendCode, appLogin } from "./service";
 import bgImg from "../../images/loginbgimg.png";
 import loginlogo from "../../images/loginlogo.png";
@@ -19,6 +24,7 @@ import "./index.less";
 Toast.config({
   duration: 0,
 });
+let ScreenHeight = Dimensions.get("window").height;
 class Login extends Component {
   constructor(props) {
     super(props);
@@ -39,6 +45,7 @@ class Login extends Component {
       passwordLogin: false,
       accountValue: "",
       accountError: false,
+      webViewHeight: ScreenHeight,
     };
     this.loginSubmit = this.loginSubmit.bind(this);
     this.beforeTouristLoginSubmit = this.beforeTouristLoginSubmit.bind(this);
@@ -47,7 +54,29 @@ class Login extends Component {
     this.yzmSubmit = this.yzmSubmit.bind(this);
   }
 
-  componentDidMount() {}
+  componentDidMount() {
+    this.keyboardDidShowListener = Keyboard.addListener(
+      "keyboardDidShow",
+      this._keyboardDidShow.bind(this)
+    );
+    this.keyboardDidHideListener = Keyboard.addListener(
+      "keyboardDidHide",
+      this._keyboardDidHide.bind(this)
+    );
+  }
+
+  componentWillUnmount() {
+    this.keyboardDidShowListener.remove();
+    this.keyboardDidHideListener.remove();
+  }
+
+  _keyboardDidShow(e) {
+    this.setState({ webViewHeight: ScreenHeight - e.endCoordinates.height });
+  }
+
+  _keyboardDidHide(e) {
+    this.setState({ webViewHeight: ScreenHeight });
+  }
 
   loginSubmit() {
     const {
@@ -490,7 +519,7 @@ class Login extends Component {
     );
 
     return (
-      <View style={styles.container}>
+      <View style={{ height: this.state.webViewHeight }}>
         <ImageBackground source={bgImg} style={styles.image}>
           <Text style={styles.loginText}>登录</Text>
           <Image style={styles.loginLogo} src={loginlogo} />

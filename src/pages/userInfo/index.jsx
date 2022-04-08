@@ -280,8 +280,9 @@ class Userinfo extends Component {
   imageClick(url) {
     const {
       userInfo: { unlockPhotos, photos },
+      adminUserId,
     } = this.state;
-    if (unlockPhotos === 1) {
+    if (unlockPhotos === 1 || adminUserId == "336") {
       const userInfoPhotos = this.state.userInfo.photos.filter((item) => {
         return item.type === 1;
       });
