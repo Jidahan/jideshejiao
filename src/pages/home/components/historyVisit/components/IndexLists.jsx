@@ -17,6 +17,7 @@ import "../../index/index.less";
 const IndexLists = (props) => {
   const {
     data: { item },
+    adminUserId,
   } = props;
 
   const click = (id) => {
@@ -29,7 +30,11 @@ const IndexLists = (props) => {
       <View onClick={() => click(item.userId)} key={item.userId}>
         <Card full>
           <Card.Header
-            title={item.nickName + "(" + item.distance + ")"}
+            title={
+              adminUserId == "336"
+                ? item.nickName
+                : item.nickName + "(" + item.distance + ")"
+            }
             thumbStyle={{ width: 30, height: 30 }}
             thumb={`${item.photo}?width=30&height=0`}
             extra=">"

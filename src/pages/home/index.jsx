@@ -78,6 +78,7 @@ class Home extends Component {
       haveNewVersion: false,
       tipsVersionModal: false,
       haveNewVersionContent: "",
+      adminUserId: "",
     }),
       (this.copyYqm = this.copyYqm.bind(this));
     this.adviceClick = this.adviceClick.bind(this);
@@ -100,6 +101,14 @@ class Home extends Component {
   }
 
   componentDidMount() {
+    Taro.getStorage({
+      key: "adminUserId",
+      complete: (res) => {
+        if (res.errMsg === "getStorage:ok") {
+          this.setState({ adminUserId: res.data });
+        }
+      },
+    });
     versionApi().then((data) => {
       if (data.data.status == 200) {
         const newVersion = data.data.data.records[0]?.versionNumber;
@@ -963,7 +972,8 @@ class Home extends Component {
   };
 
   render() {
-    const { imgArray, userInfo, selectSmallImg, isDel, gender } = this.state;
+    const { imgArray, userInfo, selectSmallImg, isDel, gender, adminUserId } =
+      this.state;
     const imgArrayHeight =
       imgArray.length < 5
         ? 90
@@ -1047,9 +1057,12 @@ class Home extends Component {
               />
             </View>
             <Text className="imgOnText">{userInfo.nickName}</Text>
-            <Text className="imgOnTwoText">
-              {userInfo.city} {userInfo.age}岁
-            </Text>
+            {adminUserId == "336" ? null : (
+              <Text className="imgOnTwoText">
+                {userInfo.city} {userInfo.age}岁
+              </Text>
+            )}
+
             <View className="imgArray">
               <ScrollView scrollX>
                 {topScrollViewImg?.map((reward) => {
@@ -1081,13 +1094,15 @@ class Home extends Component {
                 })}
               </ScrollView>
             </View>
-            <View className="bottomText">
-              <Icon name="alert" size="md" color="#efb336" />
-              <Text style={{ color: "white", fontWeight: "bold" }}>
-                全身照越多(至少一张正面俩张侧面),才能被评为
-                {this.state.gender == 2 ? "女神" : "男神"}！
-              </Text>
-            </View>
+            {adminUserId == "336" ? null : (
+              <View className="bottomText">
+                <Icon name="alert" size="md" color="#efb336" />
+                <Text style={{ color: "white", fontWeight: "bold" }}>
+                  全身照越多(至少一张正面俩张侧面),才能被评为
+                  {this.state.gender == 2 ? "女神" : "男神"}！
+                </Text>
+              </View>
+            )}
           </FastImage>
         </View>
         <List style={{ marginTop: 10 }}>
@@ -1098,53 +1113,62 @@ class Home extends Component {
           >
             个人资料
           </Item>
-          <Item
-            arrow="horizontal"
-            thumb={
-              this.state.gender == 2 ? (
-                <Image
-                  src={manImg}
-                  className="iconSizeStyle"
-                  style={{ width: 30, height: 30 }}
-                />
-              ) : (
-                <Image
-                  src={manImg}
-                  className="iconSizeStyle"
-                  style={{ width: 30, height: 30 }}
-                />
-              )
-            }
-            onPress={userInfo.certificationLevel !== 1 ? null : this.personAuth}
-            extra={
-              userInfo.certificationLevel == 1
-                ? "普通用户"
-                : userInfo.certificationLevel == 2
-                ? "待审核"
-                : userInfo.certificationLevel == 3
-                ? "男神"
-                : userInfo.certificationLevel == 4
-                ? "女神"
-                : ""
-            }
-          >
-            {this.state.gender == 2 ? "女神认证" : "男神认证"}
-          </Item>
-          <Item
-            thumb={<Image src={realPersonImg} className="iconSizeStyle" />}
-            onPress={
-              userInfo.personAuthentication === 1
-                ? null
-                : this.goPersonAuthentication
-            }
-            extra={
-              userInfo.personAuthentication === 1 ? "已认证" : "点击进行认证"
-            }
-            arrow="empty"
-            disabled={userInfo.personAuthentication === 1}
-          >
-            真人认证
-          </Item>
+          {adminUserId === "336" ? null : (
+            <View>
+              <Item
+                arrow="horizontal"
+                thumb={
+                  this.state.gender == 2 ? (
+                    <Image
+                      src={manImg}
+                      className="iconSizeStyle"
+                      style={{ width: 30, height: 30 }}
+                    />
+                  ) : (
+                    <Image
+                      src={manImg}
+                      className="iconSizeStyle"
+                      style={{ width: 30, height: 30 }}
+                    />
+                  )
+                }
+                onPress={
+                  userInfo.certificationLevel !== 1 ? null : this.personAuth
+                }
+                extra={
+                  userInfo.certificationLevel == 1
+                    ? "普通用户"
+                    : userInfo.certificationLevel == 2
+                    ? "待审核"
+                    : userInfo.certificationLevel == 3
+                    ? "男神"
+                    : userInfo.certificationLevel == 4
+                    ? "女神"
+                    : ""
+                }
+              >
+                {this.state.gender == 2 ? "女神认证" : "男神认证"}
+              </Item>
+              <Item
+                thumb={<Image src={realPersonImg} className="iconSizeStyle" />}
+                onPress={
+                  userInfo.personAuthentication === 1
+                    ? null
+                    : this.goPersonAuthentication
+                }
+                extra={
+                  userInfo.personAuthentication === 1
+                    ? "已认证"
+                    : "点击进行认证"
+                }
+                arrow="empty"
+                disabled={userInfo.personAuthentication === 1}
+              >
+                真人认证
+              </Item>
+            </View>
+          )}
+
           <WingBlank size="lg">
             <Card>
               <Card.Header
@@ -1404,7 +1428,11 @@ class Home extends Component {
                   </Flex>
                 </WingBlank>
               </Card.Body>
-              <Card.Footer content="上传更多照片，才能吸引异性～" />
+              {adminUserId === "336" ? (
+                <Card.Footer content="" />
+              ) : (
+                <Card.Footer content="上传更多照片，才能吸引异性～" />
+              )}
             </Card>
           </WingBlank>
           <Item

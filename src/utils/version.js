@@ -1,4 +1,4 @@
-const appVersion = "1.5.2";
-const appNumberVersion = "152";
+const appVersion = "1.5.4";
+const appNumberVersion = "154";
 
 export { appVersion, appNumberVersion };

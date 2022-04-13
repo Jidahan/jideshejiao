@@ -20,10 +20,19 @@ class Historyvisit extends PureComponent {
       allDataHaveStopLoading: false,
       userId: "",
       isLoading: false,
+      adminUserId: "",
     };
   }
 
   componentDidMount() {
+    Taro.getStorage({
+      key: "adminUserId",
+      complete: (res) => {
+        if (res.errMsg === "getStorage:ok") {
+          this.setState({ adminUserId: res.data });
+        }
+      },
+    });
     this.getlikeUserLists();
   }
 
@@ -64,7 +73,7 @@ class Historyvisit extends PureComponent {
   _renderItem(data) {
     return (
       <View style={{ marginTop: 10 }}>
-        <IndexLists data={data} />
+        <IndexLists data={data} adminUserId={this.state.adminUserId} />
       </View>
     );
   }

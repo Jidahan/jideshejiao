@@ -91,10 +91,6 @@ const Matchmessage = (props) => {
           />
         </View>
         <View className="headBottomView">
-          <View className="flexRow">
-            <Image src={positionImg} className="positionImg" />
-            <Text>TA距离你{pageData?.distance}</Text>
-          </View>
           <View className="flexRow" style={{ marginTop: 5 }}>
             <Image src={hotImg} className="positionImg" />
             <Text style={{ color: "#ff213b" }}>{pageData?.hotTitle}</Text>

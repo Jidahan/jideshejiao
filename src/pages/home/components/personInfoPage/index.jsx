@@ -37,6 +37,7 @@ class Personinfopage extends Component {
       goPageType: "",
       userId: "",
       gender: "",
+      adminUserId: "",
     };
     this.formSubmit = this.formSubmit.bind(this);
     this.birthdayOnChange = this.birthdayOnChange.bind(this);
@@ -46,6 +47,14 @@ class Personinfopage extends Component {
   }
 
   componentDidMount() {
+    Taro.getStorage({
+      key: "adminUserId",
+      complete: (res) => {
+        if (res.errMsg === "getStorage:ok") {
+          this.setState({ adminUserId: res.data });
+        }
+      },
+    });
     const {
       route: {
         params: { data, type, userId },
@@ -396,6 +405,7 @@ class Personinfopage extends Component {
       sourceUrl = initHeadImg;
     }
     console.log(sourceUrl);
+    const { adminUserId } = this.state;
     return (
       <View
         style={{
@@ -444,105 +454,129 @@ class Personinfopage extends Component {
           >
             昵称
           </Item>
-          <DatePicker
-            value={
-              !this.state.birthdayName ? "" : new Date(this.state.birthdayName)
-            }
-            mode="date"
-            defaultDate={new Date()}
-            minDate={new Date(1900, 7, 6)}
-            maxDate={new Date(2026, 11, 3)}
-            onChange={this.birthdayOnChange}
-            format="YYYY-MM-DD"
-          >
-            <List.Item arrow="horizontal">生日</List.Item>
-          </DatePicker>
-          <Item
-            extra={
-              <TextInput
-                style={{
-                  borderColor: "white",
-                  width: 200,
-                  height: 30,
-                  textAlign: "right",
-                  fontSize: 16,
-                  color: "#767676",
-                }}
-                onChangeText={(text) => this.setState({ height: text })}
-                onBlur={() => this.setState({ height: this.state.height + "" })}
-                value={(this.state.height && this.state.height) || ""}
-                clearButtonMode="while-editing"
-                keyboardAppearance="default"
-                keyboardType="numeric"
-              />
-            }
-            arrow="horizontal"
-          >
-            身高
-          </Item>
-          <Item
-            extra={
-              <TextInput
-                style={{
-                  borderColor: "white",
-                  width: 200,
-                  height: 30,
-                  textAlign: "right",
-                  fontSize: 16,
-                  color: "#767676",
-                }}
-                onChangeText={(text) => this.setState({ weight: text })}
-                onBlur={() => this.setState({ weight: this.state.weight + "" })}
-                value={(this.state.weight && this.state.weight) || ""}
-                clearButtonMode="while-editing"
-                keyboardAppearance="default"
-                keyboardType="numeric"
-              />
-            }
-            arrow="horizontal"
-          >
-            体重
-          </Item>
-          <Item
-            extra={
-              <TextInput
-                style={{
-                  borderColor: "white",
-                  width: 200,
-                  height: 30,
-                  textAlign: "right",
-                  fontSize: 16,
-                  color: "#767676",
-                }}
-                onChangeText={(text) => this.setState({ aidou: text })}
-                onBlur={() => this.setState({ aidou: this.state.aidou + "" })}
-                value={this.state.aidou || ""}
-                clearButtonMode
-                keyboardAppearance="default"
-                keyboardType="numeric"
-              />
-            }
-            arrow="horizontal"
-          >
-            个人价值
-          </Item>
+          {adminUserId == "336" ? null : (
+            <DatePicker
+              value={
+                !this.state.birthdayName
+                  ? ""
+                  : new Date(this.state.birthdayName)
+              }
+              mode="date"
+              defaultDate={new Date()}
+              minDate={new Date(1900, 7, 6)}
+              maxDate={new Date(2026, 11, 3)}
+              onChange={this.birthdayOnChange}
+              format="YYYY-MM-DD"
+            >
+              <List.Item arrow="horizontal">生日</List.Item>
+            </DatePicker>
+          )}
+
+          {adminUserId == "336" ? null : (
+            <Item
+              extra={
+                <TextInput
+                  style={{
+                    borderColor: "white",
+                    width: 200,
+                    height: 30,
+                    textAlign: "right",
+                    fontSize: 16,
+                    color: "#767676",
+                  }}
+                  onChangeText={(text) => this.setState({ height: text })}
+                  onBlur={() =>
+                    this.setState({ height: this.state.height + "" })
+                  }
+                  value={(this.state.height && this.state.height) || ""}
+                  clearButtonMode="while-editing"
+                  keyboardAppearance="default"
+                  keyboardType="numeric"
+                />
+              }
+              arrow="horizontal"
+            >
+              身高
+            </Item>
+          )}
+
+          {adminUserId == "336" ? null : (
+            <Item
+              extra={
+                <TextInput
+                  style={{
+                    borderColor: "white",
+                    width: 200,
+                    height: 30,
+                    textAlign: "right",
+                    fontSize: 16,
+                    color: "#767676",
+                  }}
+                  onChangeText={(text) => this.setState({ weight: text })}
+                  onBlur={() =>
+                    this.setState({ weight: this.state.weight + "" })
+                  }
+                  value={(this.state.weight && this.state.weight) || ""}
+                  clearButtonMode="while-editing"
+                  keyboardAppearance="default"
+                  keyboardType="numeric"
+                />
+              }
+              arrow="horizontal"
+            >
+              体重
+            </Item>
+          )}
+
+          {adminUserId == "336" ? null : (
+            <Item
+              extra={
+                <TextInput
+                  style={{
+                    borderColor: "white",
+                    width: 200,
+                    height: 30,
+                    textAlign: "right",
+                    fontSize: 16,
+                    color: "#767676",
+                  }}
+                  onChangeText={(text) => this.setState({ aidou: text })}
+                  onBlur={() => this.setState({ aidou: this.state.aidou + "" })}
+                  value={this.state.aidou || ""}
+                  clearButtonMode
+                  keyboardAppearance="default"
+                  keyboardType="numeric"
+                />
+              }
+              arrow="horizontal"
+            >
+              个人价值
+            </Item>
+          )}
+
           <Item
             disabled
             extra={this.state.cityName || ""}
             arrow="horizontal"
             onPress={this.goCityPage}
           >
-            常住城市
+            常驻城市
           </Item>
-          <View className="myCode" style={{ justifyContent: "space-between" }}>
-            <View style={{ flexDirection: "row" }}>
-              <View className="mycodeLeft"></View>
-              <Text className="mycodeRight">社交账号</Text>
+          {adminUserId == "336" ? null : (
+            <View
+              className="myCode"
+              style={{ justifyContent: "space-between" }}
+            >
+              <View style={{ flexDirection: "row" }}>
+                <View className="mycodeLeft"></View>
+                <Text className="mycodeRight">社交账号</Text>
+              </View>
+              <Text style={{ color: "red" }}>
+                *虚假账号有被封号风险，请认真填写
+              </Text>
             </View>
-            <Text style={{ color: "red" }}>
-              *虚假账号有被封号风险，请认真填写
-            </Text>
-          </View>
+          )}
+
           <Item
             disabled
             extra={

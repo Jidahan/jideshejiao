@@ -353,7 +353,8 @@ class Userinfo extends Component {
   };
 
   render() {
-    const { evaluationModal, photoImgsModal, userInfo } = this.state;
+    const { evaluationModal, photoImgsModal, userInfo, adminUserId } =
+      this.state;
     const imgArrayHeight =
       userInfo?.photos?.length <= 4
         ? 110
@@ -434,59 +435,65 @@ class Userinfo extends Component {
                       </View>
                     </View>
 
+                    {adminUserId == "336" ? null : (
+                      <View className="row">
+                        <Text style={{ color: "#ffffff" }}>
+                          {userInfo.age}岁
+                        </Text>
+                        <View
+                          style={{
+                            width: 2,
+                            height: 2,
+                            backgroundColor: "white",
+                            borderRadius: 2,
+                          }}
+                          className="point"
+                        ></View>
+                        <Text style={{ color: "#ffffff", marginRight: 5 }}>
+                          {userInfo.constellation}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                </View>
+                {adminUserId == "336" ? null : (
+                  <View
+                    className="row bottomText"
+                    style={{ justifyContent: "space-around" }}
+                  >
                     <View className="row">
-                      <Text style={{ color: "#ffffff" }}>{userInfo.age}岁</Text>
-                      <View
-                        style={{
-                          width: 2,
-                          height: 2,
-                          backgroundColor: "white",
-                          borderRadius: 2,
-                        }}
-                        className="point"
-                      ></View>
-                      <Text style={{ color: "#ffffff", marginRight: 5 }}>
-                        {userInfo.constellation}
+                      {userInfo.personAuthentication === 1 ? (
+                        <Image
+                          src={truePerson}
+                          style={{ width: 100, height: 31 }}
+                        />
+                      ) : null}
+                      {userInfo.gender === 2 ? (
+                        <Image
+                          src={trueWomen}
+                          style={{ width: 100, height: 31, marginLeft: 10 }}
+                        />
+                      ) : (
+                        <Image
+                          src={trueMan}
+                          style={{ width: 100, height: 31, marginLeft: 10 }}
+                        />
+                      )}
+                    </View>
+                    <View className="row">
+                      <Text style={{ color: "#ffffff", marginRight: 10 }}>
+                        {userInfo.city}
+                      </Text>
+                      <Image
+                        src={lookpagePosition}
+                        style={{ width: 20, height: 20 }}
+                      />
+                      <Text style={{ color: "#ffffff" }}>
+                        {userInfo.distance}
                       </Text>
                     </View>
                   </View>
-                </View>
-                <View
-                  className="row bottomText"
-                  style={{ justifyContent: "space-around" }}
-                >
-                  <View className="row">
-                    {userInfo.personAuthentication === 1 ? (
-                      <Image
-                        src={truePerson}
-                        style={{ width: 100, height: 31 }}
-                      />
-                    ) : null}
-                    {userInfo.gender === 2 ? (
-                      <Image
-                        src={trueWomen}
-                        style={{ width: 100, height: 31, marginLeft: 10 }}
-                      />
-                    ) : (
-                      <Image
-                        src={trueMan}
-                        style={{ width: 100, height: 31, marginLeft: 10 }}
-                      />
-                    )}
-                  </View>
-                  <View className="row">
-                    <Text style={{ color: "#ffffff", marginRight: 10 }}>
-                      {userInfo.city}
-                    </Text>
-                    <Image
-                      src={lookpagePosition}
-                      style={{ width: 20, height: 20 }}
-                    />
-                    <Text style={{ color: "#ffffff" }}>
-                      {userInfo.distance}
-                    </Text>
-                  </View>
-                </View>
+                )}
               </FastImage>
             </CoverView>
           </View>
@@ -526,26 +533,31 @@ class Userinfo extends Component {
                 )
               }
             >
-              <View
-                style={{
-                  display: "flex",
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "flex-start",
-                }}
-              >
-                <Image src={goodActionImg} style={{ width: 28, height: 28 }} />
-                <Text style={{ marginLeft: 5, fontSize: 16 }}>
-                  好评: {userInfo.praiseNum}
-                </Text>
-                <Image
-                  src={startImg}
-                  style={{ width: 28, height: 28, marginLeft: 10 }}
-                />
-                <Text style={{ marginLeft: 5, fontSize: 16 }}>
-                  爱豆: {userInfo.individualValues}
-                </Text>
-              </View>
+              {adminUserId === "336" ? null : (
+                <View
+                  style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "flex-start",
+                  }}
+                >
+                  <Image
+                    src={goodActionImg}
+                    style={{ width: 28, height: 28 }}
+                  />
+                  <Text style={{ marginLeft: 5, fontSize: 16 }}>
+                    好评: {userInfo.praiseNum}
+                  </Text>
+                  <Image
+                    src={startImg}
+                    style={{ width: 28, height: 28, marginLeft: 10 }}
+                  />
+                  <Text style={{ marginLeft: 5, fontSize: 16 }}>
+                    爱豆: {userInfo.individualValues}
+                  </Text>
+                </View>
+              )}
             </Item>
             <View className="inlineView"></View>
             <Card>
@@ -687,22 +699,27 @@ class Userinfo extends Component {
             </Card>
             <View className="inlineView"></View>
             <WingBlank size="lg">
-              <Item
-                thumb={null}
-                disabled
-                extra={`${userInfo.height}cm`}
-                arrow="empty"
-              >
-                身高
-              </Item>
-              <Item
-                thumb={null}
-                disabled
-                extra={`${userInfo.weight}kg`}
-                arrow="empty"
-              >
-                体重
-              </Item>
+              {adminUserId == "336" ? null : (
+                <Item
+                  thumb={null}
+                  disabled
+                  extra={`${userInfo.height}cm`}
+                  arrow="empty"
+                >
+                  身高
+                </Item>
+              )}
+              {adminUserId == "336" ? null : (
+                <Item
+                  thumb={null}
+                  disabled
+                  extra={`${userInfo.weight}kg`}
+                  arrow="empty"
+                >
+                  体重
+                </Item>
+              )}
+
               <Item thumb={null} extra={userInfo.city} arrow="empty" disabled>
                 常驻城市
               </Item>

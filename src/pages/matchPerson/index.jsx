@@ -88,10 +88,7 @@ const Matchperson = (props) => {
         className="img"
         resizeMode={FastImage.resizeMode.cover}
       />
-      <View className="flexRow">
-        <Text>{city}</Text>
-        <Text className="userInfoText">{age}岁</Text>
-      </View>
+
       <Text className="flexRow">{nickName}</Text>
       <View className="flexRow">
         <Image src={flowerImg} className="flower" />
